@@ -1,0 +1,27 @@
+name: Modularize Allshield (manual migration only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  modularize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/modular-platform
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Modularize approved build
+        run: python scripts/modularize.py
+      - name: Wire production runtime
+        run: python scripts/fix-runtime.py
+      - name: Validate modular build
+        run: npm test

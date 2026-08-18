@@ -6,7 +6,7 @@ window.ALLSHIELD_CONFIG = {
 };
 
 window.addEventListener("load", () => {
-  const modules = ["./live-platform.js", "./ops-platform.js", "./recruiting-platform.js", "./crm-platform.js", "./owner-control-platform.js", "./comp-user-platform.js", "./delegation-platform.js", "./comp-calculation-ui.js", "./launch-academy.js"];
+  const modules = ["./live-platform.js", "./ops-platform.js", "./recruiting-platform.js", "./crm-platform.js", "./owner-control-platform.js", "./comp-user-platform.js", "./delegation-platform.js", "./comp-calculation-ui.js", "./launch-academy.js", "./academy-exam-ui-v2.js"];
   const loadNext = () => {
     const src = modules.shift();
     if (!src) return;

@@ -1,0 +1,86 @@
+name: Optimize Allshield Assets
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  optimize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Pillow
+        run: python -m pip install --quiet pillow
+      - name: Convert referenced PNG brand assets to WebP
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib, json, re
+
+          root = Path('.')
+          index = root / 'index.html'
+          html = index.read_text(encoding='utf-8')
+          refs = sorted(set(re.findall(r'assets/[A-Za-z0-9._-]+\.png', html)))
+          changed = False
+          optimized = []
+
+          for ref in refs:
+              src = root / ref
+              if not src.exists():
+                  continue
+              dst = src.with_suffix('.webp')
+              with Image.open(src) as im:
+                  im.convert('RGBA').save(dst, 'WEBP', quality=90, method=6, exact=True)
+              html = html.replace(ref, dst.as_posix())
+              optimized.append({
+                  'source': ref,
+                  'source_bytes': src.stat().st_size,
+                  'output': dst.as_posix(),
+                  'output_bytes': dst.stat().st_size,
+                  'sha256': hashlib.sha256(dst.read_bytes()).hexdigest()
+              })
+              src.unlink()
+              changed = True
+
+          # Remove orphaned old PNG brand assets no longer referenced anywhere.
+          browser_text = html
+          for js in ['app.js','team-accounts.js','styles.css']:
+              p = root / js
+              if p.exists():
+                  browser_text += '\n' + p.read_text(encoding='utf-8', errors='ignore')
+          for png in (root / 'assets').glob('brand-*.png'):
+              if png.as_posix() not in browser_text:
+                  png.unlink()
+                  changed = True
+
+          if changed:
+              index.write_text(html, encoding='utf-8')
+              (root/'assets'/'optimization-report.json').write_text(json.dumps(optimized, indent=2)+'\n', encoding='utf-8')
+
+          print(json.dumps(optimized, indent=2))
+          PY
+      - name: Validate browser bundle
+        run: npm test
+      - name: Commit optimized assets
+        run: |
+          if git diff --quiet && [ -z "$(git status --porcelain)" ]; then
+            echo "No asset changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html assets .github/workflows/optimize-assets.yml
+          git commit -m "Optimize Allshield brand assets [skip ci]"
+          git push

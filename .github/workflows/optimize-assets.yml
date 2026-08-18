@@ -30,11 +30,12 @@ jobs:
           import hashlib, json, re
 
           root = Path('.')
-          index = root / 'index.html'
-          html = index.read_text(encoding='utf-8')
-          refs = sorted(set(re.findall(r'assets/[A-Za-z0-9._-]+\.png', html)))
-          changed = False
+          browser_files = [root/'index.html', root/'app.js', root/'team-accounts.js', root/'styles.css']
+          texts = {p: p.read_text(encoding='utf-8', errors='ignore') for p in browser_files if p.exists()}
+          combined = '\n'.join(texts.values())
+          refs = sorted(set(re.findall(r'assets/[A-Za-z0-9._-]+\.png', combined)))
           optimized = []
+          changed = False
 
           for ref in refs:
               src = root / ref
@@ -43,7 +44,9 @@ jobs:
               dst = src.with_suffix('.webp')
               with Image.open(src) as im:
                   im.convert('RGBA').save(dst, 'WEBP', quality=90, method=6, exact=True)
-              html = html.replace(ref, dst.as_posix())
+              for p, text in list(texts.items()):
+                  if ref in text:
+                      texts[p] = text.replace(ref, dst.as_posix())
               optimized.append({
                   'source': ref,
                   'source_bytes': src.stat().st_size,
@@ -54,19 +57,17 @@ jobs:
               src.unlink()
               changed = True
 
-          # Remove orphaned old PNG brand assets no longer referenced anywhere.
-          browser_text = html
-          for js in ['app.js','team-accounts.js','styles.css']:
-              p = root / js
-              if p.exists():
-                  browser_text += '\n' + p.read_text(encoding='utf-8', errors='ignore')
-          for png in (root / 'assets').glob('brand-*.png'):
-              if png.as_posix() not in browser_text:
+          for p, text in texts.items():
+              p.write_text(text, encoding='utf-8')
+
+          # Delete any leftover orphaned PNG brand assets.
+          combined_after = '\n'.join(texts.values())
+          for png in (root/'assets').glob('brand-*.png'):
+              if png.as_posix() not in combined_after:
                   png.unlink()
                   changed = True
 
           if changed:
-              index.write_text(html, encoding='utf-8')
               (root/'assets'/'optimization-report.json').write_text(json.dumps(optimized, indent=2)+'\n', encoding='utf-8')
 
           print(json.dumps(optimized, indent=2))
@@ -81,6 +82,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html assets .github/workflows/optimize-assets.yml
-          git commit -m "Optimize Allshield brand assets [skip ci]"
+          git add index.html app.js team-accounts.js styles.css assets .github/workflows/optimize-assets.yml
+          git commit -m "Optimize remaining Allshield brand assets [skip ci]"
           git push

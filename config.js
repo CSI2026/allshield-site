@@ -4,3 +4,10 @@ window.ALLSHIELD_CONFIG = {
   DEMO_FALLBACK: false,
   INTERNAL_EMAIL_DOMAIN: "allshield.internal"
 };
+
+window.addEventListener("DOMContentLoaded", () => {
+  const script = document.createElement("script");
+  script.src = "./live-platform.js";
+  script.defer = true;
+  document.body.appendChild(script);
+});

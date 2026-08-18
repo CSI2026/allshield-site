@@ -5,6 +5,9 @@ on:
     branches: [refactor/modular-platform]
     paths:
       - scripts/modularize.py
+      - .github/workflows/modularize.yml
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -1,13 +1,6 @@
-name: Modularize Allshield
+name: Modularize Allshield (manual migration only)
 
 on:
-  push:
-    branches: [refactor/modular-platform]
-    paths:
-      - scripts/**
-      - .github/workflows/modularize.yml
-  pull_request:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -32,17 +25,3 @@ jobs:
         run: python scripts/fix-runtime.py
       - name: Validate modular build
         run: npm test
-      - name: Commit generated structure
-        run: |
-          git config user.name "allshield-build-bot"
-          git config user.email "actions@users.noreply.github.com"
-          # This workflow's token can write repository contents but cannot create a new workflow file.
-          # validate.yml is added separately through the connected GitHub app after this migration.
-          rm -f .github/workflows/validate.yml
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No generated changes to commit."
-          else
-            git commit -m "Modularize Allshield platform and extract assets"
-            git push origin HEAD:refactor/modular-platform
-          fi

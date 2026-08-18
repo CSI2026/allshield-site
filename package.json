@@ -3,6 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node tests/static-check.mjs && node --check app.js && node --check backend.js && node --check team-accounts.js && node --check live-platform.js && node --check ops-platform.js && node --check recruiting-platform.js && node --check crm-platform.js && node --check owner-control-platform.js && node --check comp-user-platform.js"
+    "test": "node tests/static-check.mjs && node --check app.js && node --check backend.js && node --check team-accounts.js && node --check live-platform.js && node --check ops-platform.js && node --check recruiting-platform.js && node --check crm-platform.js && node --check owner-control-platform.js && node --check comp-user-platform.js && node --check delegation-platform.js"
   }
 }

@@ -4,7 +4,7 @@ on:
   push:
     branches: [refactor/modular-platform]
     paths:
-      - scripts/modularize.py
+      - scripts/**
       - .github/workflows/modularize.yml
   pull_request:
     branches: [main]
@@ -28,6 +28,8 @@ jobs:
           node-version: '22'
       - name: Modularize approved build
         run: python scripts/modularize.py
+      - name: Wire production runtime
+        run: python scripts/fix-runtime.py
       - name: Validate modular build
         run: npm test
       - name: Commit generated structure

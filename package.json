@@ -3,6 +3,6 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "test": "node tests/static-check.mjs && node --check app.js && node --check backend.js && node --check team-accounts.js && node --check live-platform.js"
+    "test": "node tests/static-check.mjs && node --check app.js && node --check backend.js && node --check team-accounts.js && node --check live-platform.js && node --check ops-platform.js"
   }
 }

@@ -47,6 +47,8 @@ Deno.serve(async(req:Request)=>{
     const {error:onboardingError}=await admin.from("onboarding_progress").upsert(rows,{onConflict:"user_id,step_key"});
     if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
     if(residentState){const {error:licenseError}=await admin.from("user_state_licenses").upsert({user_id:created.user.id,state_code:residentState,license_type:"life_health",is_resident:true,status:"studying",readiness_percent:0,metadata:{}},{onConflict:"user_id,state_code,license_type"});if(licenseError){await admin.auth.admin.deleteUser(created.user.id);return json({error:licenseError.message},400)}}
+    const {data:foundation}=await admin.from("courses").select("id").eq("title","Allshield Life & Health Foundations").eq("version",1).eq("status","published").maybeSingle();
+    if(foundation){const {error:assignError}=await admin.from("course_assignments").insert({user_id:created.user.id,course_id:foundation.id,assigned_by:actor.id,progress_percent:0});if(assignError){await admin.auth.admin.deleteUser(created.user.id);return json({error:assignError.message},400)}}
    }
    await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_created",object_type:"profile",object_id:created.user.id,details:{username,role,status,resident_state:residentState}});
    return json({ok:true,user_id:created.user.id,username,role,status});

@@ -1,3 +1,4 @@
+
 (() => {
   const cfg = window.ALLSHIELD_CONFIG || {};
   const configured =
@@ -116,17 +117,75 @@
     };
   }
 
+  function setPortalStat(portalSelector, label, value) {
+    document.querySelectorAll(`${portalSelector} .stat`).forEach(card => {
+      const cardLabel = card.querySelector(".label")?.textContent?.trim();
+      if (cardLabel === label) {
+        const valueEl = card.querySelector(".value");
+        if (valueEl) valueEl.textContent = String(value);
+      }
+    });
+  }
+
   async function loadAdminDashboard() {
     if (!sb) return;
-    const { data } = await sb
-      .from("profiles")
-      .select("id,first_name,last_name,role,status,resident_state,manager_id")
-      .order("last_name");
-    window.allshieldAdminData = data || [];
+
+    const [profilesResult, attemptsResult] = await Promise.all([
+      sb.from("profiles")
+        .select("id,first_name,last_name,role,status,resident_state,manager_id")
+        .order("last_name"),
+      sb.from("exam_attempts")
+        .select("score_percent")
+        .order("created_at", { ascending: false })
+        .limit(500)
+    ]);
+
+    const profiles = profilesResult.data || [];
+    const attempts = attemptsResult.data || [];
+    window.allshieldAdminData = profiles;
+
+    const salesRoles = new Set(["agent", "team_lead", "manager"]);
+    const activeAgents = profiles.filter(p => salesRoles.has(p.role) && p.status === "active").length;
+    const onboarding = profiles.filter(p => p.status === "onboarding").length;
+    const invited = profiles.filter(p => p.status === "invited").length;
+    const scored = attempts
+      .map(a => Number(a.score_percent))
+      .filter(Number.isFinite);
+    const avgScore = scored.length
+      ? `${Math.round(scored.reduce((sum, score) => sum + score, 0) / scored.length)}%`
+      : "—";
+
+    setPortalStat("#adminPortal", "Active Agents", activeAgents);
+    setPortalStat("#adminPortal", "In Onboarding", onboarding);
+    setPortalStat("#adminPortal", "Ready to Activate", invited);
+    setPortalStat("#adminPortal", "Avg. Test Score", avgScore);
   }
 
   async function loadOwnerDashboard() {
+    if (!sb) return;
     await loadAdminDashboard();
+
+    const [profilesResult, licensesResult] = await Promise.all([
+      sb.from("profiles").select("id,role,status"),
+      sb.from("user_state_licenses").select("state_code,status")
+    ]);
+
+    if (profilesResult.error || licensesResult.error) {
+      console.warn("Owner metrics could not be fully refreshed.", profilesResult.error || licensesResult.error);
+      setPortalStat("#ownerPortal", "Platform Health", "CHECK");
+      return;
+    }
+
+    const profiles = profilesResult.data || [];
+    const licenses = licensesResult.data || [];
+    const salesRoles = new Set(["agent", "team_lead", "manager"]);
+    const activeAgents = profiles.filter(p => salesRoles.has(p.role) && p.status === "active").length;
+    const states = new Set(licenses.map(row => String(row.state_code || "").trim()).filter(Boolean));
+
+    setPortalStat("#ownerPortal", "Active Agents", activeAgents);
+    setPortalStat("#ownerPortal", "States Enabled", states.size);
+    setPortalStat("#ownerPortal", "Licensing Tracks", licenses.length);
+    setPortalStat("#ownerPortal", "Platform Health", "LIVE");
   }
 
   window.allshieldSaveOnboardingStep = async function(stepKey, completed, metadata={}) {

@@ -1,0 +1,48 @@
+{
+  "index_bytes": 28351,
+  "styles_bytes": 41511,
+  "app_bytes": 111735,
+  "team_accounts_bytes": 6870,
+  "assets": [
+    {
+      "name": "brand-3622b3c2c7c4.png",
+      "bytes": 217459,
+      "sha256": "3622b3c2c7c4cfb07523bcda7ee8c1cac6a0dcfc60fdc57115494236f8a3e6ef"
+    },
+    {
+      "name": "brand-9aa0ec99b3b0.png",
+      "bytes": 223164,
+      "sha256": "9aa0ec99b3b065ed46e8812c0480bfdb985566b92797f34712a29e1ad780edbb"
+    },
+    {
+      "name": "brand-6553d9469f9e.png",
+      "bytes": 153528,
+      "sha256": "6553d9469f9e6d3e55020d36c80142c97b08cdac63293ca3015cb11080f2b15e"
+    },
+    {
+      "name": "brand-99555cae3763.png",
+      "bytes": 146995,
+      "sha256": "99555cae376376404f878e454f7d4149f60c3c6e9dea202efa09315c52959ecd"
+    },
+    {
+      "name": "brand-3b28c3fa225d.png",
+      "bytes": 1557628,
+      "sha256": "3b28c3fa225d2ddcc8f753d9129d4e38bea0ebbfd34d0775e8bce050590bd09b"
+    },
+    {
+      "name": "brand-914a23072410.png",
+      "bytes": 832399,
+      "sha256": "914a230724102d5f4426c13bc3d9f604219ca6d01ddad9aca87cae81708d0d13"
+    },
+    {
+      "name": "brand-9c4aea9181ac.png",
+      "bytes": 815279,
+      "sha256": "9c4aea9181ac4d15c46e1be50b459c3267317d00af2849a1d4c919ed21bd5e25"
+    },
+    {
+      "name": "brand-a5d124700d54.png",
+      "bytes": 151178,
+      "sha256": "a5d124700d540d2dec172449d6e7399f07caa157a9c695b0648c7389e4ae7192"
+    }
+  ]
+}

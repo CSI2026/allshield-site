@@ -6,7 +6,7 @@ window.ALLSHIELD_CONFIG = {
 };
 
 window.addEventListener("load", () => {
-  const modules = ["./live-platform.js", "./ops-platform.js", "./recruiting-platform.js"];
+  const modules = ["./live-platform.js", "./ops-platform.js", "./recruiting-platform.js", "./crm-platform.js"];
   const loadNext = () => {
     const src = modules.shift();
     if (!src) return;

@@ -1,0 +1,40 @@
+name: Modularize Allshield
+
+on:
+  push:
+    branches: [refactor/modular-platform]
+    paths:
+      - scripts/modularize.py
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  modularize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refactor/modular-platform
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Modularize approved build
+        run: python scripts/modularize.py
+      - name: Validate modular build
+        run: npm test
+      - name: Commit generated structure
+        run: |
+          git config user.name "allshield-build-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No generated changes to commit."
+          else
+            git commit -m "Modularize Allshield platform and extract assets"
+            git push origin HEAD:refactor/modular-platform
+          fi

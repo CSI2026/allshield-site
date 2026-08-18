@@ -1,0 +1,1 @@
+create policy contract_versions_published_read on public.contract_plan_versions for select to authenticated using (status='published');

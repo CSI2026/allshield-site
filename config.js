@@ -5,9 +5,16 @@ window.ALLSHIELD_CONFIG = {
   INTERNAL_EMAIL_DOMAIN: "allshield.internal"
 };
 
-window.addEventListener("DOMContentLoaded", () => {
-  const script = document.createElement("script");
-  script.src = "./live-platform.js";
-  script.defer = true;
-  document.body.appendChild(script);
+window.addEventListener("load", () => {
+  const modules = ["./live-platform.js", "./ops-platform.js"];
+  const loadNext = () => {
+    const src = modules.shift();
+    if (!src) return;
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = loadNext;
+    script.onerror = () => console.error("Unable to load Allshield module:", src);
+    document.body.appendChild(script);
+  };
+  loadNext();
 });

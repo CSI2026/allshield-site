@@ -1,37 +1,23 @@
 [
   {
-    "source": "assets/brand-3622b3c2c7c4.png",
-    "source_bytes": 217459,
-    "output": "assets/brand-3622b3c2c7c4.webp",
-    "output_bytes": 26722,
-    "sha256": "8084c4db47d129d039fe2dbeef5a47c7ec3bc18caaf017796fc09635bef697cd"
+    "source": "assets/brand-914a23072410.png",
+    "source_bytes": 832399,
+    "output": "assets/brand-914a23072410.webp",
+    "output_bytes": 207612,
+    "sha256": "5158c88b69d74a8031dcb468cac0732e90aaed72c724a84fce5c599dbb82316c"
   },
   {
-    "source": "assets/brand-3b28c3fa225d.png",
-    "source_bytes": 1557628,
-    "output": "assets/brand-3b28c3fa225d.webp",
-    "output_bytes": 315002,
-    "sha256": "93ff8452f2f3819e29a22a6e9e042f9f72103181a8cece5a8500702becf1ed38"
+    "source": "assets/brand-9c4aea9181ac.png",
+    "source_bytes": 815279,
+    "output": "assets/brand-9c4aea9181ac.webp",
+    "output_bytes": 148354,
+    "sha256": "4bf0256d66fd61a238fa94d34ba1c82b1be88b5e36023b4b83d7a9902a16a82a"
   },
   {
-    "source": "assets/brand-6553d9469f9e.png",
-    "source_bytes": 153528,
-    "output": "assets/brand-6553d9469f9e.webp",
-    "output_bytes": 18900,
-    "sha256": "57086902c78b5b2bd8d5df7ea151d0f2e6543eea487fa78fdf05bca56d122017"
-  },
-  {
-    "source": "assets/brand-99555cae3763.png",
-    "source_bytes": 146995,
-    "output": "assets/brand-99555cae3763.webp",
-    "output_bytes": 18886,
-    "sha256": "46a408e9363f16dbdb4ac8c6be5ec09af8fd62bec102c550ba1055d05ce8b766"
-  },
-  {
-    "source": "assets/brand-9aa0ec99b3b0.png",
-    "source_bytes": 223164,
-    "output": "assets/brand-9aa0ec99b3b0.webp",
-    "output_bytes": 26792,
-    "sha256": "d76428186c38decde64a1e35a1f1b0e253901732914692d80647b48f27934c3f"
+    "source": "assets/brand-a5d124700d54.png",
+    "source_bytes": 151178,
+    "output": "assets/brand-a5d124700d54.webp",
+    "output_bytes": 48236,
+    "sha256": "53c9a4d594f2c9804a050590151d2f802a9d5d31e1ea4681c036f9ddcc2e6165"
   }
 ]

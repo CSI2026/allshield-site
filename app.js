@@ -297,15 +297,15 @@ const careerObserver=new IntersectionObserver(entries=>{
 ownerViews.files=`<div class="dashboard-head"><div><div class="kicker">OWNER FILE VAULT</div><h2>Your controlled company asset library.</h2><p>Private owner-level access to master logos, legal files, operating documents and future company assets.</p></div><button class="btn btn-primary" onclick="toast('Owner file upload opened in demo.')">Upload File</button></div>
 <div class="folderbar"><div class="foldericon">▣</div><div><strong>Allshield Logo</strong><small style="display:block;color:#7f93aa;margin-top:3px">Brand Assets / Owner Access</small></div></div>
 <div class="filevault-grid"><div class="filevault-card">
-      <div class="filevault-preview"><img src="assets/brand-914a23072410.png" alt="Full Vertical Logo"></div>
+      <div class="filevault-preview"><img src="assets/brand-914a23072410.webp" alt="Full Vertical Logo"></div>
       <h4>Full Vertical Logo</h4><p>Complete logo lockup for approved full-brand applications.</p>
       <div class="row-actions"><button class="tiny-btn" onclick="toast('Asset preview opened.')">Preview</button><button class="tiny-btn" onclick="toast('Production download will come from secure Owner Storage.')">Download</button></div>
     </div><div class="filevault-card">
-      <div class="filevault-preview"><img src="assets/brand-9c4aea9181ac.png" alt="Shield Only"></div>
+      <div class="filevault-preview"><img src="assets/brand-9c4aea9181ac.webp" alt="Shield Only"></div>
       <h4>Shield Only</h4><p>Armor mark for pins, hats, favicon, app icon, recognition and merchandise.</p>
       <div class="row-actions"><button class="tiny-btn" onclick="toast('Asset preview opened.')">Preview</button><button class="tiny-btn" onclick="toast('Production download will come from secure Owner Storage.')">Download</button></div>
     </div><div class="filevault-card">
-      <div class="filevault-preview"><img src="assets/brand-a5d124700d54.png" alt="Silver Wordmark Only"></div>
+      <div class="filevault-preview"><img src="assets/brand-a5d124700d54.webp" alt="Silver Wordmark Only"></div>
       <h4>Silver Wordmark Only</h4><p>ALLSHIELD / INSURANCE GROUP wordmark for independent brand applications.</p>
       <div class="row-actions"><button class="tiny-btn" onclick="toast('Asset preview opened.')">Preview</button><button class="tiny-btn" onclick="toast('Production download will come from secure Owner Storage.')">Download</button></div>
     </div></div>

@@ -28,6 +28,7 @@ window.addEventListener("load", () => {
     "./ai-live-ui.js",
     "./brand-normalizer.js",
     "./production-hardening.js",
+    "./build-history-ui.js",
     "./production-health.js"
   ];
   const loadNext = () => {

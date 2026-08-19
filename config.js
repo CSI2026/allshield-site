@@ -9,6 +9,7 @@ window.addEventListener("load", () => {
   const modules = [
     "./view-registry-bridge.js",
     "./support-context.js",
+    "./build-info.js",
     "./live-platform.js",
     "./ops-platform.js",
     "./recruiting-platform.js",

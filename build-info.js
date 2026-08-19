@@ -1,8 +1,8 @@
 (() => {
   const BUILD = {
-    number: 'B2026.08.19.002',
-    label: 'Live Agent Operations & Build Tracking',
-    released_at: '2026-08-19T12:15:00Z',
+    number: 'B2026.08.19.003',
+    label: 'Full Owner Support & Live Executive Dashboards',
+    released_at: '2026-08-19T12:40:00Z',
     channel: 'production'
   };
   window.ALLSHIELD_BUILD = BUILD;

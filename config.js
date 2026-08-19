@@ -21,6 +21,7 @@ window.addEventListener("load", () => {
     "./finance-import-ui.js",
     "./owner-view-as.js",
     "./owner-testing-overview.js",
+    "./social-live-ui.js",
     "./ai-live-ui.js",
     "./brand-normalizer.js"
   ];

@@ -1,5 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
-const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","live-platform.js","ops-platform.js","recruiting-platform.js","crm-platform.js","owner-control-platform.js","comp-user-platform.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","production-health.js"];
+const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","view-registry-bridge.js","live-platform.js","ops-platform.js","recruiting-platform.js","crm-platform.js","owner-control-platform.js","comp-user-platform.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","production-health.js"];
 for (const file of required) await readFile(file);
 for (const file of required) {
   const text = await readFile(file, "utf8");
@@ -13,9 +13,12 @@ for (const ref of ["./styles.css","./app.js","./backend.js","./config.js","./tea
 }
 if (!html.includes("Team Accounts")) throw new Error("Owner Team Accounts navigation is missing.");
 const config = await readFile("config.js", "utf8");
-for (const ref of ["launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","production-health.js"]) {
+for (const ref of ["view-registry-bridge.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","production-health.js"]) {
   if (!config.includes(ref)) throw new Error(`Production module is not loaded: ${ref}`);
 }
+if (config.indexOf('view-registry-bridge.js') > config.indexOf('live-platform.js')) throw new Error('View registry bridge must load before production modules.');
+const bridge = await readFile("view-registry-bridge.js","utf8");
+for (const marker of ["window.agentViews = agentViews","window.adminViews = adminViews","window.ownerViews = ownerViews","__allshieldViewRegistryReady"]) if(!bridge.includes(marker)) throw new Error(`View registry bridge marker missing: ${marker}`);
 const viewAs = await readFile("owner-view-as.js","utf8");
 if (!viewAs.includes("View As") || !viewAs.includes("exam_attempts") || !viewAs.includes("marketplace_certifications")) throw new Error("Owner View As support mode is incomplete.");
 const testing = await readFile("owner-testing-overview.js","utf8");
@@ -32,4 +35,4 @@ const health = await readFile("production-health.js","utf8");
 for (const marker of ["GA / TX / FL / TN Academy","mail_sync_runs","ai-provider-status","Owner View As","Approved logo"]) if(!health.includes(marker)) throw new Error(`Production health marker missing: ${marker}`);
 const assets = (await readdir("assets")).filter(name => name !== "manifest.json");
 if (!assets.includes("brand-914a23072410.webp")) throw new Error("Approved logo asset is missing.");
-console.log(`Static validation passed: ${assets.length} image assets, production modules loaded, Owner testing/View As/social/AI/brand/system-health enforcement present, no embedded images or browser secrets.`);
+console.log(`Static validation passed: ${assets.length} image assets, portal view registry bridged, production modules loaded, Owner testing/View As/social/AI/brand/system-health enforcement present, no embedded images or browser secrets.`);

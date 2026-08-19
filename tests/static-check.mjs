@@ -1,5 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
-const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","live-platform.js","ops-platform.js","recruiting-platform.js","crm-platform.js","owner-control-platform.js","comp-user-platform.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js"];
+const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","live-platform.js","ops-platform.js","recruiting-platform.js","crm-platform.js","owner-control-platform.js","comp-user-platform.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js"];
 for (const file of required) await readFile(file);
 for (const file of required) {
   const text = await readFile(file, "utf8");
@@ -13,7 +13,7 @@ for (const ref of ["./styles.css","./app.js","./backend.js","./config.js","./tea
 }
 if (!html.includes("Team Accounts")) throw new Error("Owner Team Accounts navigation is missing.");
 const config = await readFile("config.js", "utf8");
-for (const ref of ["launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js"]) {
+for (const ref of ["launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js"]) {
   if (!config.includes(ref)) throw new Error(`Production module is not loaded: ${ref}`);
 }
 const assets = (await readdir("assets")).filter(name => name !== "manifest.json");

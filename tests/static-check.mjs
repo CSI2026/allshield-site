@@ -27,7 +27,7 @@ for(const marker of ["loadLiveAgentDashboard","loadAgentPerformance","loadAgentA
 const opsSupport=await readFile("support-ops-overrides.js","utf8");
 for(const marker of ["loadLiveMessages","sendLiveMessage","joinLiveMeeting","loadLiveDocuments","signLiveDocument","recordOwnerSupportAction"]) if(!opsSupport.includes(marker)) throw new Error(`Support-aware ops marker missing: ${marker}`);
 const build = await readFile("build-info.js","utf8");
-if(!build.includes("B2026.08.19.001") || !build.includes("allshieldBuildBadge")) throw new Error("Visible build identification is incomplete.");
+if(!build.includes("B2026.08.19.002") || !build.includes("allshieldBuildBadge")) throw new Error("Visible build identification is incomplete.");
 const builds = await readFile("build-history-ui.js","utf8");
 if(!builds.includes("build_history") || !builds.includes("Build History")) throw new Error("Owner build history UI is incomplete.");
 const testing = await readFile("owner-testing-overview.js","utf8");
@@ -41,7 +41,7 @@ if (!brand.includes("brand-914a23072410.webp") || !brand.includes("MutationObser
 const hardening = await readFile("production-hardening.js","utf8");
 for (const marker of ["app_settings","owner-vault","media_assets"]) if(!hardening.includes(marker)) throw new Error(`Production hardening marker missing: ${marker}`);
 const health = await readFile("production-health.js","utf8");
-for (const marker of ["GA / TX / FL / TN Academy","mail_sync_runs","ai-provider-status","Owner View As","Approved logo"]) if(!health.includes(marker)) throw new Error(`Production health marker missing: ${marker}`);
+for (const marker of ["GA / TX / FL / TN Academy","mail_sync_runs","ai-provider-status","Owner View As","Approved logo","Build identifier"]) if(!health.includes(marker)) throw new Error(`Production health marker missing: ${marker}`);
 const assets = (await readdir("assets")).filter(name => name !== "manifest.json");
 if (!assets.includes("brand-914a23072410.webp")) throw new Error("Approved logo asset is missing.");
 console.log(`Static validation passed: ${assets.length} image assets, live public intake, support-aware agent views, build tracking and production modules present, no embedded images or browser secrets.`);

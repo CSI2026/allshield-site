@@ -24,7 +24,8 @@ window.addEventListener("load", () => {
     "./social-live-ui.js",
     "./ai-live-ui.js",
     "./brand-normalizer.js",
-    "./production-hardening.js"
+    "./production-hardening.js",
+    "./production-health.js"
   ];
   const loadNext = () => {
     const src = modules.shift();

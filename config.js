@@ -23,7 +23,8 @@ window.addEventListener("load", () => {
     "./owner-testing-overview.js",
     "./social-live-ui.js",
     "./ai-live-ui.js",
-    "./brand-normalizer.js"
+    "./brand-normalizer.js",
+    "./production-hardening.js"
   ];
   const loadNext = () => {
     const src = modules.shift();

@@ -1,0 +1,11 @@
+(() => {
+ const sb=window.allshieldSupabase;if(!sb)return;
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const dt=v=>v?new Date(v).toLocaleString():'—';
+ const current=()=>window.ALLSHIELD_BUILD||{number:'Unknown',label:'Unknown'};
+ if(window.ownerViews){window.ownerViews.builds=`<div class="dashboard-head"><div><div class="kicker">BUILD CONTROL</div><h2>Allshield build history.</h2><p>Use this screen to identify exactly which version of the back office is running after every update.</p></div><button class="btn btn-primary" onclick="loadBuildHistory()">Refresh</button></div><div class="real-data-banner">CURRENT BUILD: ${esc(current().number)} • ${esc(current().label)}</div><div id="buildHistoryHost" class="bo-card" style="margin-top:18px">Loading build history…</div>`;}
+ function inject(){const side=document.querySelector('#ownerPortal .sidebar');if(!side||side.querySelector('[data-build-history]'))return;const d=document.createElement('div');d.className='side-link';d.dataset.buildHistory='1';d.textContent='Build History';d.onclick=function(){window.showOwnerView('builds',this)};side.appendChild(d)}
+ window.loadBuildHistory=async function(){const h=document.getElementById('buildHistoryHost');if(!h)return;const {data,error}=await sb.from('build_history').select('build_number,label,git_commit,channel,released_at,notes').order('released_at',{ascending:false}).limit(100);if(error){h.textContent=error.message;return}h.innerHTML=`<div class="requirement"><span><strong>Running Now</strong><small>${esc(current().label)}</small></span><span class="pill">${esc(current().number)}</span></div>`+(data||[]).map(b=>`<div class="resource"><span><strong>${esc(b.build_number)}</strong><br><small>${esc(b.label)} • ${esc(b.channel)} • ${esc(dt(b.released_at))}</small><br><small>Commit: ${esc((b.git_commit||'—').slice(0,12))}</small></span><span class="pill">${esc(b.notes?.summary||'Recorded build')}</span></div>`).join('')};
+ inject();document.addEventListener('DOMContentLoaded',inject);setTimeout(inject,500);
+ const old=window.showOwnerView;if(typeof old==='function')window.showOwnerView=function(view,el){old(view,el);if(view==='builds')setTimeout(()=>window.loadBuildHistory(),20)};
+})();

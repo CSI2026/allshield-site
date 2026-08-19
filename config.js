@@ -20,6 +20,7 @@ window.addEventListener("load", () => {
     "./mail-connector-ui.js",
     "./finance-import-ui.js",
     "./owner-view-as.js",
+    "./owner-testing-overview.js",
     "./ai-live-ui.js",
     "./brand-normalizer.js"
   ];

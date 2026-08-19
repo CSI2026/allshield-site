@@ -1,7 +1,7 @@
 (() => {
   const sb=window.allshieldSupabase,cfg=window.ALLSHIELD_CONFIG||{};
   if(!sb)return;
-  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[c]));
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dt=v=>v?new Date(v).toLocaleString():'—';
   async function user(){const {data,error}=await sb.auth.getUser();if(error)throw error;return data?.user}
   async function session(){const {data,error}=await sb.auth.getSession();if(error)throw error;return data?.session}

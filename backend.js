@@ -1,11 +1,37 @@
 
 (() => {
   const cfg = window.ALLSHIELD_CONFIG || {};
+  const APPROVED_LOGO = 'assets/brand-914a23072410.webp';
   const configured =
     cfg.SUPABASE_URL &&
     cfg.SUPABASE_PUBLISHABLE_KEY &&
     !cfg.SUPABASE_URL.includes("YOUR_PROJECT") &&
     !cfg.SUPABASE_PUBLISHABLE_KEY.includes("YOUR_SUPABASE");
+
+  function normalizeApprovedBrand(root = document) {
+    root.querySelectorAll?.('img[src*="assets/brand-"]').forEach(img => {
+      if (img.getAttribute('src') !== APPROVED_LOGO) img.setAttribute('src', APPROVED_LOGO);
+      img.dataset.allshieldApprovedLogo = 'true';
+    });
+    document.querySelectorAll('link[rel="icon"],link[rel="apple-touch-icon"]').forEach(link => {
+      link.setAttribute('href', APPROVED_LOGO);
+    });
+  }
+
+  function configureProductionLoginButtons() {
+    ['agent','admin','owner'].forEach(role => {
+      const card = document.getElementById(role + 'Login');
+      const button = card?.querySelector('button.btn-primary');
+      if (!button) return;
+      button.textContent = role === 'agent' ? 'Sign In to Agent Portal' : role === 'admin' ? 'Sign In to Admin Portal' : 'Sign In to Owner Portal';
+      button.setAttribute('onclick', `productionLogin('${role}')`);
+    });
+
+    document.querySelectorAll('.demo-note').forEach(el => el.remove());
+    document.querySelectorAll('[id="demoToast"]').forEach(el => {
+      el.id = 'allshieldToast';
+    });
+  }
 
   let sb = null;
   if (configured && window.supabase) {
@@ -17,6 +43,7 @@
   }
 
   window.allshieldSupabase = sb;
+  window.ALLSHIELD_APPROVED_LOGO = APPROVED_LOGO;
 
   async function getProfile(userId) {
     if (!sb) return null;
@@ -31,11 +58,7 @@
 
   async function productionLogin(requestedRole) {
     if (!sb) {
-      if (cfg.DEMO_FALLBACK !== false) {
-        window.enterPortal(requestedRole);
-        return;
-      }
-      alert("Supabase has not been configured yet.");
+      alert("ALLSHIELD secure login is unavailable because the production backend is not connected.");
       return;
     }
 
@@ -242,14 +265,17 @@
 
   window.allshieldSignOut = async function() {
     if (sb) await sb.auth.signOut();
+    window.currentAllshieldProfile = null;
     window.returnHome();
   };
 
   if (sb) {
     sb.auth.onAuthStateChange((_event, session) => {
       window.allshieldSession = session;
+      if (!session) window.currentAllshieldProfile = null;
     });
   }
+
   window.allshieldListTeamUsers = async function() {
     if (!sb) return [];
     const { data, error } = await sb
@@ -289,5 +315,38 @@
     if (data?.error) throw new Error(data.error);
     return data;
   };
+
+  function hardenPortalEntry() {
+    configureProductionLoginButtons();
+    normalizeApprovedBrand();
+
+    const legacyEnterPortal = window.enterPortal;
+    if (typeof legacyEnterPortal === 'function' && !legacyEnterPortal.__allshieldProductionGuard) {
+      const guarded = function(role) {
+        if (!window.currentAllshieldProfile) {
+          alert('Sign in through the secure ALLSHIELD login first.');
+          return;
+        }
+        return legacyEnterPortal(role);
+      };
+      guarded.__allshieldProductionGuard = true;
+      window.enterPortal = guarded;
+    }
+  }
+
+  normalizeApprovedBrand();
+  configureProductionLoginButtons();
+  document.addEventListener('DOMContentLoaded', hardenPortalEntry);
+  window.addEventListener('load', hardenPortalEntry);
+  setTimeout(hardenPortalEntry, 0);
+
+  const brandObserver = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === 1) normalizeApprovedBrand(node);
+      });
+    }
+  });
+  if (document.body) brandObserver.observe(document.body, { childList: true, subtree: true });
 
 })();

@@ -33,6 +33,7 @@ window.addEventListener("load", () => {
     "./owner-testing-overview.js",
     "./social-live-ui.js",
     "./ai-live-ui.js",
+    "./brand-assets.js",
     "./brand-normalizer.js",
     "./production-hardening.js",
     "./build-history-ui.js",

@@ -36,7 +36,8 @@ window.addEventListener("load", () => {
     "./brand-normalizer.js",
     "./production-hardening.js",
     "./build-history-ui.js",
-    "./production-health.js"
+    "./production-health.js",
+    "./navigation-repair-v12.js"
   ];
   const loadNext = () => {
     const src = modules.shift();

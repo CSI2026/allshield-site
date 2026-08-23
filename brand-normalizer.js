@@ -34,9 +34,9 @@
       </div>`;
   }
 
-  normalize();
-  document.addEventListener('DOMContentLoaded',()=>normalize());
-  window.addEventListener('load',()=>normalize());
-  const obs=new MutationObserver(muts=>muts.forEach(m=>m.addedNodes.forEach(n=>{if(n.nodeType===1)normalize(n)})));
-  if(document.body)obs.observe(document.body,{childList:true,subtree:true});
+  const run = () => { try { normalize(); } catch (e) { console.error('Brand normalization failed:', e); } };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run, {once:true});
+  else run();
+  window.addEventListener('load', run, {once:true});
+  window.allshieldNormalizeBrand = run;
 })();

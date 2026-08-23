@@ -29,6 +29,27 @@
     return data;
   }
 
+  async function runLiveDashboardLoader(requestedRole) {
+    const loaderName = {
+      agent: "loadLiveAgentDashboard",
+      admin: "loadAdminLiveDashboard",
+      owner: "loadOwnerLiveDashboard"
+    }[requestedRole];
+
+    if (!loaderName) return;
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const loader = window[loaderName];
+      if (typeof loader === "function") {
+        await loader();
+        return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    console.warn(`${loaderName} was not available after login.`);
+  }
+
   async function productionLogin(requestedRole) {
     if (!sb) {
       if (cfg.DEMO_FALLBACK !== false) {
@@ -92,6 +113,8 @@
       } else if (requestedRole === "owner") {
         await loadOwnerDashboard();
       }
+
+      await runLiveDashboardLoader(requestedRole);
     } catch (err) {
       await sb.auth.signOut();
       alert("Unable to load your Allshield profile.");

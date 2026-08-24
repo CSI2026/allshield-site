@@ -1,18 +1,45 @@
 {
   "certification": "ALLSHIELD live deployment smoke",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-24T03:41:01.347Z",
+  "completed_at": "2026-08-24T03:42:08.221Z",
   "status": "FAIL",
-  "passed": 0,
-  "total": 1,
+  "passed": 3,
+  "total": 6,
   "checks": [
+    {
+      "name": "Apex A record",
+      "ok": true,
+      "detail": "[\"74.208.236.55\"]"
+    },
+    {
+      "name": "Apex AAAA record",
+      "ok": true,
+      "detail": "[\"2607:f1c0:100f:f000::20b\"]"
+    },
+    {
+      "name": "Apex CNAME record",
+      "ok": false,
+      "detail": "ENODATA: queryCname ENODATA allshieldinsurancegroup.com"
+    },
+    {
+      "name": "WWW A record",
+      "ok": true,
+      "detail": "[\"74.208.236.55\"]"
+    },
+    {
+      "name": "WWW CNAME record",
+      "ok": false,
+      "detail": "ENODATA: queryCname ENODATA www.allshieldinsurancegroup.com"
+    },
     {
       "name": "Deployment request",
       "ok": false,
-      "detail": "TypeError: fetch failed\n    at node:internal/deps/undici/undici:15157:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async text (file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:5:35)\n    at async file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:7:14"
+      "detail": "fetch failed | cause=ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR C07C1241A97F0000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 80\n"
     }
   ],
   "failures": [
-    "Deployment request: TypeError: fetch failed\n    at node:internal/deps/undici/undici:15157:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async text (file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:5:35)\n    at async file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:7:14"
+    "Apex CNAME record: ENODATA: queryCname ENODATA allshieldinsurancegroup.com",
+    "WWW CNAME record: ENODATA: queryCname ENODATA www.allshieldinsurancegroup.com",
+    "Deployment request: fetch failed | cause=ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR C07C1241A97F0000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 80\n"
   ]
 }

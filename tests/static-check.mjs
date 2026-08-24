@@ -45,7 +45,7 @@ if (!social.includes("social_posts") || !social.includes("social_accounts") || !
 const ai = await readFile("ai-live-ui.js","utf8");
 if (!ai.includes("/functions/v1/ai-assistant") || !ai.includes("rewrite_social")) throw new Error("Live AI UI is not wired to the backend.");
 const brand = await readFile("brand-normalizer.js","utf8");
-if (!brand.includes("brand-914a23072410.webp") || !brand.includes("MutationObserver")) throw new Error("Approved-logo enforcement is incomplete.");
+if (!brand.includes("brand-914a23072410.webp") || !brand.includes("normalizeInternalBrand") || !brand.includes("public website")) throw new Error("Approved-logo enforcement is incomplete.");
 const hardening = await readFile("production-hardening.js","utf8");
 for (const marker of ["app_settings","owner-vault","media_assets"]) if(!hardening.includes(marker)) throw new Error(`Production hardening marker missing: ${marker}`);
 const health = await readFile("production-health.js","utf8");

@@ -1,0 +1,18 @@
+{
+  "certification": "ALLSHIELD live deployment smoke",
+  "base_url": "https://allshieldinsurancegroup.com",
+  "completed_at": "2026-08-24T03:41:01.347Z",
+  "status": "FAIL",
+  "passed": 0,
+  "total": 1,
+  "checks": [
+    {
+      "name": "Deployment request",
+      "ok": false,
+      "detail": "TypeError: fetch failed\n    at node:internal/deps/undici/undici:15157:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async text (file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:5:35)\n    at async file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:7:14"
+    }
+  ],
+  "failures": [
+    "Deployment request: TypeError: fetch failed\n    at node:internal/deps/undici/undici:15157:13\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async text (file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:5:35)\n    at async file:///home/runner/work/allshield-site/allshield-site/scripts/live-deployment-smoke.mjs:7:14"
+  ]
+}

@@ -1,0 +1,46 @@
+name: Live Deployment Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/live-deployment-smoke.mjs'
+      - '.github/workflows/live-deployment-smoke.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check live deployment
+        id: smoke
+        shell: bash
+        run: |
+          mkdir -p certification
+          set +e
+          node scripts/live-deployment-smoke.mjs > certification/live-deployment-smoke.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat certification/live-deployment-smoke.json
+          exit 0
+      - name: Commit smoke result
+        run: |
+          git config user.name "allshield-cert-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add certification/live-deployment-smoke.json
+          if git diff --cached --quiet; then
+            echo "No result changes."
+          else
+            git commit -m "Record live deployment smoke result"
+            git push
+          fi
+      - name: Enforce smoke result
+        run: test '${{ steps.smoke.outputs.exit_code }}' = '0'

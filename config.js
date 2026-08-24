@@ -36,6 +36,7 @@ window.addEventListener("load", () => {
     "./brand-normalizer.js",
     "./production-hardening.js",
     "./build-history-ui.js",
+    "./backoffice-live-completeness.js",
     "./production-health.js",
     "./production-runtime.js"
   ];

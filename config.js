@@ -36,7 +36,8 @@ window.addEventListener("load", () => {
     "./brand-normalizer.js",
     "./production-hardening.js",
     "./build-history-ui.js",
-    "./production-health.js"
+    "./production-health.js",
+    "./production-runtime.js"
   ];
   const loadNext = () => {
     const src = modules.shift();
@@ -44,7 +45,10 @@ window.addEventListener("load", () => {
     const script = document.createElement("script");
     script.src = src;
     script.onload = loadNext;
-    script.onerror = () => console.error("Unable to load Allshield module:", src);
+    script.onerror = () => {
+      console.error("Unable to load Allshield module:", src);
+      loadNext();
+    };
     document.body.appendChild(script);
   };
   loadNext();

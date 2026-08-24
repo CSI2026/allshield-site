@@ -227,33 +227,33 @@
 
 <div class="portal-login" id="agentLogin">
   <div class="login-card">
-    <img src="assets/brand-3b28c3fa225d.webp" alt="Allshield">
+    <img src="assets/brand-914a23072410.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">AGENT PORTAL</div>
     <h2>Welcome back.</h2>
-    <p>Secure access to your Allshield back office.</p>
+    <p>Secure access to your live Allshield back office.</p>
     <input class="field" placeholder="Email address">
     <input class="field" type="password" placeholder="Password">
-    <button class="btn btn-primary" style="width:100%" onclick="enterPortal('agent')">Enter Demo Agent Portal</button>
+    <button class="btn btn-primary" style="width:100%" onclick="productionLogin('agent')">Enter Agent Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
 
 <div class="portal-login" id="adminLogin">
   <div class="login-card">
-    <img src="assets/brand-3b28c3fa225d.webp" alt="Allshield">
+    <img src="assets/brand-914a23072410.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">ADMIN PORTAL</div>
     <h2>Administration.</h2>
-    <p>Authorized Allshield leadership and administration only.</p>
+    <p>Secure access for authorized Allshield leadership and administration only.</p>
     <input class="field" placeholder="Admin email">
     <input class="field" type="password" placeholder="Password">
-    <button class="btn btn-primary" style="width:100%" onclick="enterPortal('admin')">Enter Demo Admin Portal</button>
+    <button class="btn btn-primary" style="width:100%" onclick="productionLogin('admin')">Enter Admin Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
 
 <div class="portal-page" id="agentPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-3b28c3fa225d.webp" alt="Allshield"><strong>Agent Back Office</strong></div>
+    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Agent Back Office</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -272,39 +272,16 @@
       <div class="side-link" onclick="showAgentView('profile',this)">⚙ Profile & Settings</div>
     </aside>
     <main class="portal-main" id="agentMain">
-      <div class="dashboard-head">
-        <div><div class="kicker">GOOD EVENING, CALVIN</div><h2>Your command center.</h2><p>Everything you need to launch, learn and grow inside Allshield.</p></div>
-        <button class="btn btn-primary">Continue Onboarding</button>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="label">Onboarding</div><div class="value">72%</div></div>
-        <div class="stat"><div class="label">Course Progress</div><div class="value">6/9</div></div>
-        <div class="stat"><div class="label">Practice Score</div><div class="value">88%</div></div>
-        <div class="stat"><div class="label">Achievements</div><div class="value">4</div></div>
-      </div>
-      <div class="bo-grid">
-        <div class="bo-card">
-          <h3>Launch Path</h3>
-          <div class="progress-row"><div class="row"><span>Profile & compliance</span><span>100%</span></div><div class="bar"><span style="width:100%"></span></div></div>
-          <div class="progress-row"><div class="row"><span>Licensing study track</span><span>74%</span></div><div class="bar"><span style="width:74%"></span></div></div>
-          <div class="progress-row"><div class="row"><span>Carrier & product training</span><span>45%</span></div><div class="bar"><span style="width:45%"></span></div></div>
-          <div class="progress-row"><div class="row"><span>Final readiness review</span><span>0%</span></div><div class="bar"><span style="width:4%"></span></div></div>
-        </div>
-        <div class="bo-card">
-          <h3>Next Up</h3>
-          <div class="task"><div class="dot"></div><div>Complete Module 7<small>ACA compliance fundamentals</small></div></div>
-          <div class="task"><div class="dot"></div><div>Practice Exam #3<small>Goal score: 85%+</small></div></div>
-          <div class="task"><div class="dot"></div><div>Sign Agent Standards<small>Required before activation</small></div></div>
-          <div class="task"><div class="dot"></div><div>Join Live Training<small>Wednesday • 6:00 PM</small></div></div>
-        </div>
-      </div>
+      <div class="dashboard-head"><div><div class="kicker">ALLSHIELD LIVE PLATFORM</div><h2>Agent Dashboard</h2><p>Loading verified production data from Allshield.</p></div></div>
+      <div class="real-data-banner">LIVE DATA ONLY</div>
+      <div class="bo-card">Connecting to the live platform…</div>
     </main>
   </div>
 </div>
 
 <div class="portal-page" id="adminPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-3b28c3fa225d.webp" alt="Allshield"><strong>Administration</strong></div>
+    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Administration</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -323,35 +300,9 @@
       <div class="side-link" onclick="showAdminView('marketing',this)">✦ Marketing Center</div><div class="side-link" onclick="showAdminView('settings',this)">⚙ System Settings</div>
     </aside>
     <main class="portal-main" id="adminMain">
-      <div class="dashboard-head">
-        <div><div class="kicker">ALLSHIELD OPERATIONS</div><h2>Executive overview.</h2><p>Monitor team growth, readiness, training and activity from one place.</p></div>
-        <button class="btn btn-primary">Add Team Member</button>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="label">Active Agents</div><div class="value">48</div></div>
-        <div class="stat"><div class="label">In Onboarding</div><div class="value">12</div></div>
-        <div class="stat"><div class="label">Ready to Activate</div><div class="value">7</div></div>
-        <div class="stat"><div class="label">Avg. Test Score</div><div class="value">86%</div></div>
-      </div>
-      <div class="bo-grid">
-        <div class="bo-card">
-          <h3>Team Readiness</h3>
-          <table class="admin-table">
-            <tr><th>Agent</th><th>Stage</th><th>Training</th><th>Status</th></tr>
-            <tr><td>Jordan Miles</td><td>Final Review</td><td>100%</td><td><span class="pill">Ready</span></td></tr>
-            <tr><td>Ashley Reed</td><td>Study Track</td><td>74%</td><td><span class="pill">Active</span></td></tr>
-            <tr><td>Marcus Hill</td><td>Onboarding</td><td>48%</td><td><span class="pill">Active</span></td></tr>
-            <tr><td>Taylor Brooks</td><td>Documents</td><td>91%</td><td><span class="pill">Review</span></td></tr>
-          </table>
-        </div>
-        <div class="bo-card">
-          <h3>Admin Actions</h3>
-          <div class="task"><div class="dot"></div><div>3 signatures awaiting review<small>Agent standards & agreements</small></div></div>
-          <div class="task"><div class="dot"></div><div>2 agents below test threshold<small>Automatic retraining available</small></div></div>
-          <div class="task"><div class="dot"></div><div>New course draft<small>Life Insurance Fundamentals</small></div></div>
-          <div class="task"><div class="dot"></div><div>Weekly training room<small>18 registered attendees</small></div></div>
-        </div>
-      </div>
+      <div class="dashboard-head"><div><div class="kicker">ALLSHIELD LIVE PLATFORM</div><h2>Executive Dashboard</h2><p>Loading verified production data from Allshield.</p></div></div>
+      <div class="real-data-banner">LIVE DATA ONLY</div>
+      <div class="bo-card">Connecting to the live platform…</div>
     </main>
   </div>
 </div>
@@ -359,20 +310,20 @@
 
 <div class="portal-login" id="ownerLogin">
   <div class="login-card">
-    <img src="assets/brand-3b28c3fa225d.webp" alt="Allshield">
+    <img src="assets/brand-914a23072410.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">OWNER PORTAL</div>
     <h2>Platform command.</h2>
-    <p>Full-control access for authorized Allshield ownership.</p>
+    <p>Secure full-control access for authorized Allshield ownership.</p>
     <input class="field" placeholder="Owner email">
     <input class="field" type="password" placeholder="Password">
-    <button class="btn btn-primary" style="width:100%" onclick="enterPortal('owner')">Enter Demo Owner Portal</button>
+    <button class="btn btn-primary" style="width:100%" onclick="productionLogin('owner')">Enter Owner Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
 
 <div class="portal-page" id="ownerPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-3b28c3fa225d.webp" alt="Allshield"><strong>Owner Command Center</strong></div>
+    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Owner Command Center</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -389,30 +340,9 @@
       <div class="side-link" onclick="showOwnerView('settings',this)">⚙ Global Settings</div>
     </aside>
     <main class="portal-main" id="ownerMain">
-      <div class="dashboard-head">
-        <div><div class="kicker">ALLSHIELD OWNER CONTROL</div><h2>The whole company in one view.</h2><p>Operations, licensing, training, production, permissions and platform health.</p></div>
-        <button class="btn btn-primary" onclick="showOwnerView('updates',document.querySelector('#ownerPortal .side-link:nth-child(6)'))">Open Update Center</button>
-      </div>
-      <div class="stat-grid">
-        <div class="stat"><div class="label">Active Agents</div><div class="value">100</div></div>
-        <div class="stat"><div class="label">States Enabled</div><div class="value">3</div></div>
-        <div class="stat"><div class="label">Licensing Tracks</div><div class="value">126</div></div>
-        <div class="stat"><div class="label">Platform Health</div><div class="value">100%</div></div>
-      </div>
-      <div class="bo-grid">
-        <div class="bo-card">
-          <h3>90-Day Review Board</h3>
-          <div class="task"><div class="dot"></div><div>Licensing content review<small>Texas, Florida, Illinois • due in 18 days</small></div></div>
-          <div class="task"><div class="dot"></div><div>Question-bank accuracy audit<small>Life & Health national core • 1,240 questions</small></div></div>
-          <div class="task"><div class="dot"></div><div>State-law update review<small>3 changes awaiting approval</small></div></div>
-          <div class="task"><div class="dot"></div><div>Platform enhancement queue<small>8 owner ideas captured</small></div></div>
-        </div>
-        <div class="bo-card">
-          <h3>System Principle</h3>
-          <p style="color:#a8b8c9;line-height:1.75">Updates are versioned. Existing agent history, test scores, signatures, production data and onboarding records stay intact while new content is published.</p>
-          <button class="btn btn-primary" onclick="toast('Demo: new platform update draft created.')">Create Update Draft</button>
-        </div>
-      </div>
+      <div class="dashboard-head"><div><div class="kicker">ALLSHIELD LIVE PLATFORM</div><h2>Owner Command Center</h2><p>Loading verified production data from Allshield.</p></div></div>
+      <div class="real-data-banner">LIVE DATA ONLY</div>
+      <div class="bo-card">Connecting to the live platform…</div>
     </main>
   </div>
 </div>
@@ -422,7 +352,7 @@
     <button class="close" onclick="closeLead()">×</button>
     <div class="kicker">START HERE</div>
     <h3>What can we help protect?</h3>
-    <p style="color:#9eb1c5;line-height:1.6">This is a working homepage preview. Submit to test the interaction.</p>
+    <p style="color:#9eb1c5;line-height:1.6">Tell us what you need and an Allshield representative can follow up.</p>
     <input class="field" placeholder="Full name">
     <input class="field" placeholder="Email address">
     <input class="field" placeholder="Phone number">

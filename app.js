@@ -83,3 +83,30 @@ function submitLead(){toast('Secure request service is loading. Please try again
 function submitCareer(){toast('Secure career service is loading. Please try again in a moment.')}
 
 document.getElementById('leadModal')?.addEventListener('click',e=>{if(e.target.id==='leadModal')closeLead()});
+
+// Production homepage logo repair: the previous hero composed multiple brand exports,
+// which produced the duplicated shield/wordmark visible on the live custom domain.
+function repairHomepageBrandLockup(){
+  const panel=document.querySelector('.logo-panel');
+  if(!panel)return;
+  panel.innerHTML='';
+  panel.style.display='grid';
+  panel.style.placeItems='center';
+  panel.style.width='min(430px,100%)';
+  panel.style.margin='0 auto';
+  const logo=document.createElement('img');
+  logo.src='assets/brand-914a23072410.webp';
+  logo.alt='Allshield Insurance Group';
+  logo.style.width='100%';
+  logo.style.maxHeight='430px';
+  logo.style.objectFit='contain';
+  logo.style.display='block';
+  logo.style.filter='drop-shadow(0 28px 32px rgba(0,0,0,.46))';
+  panel.appendChild(logo);
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',repairHomepageBrandLockup,{once:true});
+}else{
+  repairHomepageBrandLockup();
+}

@@ -1,5 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
-const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","view-registry-bridge.js","support-context.js","build-info.js","public-live-fixes.js","live-platform.js","ops-platform.js","support-ops-overrides.js","recruiting-platform.js","crm-platform.js","support-crm-overrides.js","owner-control-platform.js","comp-user-platform.js","support-comp-overrides.js","agent-live-extras.js","support-agent-core.js","live-executive-dashboards.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","build-history-ui.js","production-health.js"];
+const required = ["index.html","styles.css","app.js","backend.js","config.js","team-accounts.js","view-registry-bridge.js","support-context.js","build-info.js","public-live-fixes.js","live-platform.js","ops-platform.js","support-ops-overrides.js","recruiting-platform.js","crm-platform.js","support-crm-overrides.js","owner-control-platform.js","comp-user-platform.js","support-comp-overrides.js","agent-live-extras.js","support-agent-core.js","live-executive-dashboards.js","delegation-platform.js","comp-calculation-ui.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","build-history-ui.js","production-health.js","approved-owner-setup.js"];
 for (const file of required) await readFile(file);
 for (const file of required) {
   const text = await readFile(file, "utf8");
@@ -11,9 +11,10 @@ const html = await readFile("index.html", "utf8");
 for (const ref of ["./styles.css","./app.js","./backend.js","./config.js","./team-accounts.js"]) if (!html.includes(ref)) throw new Error(`Missing HTML reference: ${ref}`);
 if (!html.includes("Team Accounts")) throw new Error("Owner Team Accounts navigation is missing.");
 const config = await readFile("config.js", "utf8");
-for (const ref of ["view-registry-bridge.js","support-context.js","build-info.js","public-live-fixes.js","support-ops-overrides.js","support-crm-overrides.js","support-comp-overrides.js","agent-live-extras.js","support-agent-core.js","live-executive-dashboards.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","build-history-ui.js","production-health.js"]) if (!config.includes(ref)) throw new Error(`Production module is not loaded: ${ref}`);
+for (const ref of ["view-registry-bridge.js","support-context.js","build-info.js","public-live-fixes.js","support-ops-overrides.js","support-crm-overrides.js","support-comp-overrides.js","agent-live-extras.js","support-agent-core.js","live-executive-dashboards.js","launch-academy.js","academy-exam-ui-v2.js","mail-connector-ui.js","finance-import-ui.js","owner-view-as.js","owner-testing-overview.js","social-live-ui.js","ai-live-ui.js","brand-normalizer.js","production-hardening.js","build-history-ui.js","production-health.js","approved-owner-setup.js"]) if (!config.includes(ref)) throw new Error(`Production module is not loaded: ${ref}`);
 if (config.indexOf('view-registry-bridge.js') > config.indexOf('live-platform.js')) throw new Error('View registry bridge must load before production modules.');
 if (config.indexOf('support-context.js') > config.indexOf('live-platform.js')) throw new Error('Support context must load before live portal modules.');
+if (config.indexOf('approved-owner-setup.js') < config.indexOf('backoffice-live-completeness.js')) throw new Error('Approved Owner setup must load after generic live completeness overrides.');
 const bridge = await readFile("view-registry-bridge.js","utf8");
 for (const marker of ["window.agentViews = agentViews","window.adminViews = adminViews","window.ownerViews = ownerViews","__allshieldViewRegistryReady"]) if(!bridge.includes(marker)) throw new Error(`View registry bridge marker missing: ${marker}`);
 const viewAs = await readFile("owner-view-as.js","utf8");
@@ -45,11 +46,14 @@ if (!social.includes("social_posts") || !social.includes("social_accounts") || !
 const ai = await readFile("ai-live-ui.js","utf8");
 if (!ai.includes("/functions/v1/ai-assistant") || !ai.includes("rewrite_social")) throw new Error("Live AI UI is not wired to the backend.");
 const brand = await readFile("brand-normalizer.js","utf8");
-if (!brand.includes("brand-914a23072410.webp") || !brand.includes("normalizeInternalBrand") || !brand.includes("public website")) throw new Error("Approved-logo enforcement is incomplete.");
+for (const marker of ["brand-9aa0ec99b3b0.webp","brand-6553d9469f9e.webp","normalizeInternalBrand","homepage"]) if(!brand.includes(marker)) throw new Error(`Approved homepage-brand enforcement is incomplete: ${marker}`);
+if (brand.includes("brand-914a23072410.webp")) throw new Error("Obsolete internal A-shield is still declared as an approved brand asset.");
+const approvedOwner = await readFile("approved-owner-setup.js","utf8");
+for (const marker of ["Brand + Profile AI","Posts + Ads","Connections + Queue","Teach Allshield AI the company once.","social_brand_profiles","social_platform_profiles","social_connections","social_posts","brand-9aa0ec99b3b0.webp","brand-6553d9469f9e.webp"]) if(!approvedOwner.includes(marker)) throw new Error(`Approved Owner setup regression: ${marker}`);
 const hardening = await readFile("production-hardening.js","utf8");
 for (const marker of ["app_settings","owner-vault","media_assets"]) if(!hardening.includes(marker)) throw new Error(`Production hardening marker missing: ${marker}`);
 const health = await readFile("production-health.js","utf8");
 for (const marker of ["GA / TX / FL / TN Academy","mail_sync_runs","ai-provider-status","Owner View As","Approved logo","Build identifier"]) if(!health.includes(marker)) throw new Error(`Production health marker missing: ${marker}`);
 const assets = (await readdir("assets")).filter(name => name !== "manifest.json");
-if (!assets.includes("brand-914a23072410.webp")) throw new Error("Approved logo asset is missing.");
-console.log(`Static validation passed: ${assets.length} image assets, full Owner support mode, live public/agent/executive modules, build tracking and production health present, no embedded images or browser secrets.`);
+for (const approved of ["brand-9aa0ec99b3b0.webp","brand-6553d9469f9e.webp"]) if(!assets.includes(approved)) throw new Error(`Approved homepage brand asset is missing: ${approved}`);
+console.log(`Static validation passed: ${assets.length} assets, approved homepage branding, approved Owner social workspace, full Owner support mode, live public/agent/executive modules, build tracking and production health present, no embedded images or browser secrets.`);

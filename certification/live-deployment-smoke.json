@@ -1,45 +1,61 @@
 {
-  "certification": "ALLSHIELD live deployment smoke",
+  "certification": "ALLSHIELD B2026.08.23.021 live deployment smoke",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-24T03:42:08.221Z",
-  "status": "FAIL",
-  "passed": 3,
-  "total": 6,
+  "completed_at": "2026-08-25T18:13:37.375Z",
+  "status": "PASS",
+  "passed": 10,
+  "total": 10,
   "checks": [
     {
-      "name": "Apex A record",
+      "name": "Apex GitHub Pages A records",
       "ok": true,
-      "detail": "[\"74.208.236.55\"]"
+      "detail": "185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153"
     },
     {
-      "name": "Apex AAAA record",
+      "name": "WWW GitHub Pages CNAME",
       "ok": true,
-      "detail": "[\"2607:f1c0:100f:f000::20b\"]"
+      "detail": "csi2026.github.io"
     },
     {
-      "name": "Apex CNAME record",
-      "ok": false,
-      "detail": "ENODATA: queryCname ENODATA allshieldinsurancegroup.com"
-    },
-    {
-      "name": "WWW A record",
+      "name": "HTTPS homepage",
       "ok": true,
-      "detail": "[\"74.208.236.55\"]"
+      "detail": "200 https://allshieldinsurancegroup.com/?smoke=1787681616854"
     },
     {
-      "name": "WWW CNAME record",
-      "ok": false,
-      "detail": "ENODATA: queryCname ENODATA www.allshieldinsurancegroup.com"
+      "name": "Allshield homepage identity",
+      "ok": true,
+      "detail": "company title/content present"
     },
     {
-      "name": "Deployment request",
-      "ok": false,
-      "detail": "fetch failed | cause=ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR C07C1241A97F0000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 80\n"
+      "name": "Approved B021 script chain",
+      "ok": true,
+      "detail": "all approved runtime scripts referenced"
+    },
+    {
+      "name": "No post-B021 runtime overlays",
+      "ok": true,
+      "detail": "none active"
+    },
+    {
+      "name": "Approved build id",
+      "ok": true,
+      "detail": "B2026.08.23.021"
+    },
+    {
+      "name": "Demo fallback disabled",
+      "ok": true,
+      "detail": "config explicitly disables demo fallback"
+    },
+    {
+      "name": "AI command runtime",
+      "ok": true,
+      "detail": "approved AI command marker present"
+    },
+    {
+      "name": "Social production runtime",
+      "ok": true,
+      "detail": "approved social workspace markers present"
     }
   ],
-  "failures": [
-    "Apex CNAME record: ENODATA: queryCname ENODATA allshieldinsurancegroup.com",
-    "WWW CNAME record: ENODATA: queryCname ENODATA www.allshieldinsurancegroup.com",
-    "Deployment request: fetch failed | cause=ERR_SSL_TLSV1_ALERT_INTERNAL_ERROR C07C1241A97F0000:error:0A000438:SSL routines:ssl3_read_bytes:tlsv1 alert internal error:../deps/openssl/openssl/ssl/record/rec_layer_s3.c:918:SSL alert number 80\n"
-  ]
+  "failures": []
 }

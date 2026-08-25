@@ -38,6 +38,7 @@ window.addEventListener("load", () => {
     "./build-history-ui.js",
     "./backoffice-live-completeness.js",
     "./production-health.js",
+    "./approved-owner-setup.js",
     "./production-runtime.js"
   ];
   const loadNext = () => {

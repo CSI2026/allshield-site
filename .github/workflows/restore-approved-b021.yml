@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/restore-approved-b021.yml'
-      - '.restore/b021-final-v2/**'
+      - '.restore/v4/**'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Reassemble exact approved runtime
         run: |
-          cat .restore/b021-final-v2/part-* > /tmp/b021-runtime.b64
+          cat .restore/v4/part-* > /tmp/b021-runtime.b64
           base64 -d /tmp/b021-runtime.b64 > /tmp/b021-runtime.tar.gz
           echo '10c0e13279e6134dce96cf31cd77d5bde97d9d896df7b98525f17b2dbecd33cb  /tmp/b021-runtime.tar.gz' | sha256sum -c -
           tar -xzf /tmp/b021-runtime.tar.gz -C .

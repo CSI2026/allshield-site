@@ -86,7 +86,7 @@ jobs:
             'index.html':'2dd72bb0a86e8d27a15de29ff144a79b1f235cb78393ef635c2ec4735a4374eb',
             'phase16-academy-admin.js':'a6d257b50693788bbcbf04a152fff2af5d8243c18e5a7496612a419350301e80',
             'phase16-agent-academy-production.js':'93e1259795e970aed1401266ba81daa0e6fcda337903d5d572608063d7aa6d9e',
-            'phase16-agent-live-essentials.js':'f858e889a6801ae27d9b8719b13346cb85ed687188ac3c9cf2bad74189f65540'.replace('a6801ae27d9b8719b13346cb85ed687188ac3c9cf2bad74189f65540','89a8f63ace808d9ae27a409f1663a58b2f2cdd76c26d0d45085bf692'),
+            'phase16-agent-live-essentials.js':'f858e88987a8f63ace808d9ae27a409f1663a58b2f2cdd76c26d0d45085bf692',
             'phase16-ai-command-production.js':'69b37664106e52e2c89516cf0cc4e1fbf9b676c1bca47c2cbbea13ad98d3f237',
             'phase16-build-002.js':'af8b9c86619def98abc70ed1b319402d8ec2c7a5c48609e52ba5aecb774c7c39',
             'phase16-crm.js':'d67b843d77c563f1d105bed7ab2ba6d8f89dd6bcc569593778a6f78aa1857d57',

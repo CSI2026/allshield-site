@@ -1,1 +1,1 @@
-B021 direct restore in progress
+B2026.08.23.021 exact runtime restored and locked. Final certification trigger: 2026-08-25.

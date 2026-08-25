@@ -39,6 +39,8 @@ window.addEventListener("load", () => {
     "./backoffice-live-completeness.js",
     "./production-health.js",
     "./approved-owner-setup.js",
+    "./approved-b021-view-registry.js",
+    "./phase16-social-production.js",
     "./production-runtime.js"
   ];
   const loadNext = () => {

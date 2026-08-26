@@ -1,0 +1,57 @@
+name: Apply Responsive Production Runtime
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-responsive-runtime.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install responsive production assets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          css='<link rel="stylesheet" href="./responsive.css?v=2026.08.26.003">'
+          js='<script defer src="./responsive-ui.js?v=2026.08.26.003"></script>'
+          if 'responsive.css' not in s:
+              if '</head>' not in s: raise SystemExit('index.html has no </head>')
+              s=s.replace('</head>',css+'\n</head>',1)
+          if 'responsive-ui.js' not in s:
+              if '</body>' not in s: raise SystemExit('index.html has no </body>')
+              s=s.replace('</body>',js+'\n</body>',1)
+          import re
+          s=re.sub(r'<script defer src="\./phase16-ai-command-production\.js\?v=[^"]+"></script>', '<script defer src="./phase16-ai-command-production.js?v=2026.08.26.003"></script>', s, count=1)
+          p.write_text(s)
+          if 'responsive.css' not in s or 'responsive-ui.js' not in s or 'phase16-ai-command-production.js?v=2026.08.26.003' not in s:
+              raise SystemExit('responsive/AI runtime installation did not complete')
+          PY
+      - name: Validate production source
+        run: |
+          node --check phase16-ai-command-production.js
+          node --check responsive-ui.js
+          npm test
+      - name: Commit responsive production runtime
+        run: |
+          git config user.name "Allshield Production Completion"
+          git config user.email "actions@users.noreply.github.com"
+          git add index.html
+          if git diff --cached --quiet; then
+            echo "Responsive runtime already installed."
+            exit 0
+          fi
+          git commit -m "Enable live AI responsive production runtime"
+          git push origin main

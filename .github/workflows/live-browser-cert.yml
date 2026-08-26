@@ -10,6 +10,8 @@ on:
       - 'phase16-academy-admin.js'
       - 'phase16-ai-command-production.js'
       - 'phase16-social-production.js'
+      - 'responsive.css'
+      - 'responsive-ui.js'
       - 'tests/live-browser-cert.mjs'
       - '.github/workflows/live-browser-cert.yml'
   workflow_dispatch:
@@ -56,4 +58,4 @@ jobs:
         run: |
           test '${{ steps.browsercert.outputs.exit_code }}' = '0'
 
-# Certification rerun requested after completed B021 Owner Portal deployment on 2026-08-26.
+# Final certification: B2026.08.23.021 completion release 2026.08.26.003 live AI + responsive UI.

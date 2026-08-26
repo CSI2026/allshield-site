@@ -40,4 +40,22 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-# Owner Portal completion deployment gate: B2026.08.23.021 baseline + completed Owner controls.
+  certify-owner-portal:
+    needs: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify all Owner portal routes on live domain
+        run: |
+          mkdir -p certification
+          ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/live-browser-cert.mjs | tee certification/live-owner-portal-certification.json
+
+# Production is not considered complete until the post-deploy Owner Portal browser certification passes.

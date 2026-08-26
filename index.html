@@ -618,7 +618,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-login" id="agentLogin">
   <div class="login-card">
-    <img src="assets/brand-914a23072410.webp" alt="Allshield">
+    <img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">AGENT PORTAL</div>
     <h2>Welcome back.</h2>
     <p>Secure access to your Allshield back office.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
@@ -631,7 +631,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-login" id="adminLogin">
   <div class="login-card">
-    <img src="assets/brand-914a23072410.webp" alt="Allshield">
+    <img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">ADMIN PORTAL</div>
     <h2>Administration.</h2>
     <p>Authorized Allshield leadership and administration only.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
@@ -644,7 +644,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-page" id="agentPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Agent Back Office</strong></div>
+    <div class="left"><img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield"><strong>Agent Back Office</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -668,7 +668,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-page" id="adminPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Administration</strong></div>
+    <div class="left"><img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield"><strong>Administration</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -693,7 +693,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-login" id="ownerLogin">
   <div class="login-card">
-    <img src="assets/brand-914a23072410.webp" alt="Allshield">
+    <img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield">
     <div class="kicker" style="text-align:center">OWNER PORTAL</div>
     <h2>Platform command.</h2>
     <p>Full-control access for authorized Allshield ownership.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
@@ -706,7 +706,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
 
 <div class="portal-page" id="ownerPortal">
   <div class="portal-top">
-    <div class="left"><img src="assets/brand-914a23072410.webp" alt="Allshield"><strong>Owner Command Center</strong></div>
+    <div class="left"><img src="assets/brand-9aa0ec99b3b0.webp" alt="Allshield"><strong>Owner Command Center</strong></div>
     <button class="btn btn-ghost" onclick="returnHome()">Exit Portal</button>
   </div>
   <div class="portal-shell">
@@ -836,6 +836,12 @@ function runRegisteredView(role,view,el){
   setActive(el);
   const host=document.getElementById(role==='agent'?'agentMain':role==='admin'?'adminMain':'ownerMain');
   if(!host) return true;
+  // The same portal host is reused by every tab. Renderer-specific data flags
+  // must never survive a route change or a returning tab may skip rebuilding.
+  for(const key of Object.keys(host.dataset)){
+    if(key!=='currentView') delete host.dataset[key];
+  }
+  host.dataset.currentView=view;
   host.removeAttribute('data-production-enhancing');
   host.removeAttribute('data-live-backoffice-busy');
   Promise.resolve(handler(host,view,el)).catch(err=>{

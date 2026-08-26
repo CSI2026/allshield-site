@@ -62,93 +62,45 @@ async function renderAdminDashboard(main){
 }
 
 async function renderPermissions(main){
+  main.dataset.permissionsLive='1';
   try{
     const c=await sb();
-    const [pr,up]=await Promise.all([
-      c.from('profiles').select('id,first_name,last_name,email,role,status').order('created_at',{ascending:true}),
-      c.from('user_permissions').select('user_id,permission_key,allowed')
-    ]);
-    [pr,up].forEach(x=>{if(x.error)throw x.error});
-
-    const profiles=pr.data||[];
-    const overrides=up.data||[];
+    const [pr,up]=await Promise.all([c.from('profiles').select('id,first_name,last_name,username,email,role,status').order('created_at',{ascending:true}),c.from('user_permissions').select('id,user_id,permission_key,allowed').order('permission_key')]);
+    [pr,up].forEach(x=>{if(x.error)throw x.error}); const profiles=pr.data||[],overrides=up.data||[];
     const roles=['owner','admin','manager','team_lead','agent','staff'];
     const labels={owner:'Owner',admin:'Admin',manager:'Manager',team_lead:'Team Lead',agent:'Agent',staff:'Staff'};
-    const scopes={
-      owner:'Full platform control',
-      admin:'Operations and assigned administrative controls',
-      manager:'Assigned team and management tools',
-      team_lead:'Assigned team and coaching tools',
-      agent:'Personal profile and assigned production tools',
-      staff:'Assigned internal tools'
-    };
-    const counts=Object.fromEntries(roles.map(r=>[r,profiles.filter(x=>x.role===r && x.status!=='terminated').length]));
-    const overrideUsers=new Set(overrides.map(x=>x.user_id));
-
-    main.innerHTML=`
-      <div class="dashboard-head"><div>
-        <div class="kicker">ROLES & PERMISSIONS</div>
-        <h2>Live access control.</h2>
-        <p>Role assignments come from live user profiles. Individual permission overrides come from Supabase.</p>
-      </div></div>${banner}
-      <div class="bo-card" style="margin-top:18px">
-        <table class="rank-table">
-          <tr><th>Role</th><th>Active People</th><th>Default Scope</th></tr>
-          ${roles.map(r=>`<tr>
-            <td>${labels[r]}</td>
-            <td>${counts[r]||0}</td>
-            <td>${scopes[r]}</td>
-          </tr>`).join('')}
-        </table>
-      </div>
-      <div class="bo-card" style="margin-top:18px">
-        <h3>Individual Permission Overrides</h3>
-        ${overrides.length ? `
-          <table class="admin-table">
-            <tr><th>Team Member</th><th>Permission</th><th>Allowed</th></tr>
-            ${overrides.map(x=>{
-              const person=profiles.find(p=>p.id===x.user_id)||{};
-              return `<tr>
-                <td>${esc(name(person))}</td>
-                <td>${esc(x.permission_key)}</td>
-                <td>${x.allowed?'Yes':'No'}</td>
-              </tr>`;
-            }).join('')}
-          </table>` : '<div style="opacity:.72">No individual permission overrides are configured. Access currently follows each user’s assigned role.</div>'}
-      </div>
-      <div class="owner-note" style="margin-top:18px">
-        Role changes are managed from Team Accounts. This screen reports actual access assignments and any explicit user-level overrides; it does not display simulated permissions.
-      </div>`;
+    const scopes={owner:'Full platform control',admin:'Operations and administrative controls',manager:'Assigned team and management tools',team_lead:'Assigned team and coaching tools',agent:'Personal production, training and assigned tools',staff:'Assigned internal tools'};
+    const counts=Object.fromEntries(roles.map(r=>[r,profiles.filter(x=>x.role===r&&x.status!=='terminated').length]));
+    main.innerHTML=`<div class="dashboard-head"><div><div class="kicker">ROLES & PERMISSIONS</div><h2>Live access control.</h2><p>Role assignments plus explicit user-level permission overrides.</p></div><button id="permRefresh" class="tiny-btn">Refresh</button></div>${banner}
+    <div class="bo-card" style="margin-top:18px"><table class="rank-table"><tr><th>Role</th><th>People</th><th>Default Scope</th></tr>${roles.map(r=>`<tr><td>${labels[r]}</td><td>${counts[r]||0}</td><td>${scopes[r]}</td></tr>`).join('')}</table></div>
+    <div class="bo-card" style="margin-top:18px"><h3>Add / Update Permission Override</h3><div class="form-grid"><select id="permUser" class="mini-input"><option value="">Choose team member</option>${profiles.map(x=>`<option value="${x.id}">${esc(name(x))} • ${esc(x.role)}</option>`).join('')}</select><input id="permKey" class="mini-input" placeholder="permission key, e.g. finance.view"><select id="permAllowed" class="mini-input"><option value="true">Allowed</option><option value="false">Denied</option></select></div><button id="permSave" class="btn btn-primary" style="margin-top:10px">Save Override</button></div>
+    <div class="bo-card" style="margin-top:18px"><h3>Individual Permission Overrides</h3>${overrides.length?`<table class="admin-table"><tr><th>Team Member</th><th>Permission</th><th>Allowed</th><th></th></tr>${overrides.map(x=>{const person=profiles.find(p=>p.id===x.user_id)||{};return `<tr><td>${esc(name(person))}</td><td>${esc(x.permission_key)}</td><td>${x.allowed?'Yes':'No'}</td><td><button class="tiny-btn" data-perm-delete="${x.id}">Remove</button></td></tr>`}).join('')}</table>`:'<div style="opacity:.72">No individual permission overrides are configured.</div>'}</div>`;
+    const reload=()=>{delete main.dataset.permissionsLive;return renderPermissions(main)};$('#permRefresh',main).onclick=reload;
+    $('#permSave',main).onclick=async()=>{try{const user_id=$('#permUser',main).value,permission_key=$('#permKey',main).value.trim();if(!user_id||!permission_key)throw new Error('Choose a user and enter a permission key.');const allowed=$('#permAllowed',main).value==='true';const {error}=await c.from('user_permissions').upsert({user_id,permission_key,allowed},{onConflict:'user_id,permission_key'});if(error)throw error;window.toast?.('Permission override saved.');reload();}catch(e){window.toast?.('Permission save failed: '+(e.message||e));}};
+    main.querySelectorAll('[data-perm-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Remove this permission override?'))return;const {error}=await c.from('user_permissions').delete().eq('id',b.dataset.permDelete);if(error)return window.toast?.(error.message);reload();});
   }catch(e){main.innerHTML=empty('Data unavailable: '+(e.message||e));}
 }
 
 async function renderTeam(main){
+  main.dataset.teamAccountsLive='1';
   try{
     const c=await sb();
-    const {data,error}=await c.from('profiles')
-      .select('id,first_name,last_name,email,role,status,resident_state')
-      .order('created_at',{ascending:true});
-    if(error)throw error;
-    const rows=data||[];
-
-    main.innerHTML=`
-      <div class="dashboard-head"><div>
-        <div class="kicker">TEAM & ROLES</div>
-        <h2>People and permissions.</h2>
-        <p>Live company user accounts.</p>
-      </div></div>${banner}
-      <div class="bo-card" style="margin-top:18px">
-      ${rows.length?`
-        <table class="admin-table">
-          <tr><th>Name</th><th>Role</th><th>Status</th><th>State</th></tr>
-          ${rows.map(x=>`<tr>
-            <td>${esc(name(x))}</td>
-            <td>${esc(x.role||'—')}</td>
-            <td><span class="pill">${esc(x.status||'—')}</span></td>
-            <td>${esc(x.resident_state||'—')}</td>
-          </tr>`).join('')}
-        </table>`:'No team accounts yet.'}
-      </div>`;
+    const [users,deps]=await Promise.all([window.allshieldListTeamUsers?window.allshieldListTeamUsers():c.from('profiles').select('id,username,first_name,last_name,email,role,status,resident_state,department_id,manager_id,created_at').then(x=>{if(x.error)throw x.error;return x.data||[]}),window.allshieldListDepartments?window.allshieldListDepartments():c.from('departments').select('id,name,slug').then(x=>{if(x.error)throw x.error;return x.data||[]})]);
+    const managers=(users||[]).filter(x=>['owner','admin','manager','team_lead'].includes(x.role)&&x.status!=='terminated');
+    main.innerHTML=`<div class="dashboard-head"><div><div class="kicker">TEAM ACCOUNTS</div><h2>Real account management.</h2><p>Create, edit, organize and secure Allshield user accounts.</p></div><button id="teamRefresh" class="tiny-btn">Refresh</button></div>${banner}
+    <div class="bo-card" style="margin-top:18px"><h3>Create Team Account</h3><div class="team-form-grid"><input id="teamFirst" class="mini-input" placeholder="First name"><input id="teamLast" class="mini-input" placeholder="Last name"><input id="teamUsername" class="mini-input" placeholder="Username"><div style="display:grid;grid-template-columns:1fr auto;gap:8px"><input id="teamPassword" class="mini-input" placeholder="Temporary password"><button id="teamGenerate" class="tiny-btn">Generate</button></div><select id="teamRole" class="mini-input"><option value="agent">Agent</option><option value="team_lead">Team Lead</option><option value="manager">Manager</option><option value="staff">Staff</option><option value="admin">Admin</option></select><select id="teamStatus" class="mini-input"><option value="onboarding">Onboarding</option><option value="active">Active</option><option value="invited">Invited</option><option value="inactive">Inactive</option></select><input id="teamState" class="mini-input" maxlength="2" placeholder="Resident state, e.g. TX"><select id="teamDepartment" class="mini-input"><option value="">No Department</option>${(deps||[]).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select><select id="teamManager" class="mini-input"><option value="">No Manager</option>${managers.map(m=>`<option value="${m.id}">${esc(name(m))} • ${esc(m.role)}</option>`).join('')}</select></div><div class="row-actions"><button id="teamCreate" class="btn btn-primary">Create Account</button></div><div id="teamCreateResult" class="publish-result"></div></div>
+    <div id="teamEditPanel" class="bo-card" style="margin-top:18px;display:none"><h3>Edit Team Account</h3><input id="teamEditId" type="hidden"><div class="team-form-grid"><input id="teamEditFirst" class="mini-input" placeholder="First name"><input id="teamEditLast" class="mini-input" placeholder="Last name"><select id="teamEditRole" class="mini-input"><option value="agent">Agent</option><option value="team_lead">Team Lead</option><option value="manager">Manager</option><option value="staff">Staff</option><option value="admin">Admin</option></select><select id="teamEditStatus" class="mini-input"><option value="invited">Invited</option><option value="onboarding">Onboarding</option><option value="active">Active</option><option value="inactive">Inactive</option><option value="terminated">Terminated</option></select><input id="teamEditState" class="mini-input" maxlength="2" placeholder="Resident state"><select id="teamEditDepartment" class="mini-input"><option value="">No Department</option>${(deps||[]).map(d=>`<option value="${d.id}">${esc(d.name)}</option>`).join('')}</select><select id="teamEditManager" class="mini-input"><option value="">No Manager</option>${managers.map(m=>`<option value="${m.id}">${esc(name(m))} • ${esc(m.role)}</option>`).join('')}</select></div><div class="row-actions"><button id="teamEditCancel" class="tiny-btn">Cancel</button><button id="teamEditSave" class="btn btn-primary">Save Account</button></div></div>
+    <div class="bo-card" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h3>Team Accounts</h3><input id="teamSearch" class="mini-input" style="max-width:320px" placeholder="Search accounts"></div><div class="team-table-wrap"><table class="team-live-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>State</th><th>Department</th><th>Manager</th><th>Actions</th></tr></thead><tbody id="teamAccountRows">${(users||[]).map(u=>{const nm=name(u),username=u.username||String(u.email||'').split('@')[0],dept=u.departments?.name||(deps||[]).find(d=>d.id===u.department_id)?.name||'—',mgr=(users||[]).find(x=>x.id===u.manager_id);return `<tr data-search="${esc((nm+' '+username+' '+u.role+' '+u.status+' '+dept).toLowerCase())}"><td>${esc(nm)}</td><td>${esc(username)}</td><td><span class="rolebadge">${esc(u.role)}</span></td><td>${esc(u.status)}</td><td>${esc(u.resident_state||'—')}</td><td>${esc(dept)}</td><td>${mgr?esc(name(mgr)):'—'}</td><td><div class="team-actions">${u.role==='owner'?'<span class="pill">Protected</span>':`<button class="tiny-btn" data-team-edit="${u.id}">Edit</button><button class="tiny-btn" data-team-reset="${u.id}" data-team-user="${esc(username)}">Reset Password</button><button class="tiny-btn" data-team-delete="${u.id}" data-team-user="${esc(username)}">Delete</button>`}</div></td></tr>`}).join('')||'<tr><td colspan="8">No accounts found.</td></tr>'}</tbody></table></div></div>`;
+    const reload=()=>{delete main.dataset.teamAccountsLive;return renderTeam(main)};$('#teamRefresh',main).onclick=reload;
+    $('#teamGenerate',main).onclick=()=>{const chars='ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$';let out='AS-';for(let i=0;i<12;i++)out+=chars[Math.floor(Math.random()*chars.length)];$('#teamPassword',main).value=out;};
+    $('#teamSearch',main).oninput=()=>{const q=$('#teamSearch',main).value.toLowerCase();main.querySelectorAll('#teamAccountRows tr[data-search]').forEach(r=>r.style.display=r.dataset.search.includes(q)?'':'none');};
+    $('#teamCreate',main).onclick=async()=>{const r=$('#teamCreateResult',main);try{const payload={action:'create',username:$('#teamUsername',main).value.trim(),password:$('#teamPassword',main).value,first_name:$('#teamFirst',main).value.trim(),last_name:$('#teamLast',main).value.trim(),role:$('#teamRole',main).value,status:$('#teamStatus',main).value,resident_state:$('#teamState',main).value.trim().toUpperCase()||null,department_id:$('#teamDepartment',main).value||null,manager_id:$('#teamManager',main).value||null};const d=await window.allshieldManageTeamUser(payload);r.textContent='Account created: '+d.username;r.classList.add('show');await reload();}catch(e){r.textContent='Error: '+(e.message||e);r.classList.add('show');}};
+    const closeEditor=()=>{$('#teamEditPanel',main).style.display='none';$('#teamEditId',main).value='';};
+    $('#teamEditCancel',main).onclick=closeEditor;
+    main.querySelectorAll('[data-team-edit]').forEach(b=>b.onclick=()=>{const x=(users||[]).find(u=>u.id===b.dataset.teamEdit);if(!x)return;$('#teamEditId',main).value=x.id;$('#teamEditFirst',main).value=x.first_name||'';$('#teamEditLast',main).value=x.last_name||'';$('#teamEditRole',main).value=x.role;$('#teamEditStatus',main).value=x.status;$('#teamEditState',main).value=x.resident_state||'';$('#teamEditDepartment',main).value=x.department_id||'';$('#teamEditManager',main).value=x.manager_id||'';$('#teamEditPanel',main).style.display='block';$('#teamEditPanel',main).scrollIntoView({behavior:'smooth',block:'center'});});
+    $('#teamEditSave',main).onclick=async()=>{try{const user_id=$('#teamEditId',main).value;if(!user_id)throw new Error('Choose an account to edit.');await window.allshieldManageTeamUser({action:'update',user_id,first_name:$('#teamEditFirst',main).value.trim(),last_name:$('#teamEditLast',main).value.trim(),role:$('#teamEditRole',main).value,status:$('#teamEditStatus',main).value,resident_state:$('#teamEditState',main).value.trim().toUpperCase()||null,department_id:$('#teamEditDepartment',main).value||null,manager_id:$('#teamEditManager',main).value||null});window.toast?.('Account updated.');closeEditor();reload();}catch(e){alert(e.message||e)}};
+    main.querySelectorAll('[data-team-reset]').forEach(b=>b.onclick=async()=>{const pw=prompt('New temporary password for '+b.dataset.teamUser+' (minimum 8 characters):');if(!pw)return;try{await window.allshieldManageTeamUser({action:'reset_password',user_id:b.dataset.teamReset,password:pw});window.toast?.('Temporary password updated.');}catch(e){alert(e.message||e)}});
+    main.querySelectorAll('[data-team-delete]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete '+b.dataset.teamUser+'? This removes the authentication account and profile.'))return;try{await window.allshieldManageTeamUser({action:'delete',user_id:b.dataset.teamDelete});window.toast?.('Account deleted.');reload();}catch(e){alert(e.message||e)}});
   }catch(e){main.innerHTML=empty('Data unavailable: '+(e.message||e));}
 }
 
@@ -311,36 +263,18 @@ async function renderDocuments(main){
 }
 
 async function renderPromotions(main){
+  main.dataset.promotionsLive='1';
   try{
-    const c=await sb();
-    const [snap,pr]=await Promise.all([
-      c.from('promotion_qualification_snapshots')
-       .select('user_id,qualification_month,personal_enrollments,first_generation_enrollments,active_direct_agents,compliance_passed,sop_passed,qualifies,created_at')
-       .order('created_at',{ascending:false}),
-      c.from('profiles').select('id,first_name,last_name,email')
-    ]);
-    [snap,pr].forEach(x=>{if(x.error)throw x.error});
-    const rows=snap.data||[], pm=Object.fromEntries((pr.data||[]).map(x=>[x.id,x]));
-
-    main.innerHTML=`
-      <div class="dashboard-head"><div>
-        <div class="kicker">HIERARCHY & PROMOTIONS</div>
-        <h2>Promotion qualification.</h2>
-        <p>Live qualification snapshots only.</p>
-      </div></div>${banner}
-      <div class="bo-card" style="margin-top:18px">
-      ${rows.length?`
-        <table class="admin-table">
-          <tr><th>Team Member</th><th>Month</th><th>Personal</th><th>Direct Agents</th><th>Qualifies</th></tr>
-          ${rows.map(x=>`<tr>
-            <td>${esc(name(pm[x.user_id]||{}))}</td>
-            <td>${esc(x.qualification_month||'—')}</td>
-            <td>${Number(x.personal_enrollments||0)}</td>
-            <td>${Number(x.active_direct_agents||0)}</td>
-            <td>${x.qualifies?'Yes':'No'}</td>
-          </tr>`).join('')}
-        </table>`:'No promotion qualification records yet.'}
-      </div>`;
+    const c=await sb(); const {data:auth}=await c.auth.getUser();const actor=auth?.user?.id;
+    const [pr,lev,snap,prom]=await Promise.all([c.from('profiles').select('id,first_name,last_name,username,email,role,status').order('created_at'),c.from('promotion_levels').select('*').order('level_order'),c.from('promotion_qualification_snapshots').select('*').order('created_at',{ascending:false}).limit(200),c.from('user_promotions').select('*').order('created_at',{ascending:false}).limit(100)]);
+    [pr,lev,snap,prom].forEach(x=>{if(x.error)throw x.error});const people=(pr.data||[]).filter(x=>x.status!=='terminated'),levels=lev.data||[],snaps=snap.data||[],promos=prom.data||[];
+    main.innerHTML=`<div class="dashboard-head"><div><div class="kicker">ORGANIZATION & PROMOTION LADDER</div><h2>Leadership path and qualification control.</h2><p>View the promotion ladder, current qualification snapshots and approved promotion records.</p></div><button id="promoRefresh" class="tiny-btn">Refresh</button></div>${banner}
+    <div class="promotion-track">${levels.map(l=>`<div class="promotion-step"><div class="lvl">${Number(l.level_order||0)}</div><strong>${esc(l.name)}</strong><p style="font-size:11px;color:#8497ac">${esc(JSON.stringify(l.requirements||{}))}</p><small>${l.active?'ACTIVE':'INACTIVE'}</small></div>`).join('')}</div>
+    <div class="bo-card" style="margin-top:18px"><h3>Approve Promotion</h3><div class="form-grid"><select id="promoUser" class="mini-input"><option value="">Choose team member</option>${people.filter(x=>x.role!=='owner').map(x=>`<option value="${x.id}">${esc(name(x))} • ${esc(x.role)}</option>`).join('')}</select><select id="promoLevel" class="mini-input"><option value="">Choose promotion level</option>${levels.filter(x=>x.active).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select></div><button id="promoApprove" class="btn btn-primary" style="margin-top:10px">Approve Promotion</button></div>
+    <div class="bo-card" style="margin-top:18px"><h3>Latest Qualification Snapshots</h3><table class="admin-table"><tr><th>Team Member</th><th>Month</th><th>Personal</th><th>1st Gen</th><th>Direct Agents</th><th>Compliance</th><th>SOP</th><th>Qualifies</th></tr>${snaps.slice(0,100).map(x=>{const person=people.find(p=>p.id===x.user_id)||{};return `<tr><td>${esc(name(person))}</td><td>${esc(x.qualification_month||'—')}</td><td>${Number(x.personal_enrollments||0)}</td><td>${Number(x.first_generation_enrollments||0)}</td><td>${Number(x.active_direct_agents||0)}</td><td>${x.compliance_passed?'✓':'○'}</td><td>${x.sop_passed?'✓':'○'}</td><td>${x.qualifies?'YES':'NO'}</td></tr>`}).join('')||'<tr><td colspan="8">No qualification snapshots yet.</td></tr>'}</table></div>
+    <div class="bo-card" style="margin-top:18px"><h3>Promotion History</h3>${promos.length?`<table class="admin-table"><tr><th>Team Member</th><th>Level</th><th>Status</th><th>Approved</th></tr>${promos.map(x=>{const person=people.find(p=>p.id===x.user_id)||{},level=levels.find(l=>l.id===x.level_id)||{};return `<tr><td>${esc(name(person))}</td><td>${esc(level.name||'—')}</td><td>${esc(x.status)}</td><td>${x.approved_at?new Date(x.approved_at).toLocaleString():'—'}</td></tr>`}).join('')}</table>`:'No promotion records yet.'}</div>`;
+    const reload=()=>{delete main.dataset.promotionsLive;return renderPromotions(main)};$('#promoRefresh',main).onclick=reload;
+    $('#promoApprove',main).onclick=async()=>{try{const user_id=$('#promoUser',main).value,level_id=$('#promoLevel',main).value;if(!user_id||!level_id)throw new Error('Choose a team member and promotion level.');const {error}=await c.from('user_promotions').insert({user_id,level_id,status:'approved',recommended_by:actor,approved_by:actor,approved_at:new Date().toISOString()});if(error)throw error;window.toast?.('Promotion approved.');reload();}catch(e){window.toast?.('Promotion failed: '+(e.message||e));}};
   }catch(e){main.innerHTML=empty('Data unavailable: '+(e.message||e));}
 }
 

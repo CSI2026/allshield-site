@@ -1,0 +1,10 @@
+import fs from 'node:fs';
+const core=fs.readFileSync('phase16-production-core.js','utf8');
+const start=core.indexOf('async function renderVideo(main){');
+const end=core.indexOf('async function renderBrand(main){',start);
+if(start<0||end<0) throw new Error('Canonical YouTube Studio renderer not found');
+const video=core.slice(start,end);
+const required=['VIDEO & YOUTUBE STUDIO','Create, edit, repurpose and publish.','Long-form YouTube','Mid-form YouTube','Short-form Video','YouTube Shorts','Create','Script + Storyboard','AI Clips + Voice','Metadata + Thumbnail','Publish + Library','Generate Full AI Production Package','Generate AI Scene Clip','Generate Voiceover','Generate Metadata','Generate Thumbnail','Publish / Schedule to YouTube','video_projects','video_project_assets','video_publish_jobs','video-studio-ai','youtube-oauth','youtube-publish','Open Social Publishing for Other Channels'];
+for(const marker of required) if(!video.includes(marker)) throw new Error(`YouTube Studio feature missing: ${marker}`);
+for(const rejected of ['Company video library.','Production build will upload','Video publish job queued in demo']) if(video.includes(rejected)) throw new Error(`Incomplete/demo YouTube Studio behavior remains: ${rejected}`);
+console.log('YouTube Studio source contract: PASS');

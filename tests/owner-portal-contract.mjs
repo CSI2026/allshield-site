@@ -17,7 +17,7 @@ if(expected.some(x=>!routes.includes(x))||routes.length!==23) fail(`Owner route 
 if(index.includes('brand-914a23072410')) fail('Rejected legacy brand asset remains active');
 if(!index.includes('for(const key of Object.keys(host.dataset))')||!index.includes('host.dataset.currentView=view')) fail('Stale tab-state router guard missing');
 const featureMarkers={
-  core:['Schedule / Edit Meeting','Communication Registry','Schedule For','Preview','Approve','Release','Department structure and assignments','Create Draft Version','Video Assets','Approved Allshield brand system.'],
+  core:['Schedule / Edit Meeting','Communication Registry','Schedule For','Preview','Approve','Release','Department structure and assignments','Create Draft Version','Long-form YouTube','Mid-form YouTube','Short-form Video','YouTube Shorts','Generate Full AI Production Package','Script + Storyboard','AI Clips + Voice','Metadata + Thumbnail','Publish + Library','video_projects','video_project_assets','video_publish_jobs','video-studio-ai','youtube-oauth','youtube-publish','Approved Allshield brand system.'],
   back:['Add / Update Permission Override','Create Team Account','Manager','Organization and promotion ladder.','Record Promotion'],
   academy:['STATE LICENSING MATRIX','All 50 states.','US_STATES']
 };
@@ -26,7 +26,7 @@ for(const m of featureMarkers.back) if(!back.includes(m)) fail(`Owner access/tea
 for(const m of featureMarkers.academy) if(!academy.includes(m)) fail(`Owner licensing feature missing: ${m}`);
 if(sha(ai)!=='69b37664106e52e2c89516cf0cc4e1fbf9b676c1bca47c2cbbea13ad98d3f237') fail('AI Command Center changed from approved B021');
 if(sha(social)!=='592f534997bf00457da6fe8ce4e2ffb1b64c3ccc23ac8bce773d4453d2f98216') fail('Social Publishing changed from approved B021');
-if(!build.includes("build_number:'B2026.08.23.021'")||!build.includes("completion_release:'2026.08.26.001'")) fail('Build metadata is not the approved B021 completion release');
+if(!build.includes("build_number:'B2026.08.23.021'")||!build.includes("completion_release:'2026.08.26.002'")) fail('Build metadata is not the approved B021 YouTube Studio completion release');
 const all=[core,back,academy,read('phase16-owner-live-dashboard.js'),read('phase16-owner-support.js'),read('phase16-ai-command-production.js'),read('phase16-social-production.js')].join('\n');
 for(const r of expected){const re=new RegExp(`registerAllshieldView\\(['\"]owner['\"],['\"]${r}['\"]`);if(!re.test(all)) fail(`Canonical Owner handler missing: ${r}`)}
 for(const f of ['backend.js','build-info.js','config.js','phase16-build-002.js','phase16-crm.js','phase16-owner-live-dashboard.js','phase16-owner-support.js','phase16-live-backoffice.js','phase16-agent-academy-production.js','phase16-academy-admin.js','phase16-production-core.js','phase16-ai-command-production.js','phase16-agent-live-essentials.js','phase16-social-production.js']) execFileSync(process.execPath,['--check',f],{stdio:'inherit'});

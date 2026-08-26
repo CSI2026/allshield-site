@@ -836,8 +836,8 @@ function runRegisteredView(role,view,el){
   setActive(el);
   const host=document.getElementById(role==='agent'?'agentMain':role==='admin'?'adminMain':'ownerMain');
   if(!host) return true;
-  // The same portal host is reused by every tab. Renderer-specific data flags
-  // must never survive a route change or a returning tab may skip rebuilding.
+  // Every portal tab reuses this host. Clear renderer-specific flags before
+  // entering a new route so returning tabs always rebuild correctly.
   for(const key of Object.keys(host.dataset)){
     if(key!=='currentView') delete host.dataset[key];
   }

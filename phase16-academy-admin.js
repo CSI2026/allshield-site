@@ -40,49 +40,48 @@ async function renderLicensing(main){load(main);try{const d=await roster(true);c
 <div class="dashboard-head"><div><div class="kicker">LICENSING OVERSIGHT</div><h2>Licensing and exam-readiness.</h2><p>Resident-state license records and Academy readiness gates.</p></div></div><div class="real-data-banner">LIVE SUPABASE DATA</div>
 <div class="bo-card" style="margin-top:18px"><table class="admin-table"><tr><th>Agent</th><th>Resident State</th><th>License Status</th><th>License #</th><th>Readiness</th><th>Exam Ready</th></tr>${users.map(u=>{const l=(u.licenses||[]).find(x=>String(x.state_code||'').toUpperCase()===String(u.resident_state||'').toUpperCase())||(u.licenses||[])[0]||{};return `<tr><td>${esc(who(u))}</td><td>${esc(u.resident_state||'—')}</td><td>${esc(l.status||'—')}</td><td>${esc(l.license_number||'—')}</td><td>${l.readiness_percent==null?'—':Number(l.readiness_percent)+'%'}</td><td>${u.exam_ready?pill('YES',true):pill('NOT YET')}</td></tr>`}).join('')||'<tr><td colspan="6">No agents yet.</td></tr>'}</table></div>`;}catch(e){fail(main,e)}}
 
-
-const ALL_STATES=['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY'];
-async function renderStateMatrix(main){
-  load(main);
-  try{
-    const c=await sb();
-    const [licenses,tracks,readiness,profiles]=await Promise.all([
-      c.from('user_state_licenses').select('user_id,state_code,status,readiness_percent,license_number,expiration_date,is_resident'),
-      c.from('academy_launch_tracks').select('state_code,priority,license_track,licensing_status,marketplace_type,marketplace_status').order('priority'),
-      c.from('academy_launch_readiness').select('state_code,blueprint_ready,study_guide_ready,question_bank_ready,simulations_ready,analytics_ready,marketplace_path_ready,end_to_end_tested,launch_ready,updated_at'),
-      c.from('profiles').select('id,role,status,resident_state')
-    ]);
-    for(const r of [licenses,tracks,readiness,profiles]) if(r.error)throw r.error;
-    const activeProfiles=(profiles.data||[]).filter(x=>x.status!=='terminated');
-    const pmap=new Map(activeProfiles.map(x=>[x.id,x]));
-    const tmap=Object.fromEntries((tracks.data||[]).map(x=>[String(x.state_code||'').trim(),x]));
-    const rmap=Object.fromEntries((readiness.data||[]).map(x=>[String(x.state_code||'').trim(),x]));
-    const rows=ALL_STATES.map(code=>{
-      const ls=(licenses.data||[]).filter(x=>String(x.state_code||'').trim()===code && pmap.has(x.user_id));
-      const active=ls.filter(x=>['active','licensed','approved'].includes(String(x.status||'').toLowerCase())).length;
-      const avg=ls.length?Math.round(ls.reduce((n,x)=>n+Number(x.readiness_percent||0),0)/ls.length):null;
-      const resident=activeProfiles.filter(x=>String(x.resident_state||'').trim()===code).length;
-      const t=tmap[code]||{}; const r=rmap[code]||{};
-      const gate=[r.blueprint_ready,r.study_guide_ready,r.question_bank_ready,r.simulations_ready,r.analytics_ready,r.marketplace_path_ready,r.end_to_end_tested].filter(Boolean).length;
-      return {code,ls,active,avg,resident,t,r,gate};
-    });
-    const launched=rows.filter(x=>x.r.launch_ready).length;
-    const tracked=rows.filter(x=>x.t.state_code).length;
-    const licensed=rows.reduce((n,x)=>n+x.active,0);
-    main.innerHTML=`
-<div class="dashboard-head"><div><div class="kicker">STATE LICENSING MATRIX</div><h2>All 50 states in one control view.</h2><p>Live agent licensing, state launch-track status and Academy readiness. Empty states are shown as empty — never demo data.</p></div><button class="btn btn-primary" onclick="allshieldAcademyRefresh()">Refresh</button></div>
-<div class="real-data-banner">LIVE SUPABASE DATA • 50-STATE MATRIX • NO DEMO CONTENT</div>
-<div class="stat-grid" style="margin-top:18px"><div class="stat"><div class="label">STATES</div><div class="value">50</div></div><div class="stat"><div class="label">LAUNCH TRACKS</div><div class="value">${tracked}</div></div><div class="stat"><div class="label">LAUNCH READY</div><div class="value">${launched}</div></div><div class="stat"><div class="label">ACTIVE LICENSE RECORDS</div><div class="value">${licensed}</div></div></div>
-<div class="bo-card" style="margin-top:18px;overflow:auto"><table class="admin-table" style="min-width:1120px"><tr><th>State</th><th>Resident Agents</th><th>License Records</th><th>Active</th><th>Avg Readiness</th><th>License Track</th><th>Licensing Status</th><th>Marketplace</th><th>Academy Gate</th><th>Launch</th></tr>${rows.map(x=>`<tr><td><strong>${x.code}</strong></td><td>${x.resident}</td><td>${x.ls.length}</td><td>${x.active}</td><td>${x.avg===null?'—':x.avg+'%'}</td><td>${esc(x.t.license_track||'Not configured')}</td><td>${esc(x.t.licensing_status||'—')}</td><td>${esc(x.t.marketplace_status||x.t.marketplace_type||'—')}</td><td>${x.gate}/7</td><td>${x.r.launch_ready?pill('READY',true):pill(x.t.state_code?'BUILDING':'NOT CONFIGURED')}</td></tr>`).join('')}</table></div>`;
-  }catch(e){fail(main,e)}
-}
 async function renderOwnerAcademy(main){load(main);try{const c=await sb();const [r,tracks,ready,qv,ai]=await Promise.all([roster(true),c.from('academy_launch_tracks').select('*').order('priority'),c.from('academy_launch_readiness').select('*'),c.from('academy_question_validations').select('validation_status,confidence'),c.functions.invoke('ai-provider-status',{body:{}})]);if(tracks.error)throw tracks.error;if(ready.error)throw ready.error;if(qv.error)throw qv.error;const users=r.users||[];const rv=Object.fromEntries((ready.data||[]).map(x=>[x.state_code,x]));const verified=(qv.data||[]).filter(x=>x.validation_status==='verified').length;const review=(qv.data||[]).filter(x=>x.validation_status!=='verified').length;main.innerHTML=`
 <div class="dashboard-head"><div><div class="kicker">ACADEMY GOVERNANCE</div><h2>Academy launch control.</h2><p>Curriculum, question validation, state readiness, AI status and agent progress.</p></div><button class="btn btn-primary" onclick="allshieldAcademyRefresh()">Refresh</button></div>
 <div class="real-data-banner">TRUE MASTER • LIVE SUPABASE BACKEND</div>
 <div class="stat-grid" style="margin-top:18px"><div class="stat"><div class="label">ACADEMY AGENTS</div><div class="value">${users.length}</div></div><div class="stat"><div class="label">VERIFIED QUESTIONS</div><div class="value">${verified}</div></div><div class="stat"><div class="label">NEEDS REVIEW</div><div class="value">${review}</div></div><div class="stat"><div class="label">AI PROVIDER</div><div class="value" style="font-size:18px">${ai.error?'CHECK':(ai.data?.configured?'READY':'NOT CONFIGURED')}</div></div></div>
 <div class="bo-card" style="margin-top:18px"><h3>State Launch Tracks</h3><table class="admin-table"><tr><th>State</th><th>License Track</th><th>Marketplace</th><th>Blueprint</th><th>Study Guide</th><th>Questions</th><th>Simulations</th><th>End-to-End</th><th>Launch</th></tr>${(tracks.data||[]).map(t=>{const x=rv[t.state_code]||{};return `<tr><td>${esc(t.state_code)}</td><td>${esc(t.license_track||'—')}</td><td>${esc(t.marketplace_status||'—')}</td><td>${x.blueprint_ready?'✓':'○'}</td><td>${x.study_guide_ready?'✓':'○'}</td><td>${x.question_bank_ready?'✓':'○'}</td><td>${x.simulations_ready?'✓':'○'}</td><td>${x.end_to_end_tested?'✓':'○'}</td><td>${x.launch_ready?pill('READY',true):pill('BUILDING')}</td></tr>`}).join('')}</table></div>`;}catch(e){fail(main,e)}}
 
-window.allshieldAcademyRefresh=()=>{cache=null;const a=document.getElementById('adminMain'),o=document.getElementById('ownerMain');if(a&&a.offsetParent){if(currentAdminView==='tests')renderTests(a);else if(currentAdminView==='courses')renderCourses(a);else if(currentAdminView==='licensing')renderLicensing(a);else renderOnboarding(a);}if(o&&o.offsetParent){if(currentOwnerView==='testing')renderTests(o);else if(currentOwnerView==='states')renderStateMatrix(o);else renderOwnerAcademy(o);}};
+
+const US_STATES=[['AL','Alabama'],['AK','Alaska'],['AZ','Arizona'],['AR','Arkansas'],['CA','California'],['CO','Colorado'],['CT','Connecticut'],['DE','Delaware'],['FL','Florida'],['GA','Georgia'],['HI','Hawaii'],['ID','Idaho'],['IL','Illinois'],['IN','Indiana'],['IA','Iowa'],['KS','Kansas'],['KY','Kentucky'],['LA','Louisiana'],['ME','Maine'],['MD','Maryland'],['MA','Massachusetts'],['MI','Michigan'],['MN','Minnesota'],['MS','Mississippi'],['MO','Missouri'],['MT','Montana'],['NE','Nebraska'],['NV','Nevada'],['NH','New Hampshire'],['NJ','New Jersey'],['NM','New Mexico'],['NY','New York'],['NC','North Carolina'],['ND','North Dakota'],['OH','Ohio'],['OK','Oklahoma'],['OR','Oregon'],['PA','Pennsylvania'],['RI','Rhode Island'],['SC','South Carolina'],['SD','South Dakota'],['TN','Tennessee'],['TX','Texas'],['UT','Utah'],['VT','Vermont'],['VA','Virginia'],['WA','Washington'],['WV','West Virginia'],['WI','Wisconsin'],['WY','Wyoming']];
+
+async function renderOwnerStates(main){
+  load(main);
+  try{
+    const c=await sb();
+    const [licensesQ,profilesQ,tracksQ,readyQ]=await Promise.all([
+      c.from('user_state_licenses').select('user_id,state_code,status,readiness_percent,license_number,expiration_date,is_resident'),
+      c.from('profiles').select('id,status,role'),
+      c.from('academy_launch_tracks').select('state_code,license_track,licensing_status,marketplace_type,marketplace_status,priority'),
+      c.from('academy_launch_readiness').select('*')
+    ]);
+    [licensesQ,profilesQ,tracksQ,readyQ].forEach(x=>{if(x.error)throw x.error});
+    const profiles=Object.fromEntries((profilesQ.data||[]).map(x=>[x.id,x]));
+    const licenses=licensesQ.data||[],tracks=Object.fromEntries((tracksQ.data||[]).map(x=>[String(x.state_code).trim(),x])),ready=Object.fromEntries((readyQ.data||[]).map(x=>[String(x.state_code).trim(),x]));
+    const rows=US_STATES.map(([code,state])=>{
+      const ls=licenses.filter(x=>String(x.state_code||'').trim()===code && profiles[x.user_id]?.status!=='terminated');
+      const active=ls.filter(x=>['active','licensed','approved'].includes(String(x.status||'').toLowerCase())).length;
+      const avg=ls.length?Math.round(ls.reduce((n,x)=>n+Number(x.readiness_percent||0),0)/ls.length):0;
+      const t=tracks[code],r=ready[code];
+      return {code,state,total:ls.length,active,avg,t,r};
+    });
+    main.innerHTML=`
+      <div class="dashboard-head"><div><div class="kicker">STATE LICENSING MATRIX</div><h2>All 50 states.</h2><p>Live team license coverage plus Academy rollout readiness for every state.</p></div><button class="btn btn-primary" id="stateMatrixRefresh">Refresh</button></div>
+      <div class="real-data-banner">LIVE SUPABASE LICENSING + ACADEMY DATA</div>
+      <div class="stat-grid" style="margin-top:18px"><div class="stat"><div class="label">STATES</div><div class="value">50</div></div><div class="stat"><div class="label">LICENSE RECORDS</div><div class="value">${licenses.length}</div></div><div class="stat"><div class="label">STATES WITH LICENSES</div><div class="value">${rows.filter(x=>x.total).length}</div></div><div class="stat"><div class="label">ACADEMY LAUNCH READY</div><div class="value">${rows.filter(x=>x.r?.launch_ready).length}</div></div></div>
+      <div class="bo-card" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><h3 style="margin:0">State Matrix</h3><input id="stateMatrixSearch" class="mini-input" style="max-width:280px" placeholder="Search state"></div><div style="overflow:auto;margin-top:12px"><table class="admin-table"><thead><tr><th>State</th><th>License Records</th><th>Active / Licensed</th><th>Avg Readiness</th><th>Academy Track</th><th>Marketplace</th><th>Launch Readiness</th></tr></thead><tbody id="stateMatrixRows"></tbody></table></div></div>`;
+    const paint=()=>{const q=(document.getElementById('stateMatrixSearch')?.value||'').toLowerCase();document.getElementById('stateMatrixRows').innerHTML=rows.filter(x=>(x.code+' '+x.state).toLowerCase().includes(q)).map(x=>`<tr><td><strong>${esc(x.code)}</strong><small style="display:block">${esc(x.state)}</small></td><td>${x.total}</td><td>${x.active}</td><td>${x.total?x.avg+'%':'—'}</td><td>${esc(x.t?.license_track||'Not configured')}</td><td>${esc(x.t?.marketplace_status||x.t?.marketplace_type||'Not configured')}</td><td>${x.r?.launch_ready?pill('READY',true):x.r?pill('BUILDING'):pill('NOT CONFIGURED')}</td></tr>`).join('');};
+    document.getElementById('stateMatrixSearch').oninput=paint;
+    document.getElementById('stateMatrixRefresh').onclick=()=>renderOwnerStates(main);
+    paint();
+  }catch(e){fail(main,e)}
+}
+
+window.allshieldAcademyRefresh=()=>{cache=null;const a=document.getElementById('adminMain'),o=document.getElementById('ownerMain');if(a&&a.offsetParent){if(currentAdminView==='tests')renderTests(a);else if(currentAdminView==='courses')renderCourses(a);else if(currentAdminView==='licensing')renderLicensing(a);else renderOnboarding(a);}if(o&&o.offsetParent){if(currentOwnerView==='testing')renderTests(o);else if(currentOwnerView==='states')renderOwnerStates(o);else renderOwnerAcademy(o);}};
 window.allshieldAcademyAssign=async id=>{try{const r=await invoke('assign_required_courses',{user_id:id});cache=null;alert(`Required courses checked. New assignments: ${r.assigned_new}`);const m=document.getElementById('adminMain');if(m)renderOnboarding(m);}catch(e){alert(e.message||e)}};
 window.allshieldAcademySync=async id=>{try{await invoke('sync_readiness',{user_id:id});cache=null;const m=document.getElementById('adminMain');if(m)renderOnboarding(m);}catch(e){alert(e.message||e)}};
 window.allshieldStandardsReview=async(id,completed)=>{try{await invoke('set_step',{user_id:id,step_key:'standards',completed});cache=null;const m=document.getElementById('adminMain');if(m)renderOnboarding(m);}catch(e){alert(e.message||e)}};
@@ -99,7 +98,7 @@ function install(){
   window.registerAllshieldView('admin','courses',()=>{currentAdminView='courses';return renderCourses(adminMain());});
   window.registerAllshieldView('admin','licensing',()=>{currentAdminView='licensing';return renderLicensing(adminMain());});
   window.registerAllshieldView('owner','academy',()=>{currentOwnerView='academy';return renderOwnerAcademy(ownerMain());});
-  window.registerAllshieldView('owner','states',()=>{currentOwnerView='states';return renderStateMatrix(ownerMain());});
+  window.registerAllshieldView('owner','states',()=>{currentOwnerView='states';return renderOwnerStates(ownerMain());});
 }
 install();
 })();

@@ -16,7 +16,11 @@ const routes=[...new Set([...index.matchAll(/showOwnerView\('([^']+)'/g)].map(m=
 if(expected.some(x=>!routes.includes(x))||routes.length!==23) fail(`Owner route mismatch: ${routes.join(',')}`);
 if(index.includes('brand-914a23072410')) fail('Rejected legacy brand asset remains active');
 if(!index.includes('for(const key of Object.keys(host.dataset))')||!index.includes('host.dataset.currentView=view')) fail('Stale tab-state router guard missing');
-const featureMarkers={core:['Schedule / Edit Meeting','Communication Registry','Schedule For','Preview','Approve','Release','Department structure and assignments','Create Draft Version','Video Assets','Approved Allshield brand system.'],back:['Add / Update Permission Override','Create Team Account','Manager','Organization and promotion ladder.','Record Promotion'],academy:['STATE LICENSING MATRIX','All 50 states.','US_STATES']};
+const featureMarkers={
+  core:['Schedule / Edit Meeting','Communication Registry','Schedule For','Preview','Approve','Release','Department structure and assignments','Create Draft Version','Video Assets','Approved Allshield brand system.'],
+  back:['Add / Update Permission Override','Create Team Account','Manager','Organization and promotion ladder.','Record Promotion'],
+  academy:['STATE LICENSING MATRIX','All 50 states.','US_STATES']
+};
 for(const m of featureMarkers.core) if(!core.includes(m)) fail(`Owner production feature missing: ${m}`);
 for(const m of featureMarkers.back) if(!back.includes(m)) fail(`Owner access/team feature missing: ${m}`);
 for(const m of featureMarkers.academy) if(!academy.includes(m)) fail(`Owner licensing feature missing: ${m}`);

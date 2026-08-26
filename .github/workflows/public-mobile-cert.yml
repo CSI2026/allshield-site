@@ -1,0 +1,54 @@
+name: Public Mobile Homepage Certification
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'responsive.css'
+      - 'responsive-ui.js'
+      - 'index.html'
+      - 'tests/public-mobile-cert.mjs'
+      - '.github/workflows/public-mobile-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  certify-mobile:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Run mobile homepage certification
+        id: cert
+        shell: bash
+        run: |
+          mkdir -p certification
+          set +e
+          ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/public-mobile-cert.mjs > certification/public-mobile-certification.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          cat certification/public-mobile-certification.json
+          exit 0
+      - name: Commit certification result
+        run: |
+          git config user.name "allshield-mobile-cert-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add certification/public-mobile-certification.json certification/public-mobile-home.png || true
+          if git diff --cached --quiet; then
+            echo "No mobile certification result changes."
+          else
+            git commit -m "Record public mobile homepage certification"
+            git push
+          fi
+      - name: Enforce mobile certification result
+        run: |
+          test '${{ steps.cert.outputs.exit_code }}' = '0'

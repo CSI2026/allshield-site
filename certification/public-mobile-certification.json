@@ -1,10 +1,10 @@
 {
   "certification": "ALLSHIELD public mobile homepage + Owner login certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T22:56:58.449Z",
-  "status": "PASS",
-  "passed": 12,
-  "total": 12,
+  "completed_at": "2026-08-26T22:59:05.484Z",
+  "status": "FAIL",
+  "passed": 7,
+  "total": 8,
   "checks": [
     {
       "name": "Mobile homepage HTTP",
@@ -19,12 +19,12 @@
     {
       "name": "Mobile header controls fit",
       "ok": true,
-      "detail": "[{\"text\":\"Team Portal\",\"primary\":false,\"left\":186.703125,\"right\":274.859375,\"width\":88.15625,\"color\":\"rgb(230, 238, 247)\"},{\"text\":\"Get Protected\",\"primary\":true,\"left\":281.859375,\"right\":380,\"width\":98.140625,\"color\":\"rgb(255, 255, 255)\"}]"
+      "detail": "[{\"text\":\"Team Portal\",\"primary\":false,\"left\":0,\"right\":0,\"width\":0,\"color\":\"rgb(230, 238, 247)\"},{\"text\":\"Get Protected\",\"primary\":true,\"left\":277.859375,\"right\":378,\"width\":100.140625,\"color\":\"rgb(255, 255, 255)\"}]"
     },
     {
       "name": "Mobile hero scale",
       "ok": true,
-      "detail": "{\"left\":12,\"right\":378,\"width\":366,\"height\":131.25,\"font\":42.9,\"color\":\"rgb(255, 255, 255)\",\"display\":\"block\"}"
+      "detail": "{\"left\":12,\"right\":378,\"width\":366,\"height\":126.46875,\"font\":41.34,\"color\":\"rgb(255, 255, 255)\",\"display\":\"block\"}"
     },
     {
       "name": "Duplicate hero logo removed on phone",
@@ -42,30 +42,12 @@
       "detail": "{\"left\":12,\"right\":378,\"width\":366,\"height\":48,\"font\":13,\"color\":\"rgb(255, 255, 255)\",\"display\":\"inline-flex\"}"
     },
     {
-      "name": "Owner login card fits phone",
-      "ok": true,
-      "detail": "{\"card\":{\"left\":12,\"right\":378,\"width\":366,\"top\":28,\"bottom\":614.234375},\"userAutocomplete\":\"username\",\"userAutocapitalize\":\"none\",\"passAutocomplete\":\"current-password\"}"
-    },
-    {
-      "name": "Owner login mobile input settings",
-      "ok": true,
-      "detail": "{\"card\":{\"left\":12,\"right\":378,\"width\":366,\"top\":28,\"bottom\":614.234375},\"userAutocomplete\":\"username\",\"userAutocapitalize\":\"none\",\"passAutocomplete\":\"current-password\"}"
-    },
-    {
-      "name": "Owner login button invokes secure login path",
-      "ok": true,
-      "detail": "invoked=owner"
-    },
-    {
-      "name": "Owner login Enter key works on mobile",
-      "ok": true,
-      "detail": "invoked=owner"
-    },
-    {
-      "name": "Mobile browser errors",
-      "ok": true,
-      "detail": "none"
+      "name": "Certification execution",
+      "ok": false,
+      "detail": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('nav .login')\n    - locator resolved to <button class=\"btn btn-ghost login\" onclick=\"openPortalChooser()\">Team Portal</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying click action\n       - waiting 500ms\n\n    at /home/runner/work/allshield-site/allshield-site/tests/public-mobile-cert.mjs:27:36"
     }
   ],
-  "failures": []
+  "failures": [
+    "Certification execution: locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('nav .login')\n    - locator resolved to <button class=\"btn btn-ghost login\" onclick=\"openPortalChooser()\">Team Portal</button>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying click action\n       - waiting 500ms\n\n    at /home/runner/work/allshield-site/allshield-site/tests/public-mobile-cert.mjs:27:36"
+  ]
 }

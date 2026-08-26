@@ -1,0 +1,280 @@
+async function renderVideo(main){
+  if(main.dataset.videoLive==='1') return; main.dataset.videoLive='1';
+  const c=await sb(),u=await me();
+  const state={project:null,projects:[],assets:[],jobs:[],youtube:null,ai:null,tab:'create'};
+  const TYPES={
+    long:{label:'Long-form YouTube',detail:'8–30 min • 16:9',duration:900,orientation:'16:9'},
+    mid:{label:'Mid-form YouTube',detail:'3–8 min • 16:9',duration:360,orientation:'16:9'},
+    short:{label:'Short-form Video',detail:'60–180 sec • 16:9 or 9:16',duration:120,orientation:'16:9'},
+    shorts:{label:'YouTube Shorts',detail:'15–60 sec • 9:16',duration:45,orientation:'9:16'}
+  };
+  const fmtTime=s=>{s=Number(s||0);if(!s)return '—';const m=Math.floor(s/60),r=s%60;return m?`${m}:${String(r).padStart(2,'0')}`:`0:${String(r).padStart(2,'0')}`;};
+  const projectBadge=p=>TYPES[p?.project_type]?.label||p?.project_type||'Video';
+
+  main.innerHTML=`<style>
+  #ytStudio .yt-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+  #ytStudio .yt-tab{padding:10px 13px;border:1px solid rgba(255,255,255,.1);border-radius:11px;background:#091624;color:#9fb2c5;cursor:pointer}
+  #ytStudio .yt-tab.on{background:#103456;border-color:#4da7e8;color:#fff}
+  #ytStudio .yt-panel{display:none} #ytStudio .yt-panel.on{display:block}
+  #ytStudio .yt-type-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0 18px}
+  #ytStudio .yt-type{padding:15px;border-radius:14px;background:#091624;border:1px solid rgba(255,255,255,.08);cursor:pointer}
+  #ytStudio .yt-type.on{background:#103456;border-color:#4da7e8}
+  #ytStudio .yt-type strong{display:block;margin-bottom:5px} #ytStudio .yt-type small{color:#8298ad}
+  #ytStudio .yt-split{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:16px}
+  #ytStudio .yt-scene{padding:14px;border:1px solid rgba(255,255,255,.08);background:#091624;border-radius:14px;margin:10px 0}
+  #ytStudio .yt-scene-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:9px}
+  #ytStudio .yt-scene-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  #ytStudio .yt-asset{padding:13px;border:1px solid rgba(255,255,255,.08);border-radius:13px;background:#091624;margin:8px 0}
+  #ytStudio .yt-asset-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  #ytStudio .yt-project{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:12px;background:#091624;margin:8px 0;cursor:pointer}
+  #ytStudio .yt-project.on{border-color:#4da7e8;background:#103456}
+  #ytStudio .yt-status{display:inline-flex;padding:5px 8px;border-radius:999px;background:#102b46;color:#8ed1ff;font-size:10px}
+  #ytStudio .yt-status.good{background:rgba(43,160,103,.15);color:#92dfb8}
+  #ytStudio .yt-status.warn{background:rgba(210,155,65,.13);color:#f0c783}
+  #ytStudio .yt-thumb{width:100%;max-width:520px;border-radius:14px;border:1px solid rgba(255,255,255,.08);display:block}
+  #ytStudio .yt-empty{opacity:.68;padding:16px 0}
+  #ytStudio .yt-note{font-size:11px;line-height:1.55;color:#8da2b7}
+  @media(max-width:1100px){#ytStudio .yt-type-grid{grid-template-columns:1fr 1fr}#ytStudio .yt-split{grid-template-columns:1fr}}
+  @media(max-width:650px){#ytStudio .yt-type-grid,#ytStudio .yt-scene-grid{grid-template-columns:1fr}}
+  </style>
+  <div id="ytStudio">
+    <div class="dashboard-head"><div><div class="kicker">VIDEO & YOUTUBE STUDIO</div><h2>Create, edit, repurpose and publish.</h2><p>Build long-form, mid-form, short-form and YouTube Shorts from a brief or source material, then manage scripts, scenes, voiceovers, thumbnails, final media and YouTube publishing.</p></div><button id="ytNewProject" class="btn btn-primary">+ New Video Project</button></div>
+    <div class="real-data-banner">LIVE SUPABASE + ALLSHIELD AI + YOUTUBE WORKFLOW</div>
+    <div class="yt-tabs">
+      <button class="yt-tab on" data-yt-tab="create">Create</button>
+      <button class="yt-tab" data-yt-tab="script">Script + Storyboard</button>
+      <button class="yt-tab" data-yt-tab="assets">AI Clips + Voice</button>
+      <button class="yt-tab" data-yt-tab="metadata">Metadata + Thumbnail</button>
+      <button class="yt-tab" data-yt-tab="publish">Publish + Library</button>
+    </div>
+    <div class="yt-split">
+      <div>
+        <section class="yt-panel on" data-yt-panel="create">
+          <div class="bo-card">
+            <h3>Create for the right length.</h3>
+            <div class="yt-type-grid">
+              ${Object.entries(TYPES).map(([k,v])=>`<div class="yt-type ${k==='long'?'on':''}" data-yt-type="${k}"><strong>${v.label}</strong><small>${v.detail}</small></div>`).join('')}
+            </div>
+            <div class="form-grid">
+              <div><label>Project Title</label><input id="ytProjectTitle" class="mini-input" placeholder="Working title"></div>
+              <div><label>Target Duration (seconds)</label><input id="ytProjectDuration" type="number" min="15" class="mini-input" value="900"></div>
+              <div><label>Orientation</label><select id="ytProjectOrientation" class="mini-input"><option>16:9</option><option>9:16</option><option>1:1</option></select></div>
+              <div><label>Objective</label><select id="ytProjectObjective" class="mini-input"><option value="education">Education</option><option value="recruiting">Recruiting</option><option value="brand_awareness">Brand Awareness</option><option value="training">Training</option><option value="customer_education">Customer Education</option><option value="storytelling">Storytelling</option></select></div>
+              <div><label>Audience</label><input id="ytProjectAudience" class="mini-input" placeholder="Who should watch this?"></div>
+              <div><label>Tone</label><select id="ytProjectTone" class="mini-input"><option>Confident and human</option><option>Educational</option><option>Cinematic</option><option>Conversational</option><option>High energy</option><option>Professional</option><option>Inspirational</option></select></div>
+            </div>
+            <label style="display:block;margin-top:12px">Topic / Creative Brief</label><textarea id="ytProjectTopic" class="mini-input" style="height:100px" placeholder="What is this video about? What should the viewer understand, feel or do?"></textarea>
+            <label style="display:block;margin-top:12px">Approved Source Material / Facts</label><textarea id="ytProjectSource" class="mini-input" style="height:130px" placeholder="Paste notes, transcript, approved facts, article summary, training material or other source content. AI is instructed not to invent unsupported claims."></textarea>
+            <label style="display:block;margin-top:12px">Call to Action</label><input id="ytProjectCta" class="mini-input" placeholder="What should the viewer do next?">
+            <div class="row-actions"><button id="ytSaveDraft" class="tiny-btn">Save Draft</button><button id="ytGeneratePackage" class="btn btn-primary">✦ Generate Full AI Production Package</button></div>
+            <div id="ytCreateResult" class="publish-result"></div>
+          </div>
+        </section>
+
+        <section class="yt-panel" data-yt-panel="script">
+          <div class="bo-card"><div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><h3 style="margin-bottom:5px">Script + Storyboard</h3><div class="yt-note">Edit anything AI prepared before moving into production.</div></div><button id="ytSaveScript" class="btn btn-primary">Save Script & Storyboard</button></div>
+            <label style="display:block;margin-top:14px">Hook</label><textarea id="ytHook" class="mini-input" style="height:70px"></textarea>
+            <label style="display:block;margin-top:12px">Outline — one beat per line</label><textarea id="ytOutline" class="mini-input" style="height:110px"></textarea>
+            <label style="display:block;margin-top:12px">Full Script</label><textarea id="ytScript" class="mini-input" style="height:360px"></textarea>
+            <label style="display:block;margin-top:12px">Captions / Transcript</label><textarea id="ytCaptions" class="mini-input" style="height:160px"></textarea>
+          </div>
+          <div class="bo-card" style="margin-top:16px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Storyboard Scenes</h3><button id="ytAddScene" class="tiny-btn">+ Add Scene</button></div><div id="ytStoryboard"><div class="yt-empty">Generate a production package or add a scene.</div></div></div>
+        </section>
+
+        <section class="yt-panel" data-yt-panel="assets">
+          <div class="bo-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3 style="margin-bottom:5px">AI Clips + Voice</h3><div class="yt-note">Generate individual scene visuals and voiceovers, or upload your own footage. AI video clips are 4, 8 or 12 seconds and remain separate scene assets until you attach a final edited video.</div></div><button id="ytSyncClips" class="tiny-btn">Sync AI Clip Jobs</button></div>
+            <div id="ytSceneProduction" style="margin-top:12px"></div>
+          </div>
+          <div class="bo-card" style="margin-top:16px"><h3>Upload Footage / Final Edit</h3><div class="form-grid"><div><label>Asset Type</label><select id="ytUploadType" class="mini-input"><option value="raw_video">Raw Footage</option><option value="final_video">Final Edited Video</option><option value="broll">B-roll</option><option value="audio">Audio</option></select></div><div><label>Asset Title</label><input id="ytUploadTitle" class="mini-input"></div></div><input id="ytUploadFile" type="file" accept="video/*,audio/*" class="mini-input" style="margin-top:10px"><button id="ytUploadAsset" class="btn btn-primary" style="margin-top:10px">Upload Asset</button><div class="yt-note" style="margin-top:10px">Use Final Edited Video for the file that will be sent to YouTube. Raw footage and generated scene assets stay available for your production workflow.</div></div>
+          <div class="bo-card" style="margin-top:16px"><h3>Project Assets</h3><div id="ytAssets"><div class="yt-empty">Open a project to see its assets.</div></div></div>
+        </section>
+
+        <section class="yt-panel" data-yt-panel="metadata">
+          <div class="bo-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3 style="margin-bottom:5px">YouTube Metadata</h3><div class="yt-note">Prepare title, description, tags, captions and thumbnail before publishing.</div></div><button id="ytGenerateMetadata" class="tiny-btn">✦ Generate Metadata</button></div>
+            <label style="display:block;margin-top:14px">YouTube Title</label><input id="ytYoutubeTitle" class="mini-input" maxlength="100">
+            <label style="display:block;margin-top:12px">YouTube Description</label><textarea id="ytYoutubeDescription" class="mini-input" style="height:210px"></textarea>
+            <label style="display:block;margin-top:12px">Tags — comma separated</label><textarea id="ytTags" class="mini-input" style="height:80px"></textarea>
+            <label style="display:block;margin-top:12px">Thumbnail Creative Brief</label><textarea id="ytThumbnailPrompt" class="mini-input" style="height:100px"></textarea>
+            <div class="row-actions"><button id="ytSaveMetadata" class="tiny-btn">Save Metadata</button><button id="ytGenerateThumbnail" class="btn btn-primary">✦ Generate Thumbnail</button></div>
+          </div>
+          <div class="bo-card" style="margin-top:16px"><h3>Thumbnail Preview</h3><div id="ytThumbnailPreview"><div class="yt-empty">No thumbnail generated yet.</div></div></div>
+          <div class="bo-card" style="margin-top:16px"><h3>Repurpose Plan</h3><p class="yt-note">AI can identify short clips from a longer project. Create a linked Short-form or Shorts project from any idea, then refine it independently.</p><div id="ytClipIdeas"><div class="yt-empty">Generate a production package to create cutdown ideas.</div></div></div>
+        </section>
+
+        <section class="yt-panel" data-yt-panel="publish">
+          <div class="bo-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><h3 style="margin-bottom:5px">YouTube Channel</h3><div id="ytConnectionText" class="yt-note">Checking YouTube connection…</div></div><div id="ytConnectionActions"></div></div><div id="ytCallback" class="yt-note" style="margin-top:10px"></div></div>
+          <div class="bo-card" style="margin-top:16px"><h3>Publish / Schedule</h3>
+            <div class="form-grid">
+              <div><label>Final Video</label><select id="ytPublishAsset" class="mini-input"><option value="">Select final video…</option></select></div>
+              <div><label>Privacy</label><select id="ytPrivacy" class="mini-input"><option value="unlisted">Unlisted</option><option value="public">Public</option><option value="private">Private</option></select></div>
+              <div><label>Schedule (optional)</label><input id="ytSchedule" type="datetime-local" class="mini-input"></div>
+              <div><label>YouTube Category</label><select id="ytCategory" class="mini-input"><option value="27">Education</option><option value="22">People & Blogs</option><option value="25">News & Politics</option><option value="26">Howto & Style</option><option value="28">Science & Technology</option></select></div>
+            </div>
+            <div class="format-switch">
+              <button class="format-btn on" data-dest="youtube">YouTube</button>
+              <button class="format-btn" data-dest="youtube_shorts">YouTube Shorts</button>
+              <button class="format-btn" data-dest="facebook">Facebook Video</button>
+              <button class="format-btn" data-dest="instagram">Instagram Reels</button>
+              <button class="format-btn" data-dest="tiktok">TikTok</button>
+            </div>
+            <div class="row-actions"><button id="ytPublishNow" class="btn btn-primary">Publish / Schedule to YouTube</button><button id="ytOpenSocial" class="tiny-btn">Open Social Publishing for Other Channels</button></div>
+            <div id="ytPublishResult" class="publish-result"></div>
+          </div>
+          <div class="bo-card" style="margin-top:16px"><h3>Publishing Jobs</h3><div id="ytPublishJobs"><div class="yt-empty">No YouTube publishing jobs yet.</div></div></div>
+        </section>
+      </div>
+
+      <aside>
+        <div class="bo-card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h3 style="margin:0">Video Projects</h3><button id="ytRefreshProjects" class="tiny-btn">Refresh</button></div><div id="ytProjectList"><div class="yt-empty">Loading projects…</div></div></div>
+        <div class="bo-card" style="margin-top:16px"><h3>Current Project</h3><div id="ytCurrentProject" class="yt-note">No project selected.</div></div>
+        <div class="bo-card" style="margin-top:16px"><h3>Production Path</h3><div class="yt-note">1. Choose format + brief<br>2. Generate/edit script + storyboard<br>3. Create/upload scene assets + voice<br>4. Attach final edited video<br>5. Generate metadata + thumbnail<br>6. Connect YouTube<br>7. Publish or schedule</div></div>
+      </aside>
+    </div>
+  </div>`;
+
+  const showResult=(id,msg)=>{const e=$('#'+id,main);if(!e)return;e.textContent=msg;e.classList.add('show');};
+  const requireProject=()=>{if(!state.project?.id){toastMsg('Create or open a video project first.');return false}return true;};
+  const setTab=name=>{state.tab=name;$$('[data-yt-tab]',main).forEach(b=>b.classList.toggle('on',b.dataset.ytTab===name));$$('[data-yt-panel]',main).forEach(p=>p.classList.toggle('on',p.dataset.ytPanel===name));};
+  $$('[data-yt-tab]',main).forEach(b=>b.onclick=()=>setTab(b.dataset.ytTab));
+
+  let selectedType='long';
+  function selectType(type){
+    selectedType=type;const spec=TYPES[type]||TYPES.long;
+    $$('[data-yt-type]',main).forEach(x=>x.classList.toggle('on',x.dataset.ytType===type));
+    $('#ytProjectDuration',main).value=String(spec.duration);
+    $('#ytProjectOrientation',main).value=spec.orientation;
+    $('#ytProjectOrientation',main).disabled=type==='shorts';
+  }
+  $$('[data-yt-type]',main).forEach(x=>x.onclick=()=>selectType(x.dataset.ytType));
+
+  function clearForm(){
+    state.project=null;state.assets=[];state.jobs=[];selectedType='long';selectType('long');
+    ['ytProjectTitle','ytProjectAudience','ytProjectTopic','ytProjectSource','ytProjectCta','ytHook','ytOutline','ytScript','ytCaptions','ytYoutubeTitle','ytYoutubeDescription','ytTags','ytThumbnailPrompt'].forEach(id=>{const e=$('#'+id,main);if(e)e.value='';});
+    $('#ytProjectObjective',main).value='education';$('#ytProjectTone',main).value='Confident and human';
+    renderProjectDetail();renderStoryboard([]);renderSceneProduction([]);renderAssets();renderMetadata();renderJobs();
+    setTab('create');$('#ytProjectTitle',main)?.focus();
+  }
+
+  async function refreshProjects(openId=null){
+    const {data,error}=await c.from('video_projects').select('*').order('updated_at',{ascending:false}).limit(100);if(error)throw error;state.projects=data||[];
+    const list=$('#ytProjectList',main);list.innerHTML=state.projects.length?state.projects.map(p=>`<div class="yt-project ${state.project?.id===p.id?'on':''}" data-project-id="${p.id}"><div style="display:flex;justify-content:space-between;gap:8px"><strong>${esc(p.title)}</strong><span class="yt-status">${esc(p.status)}</span></div><small style="display:block;margin-top:5px;color:#8195aa">${esc(projectBadge(p))} • ${esc(p.orientation)} • ${fmtTime(p.target_duration_seconds)}</small></div>`).join(''):'<div class="yt-empty">No video projects yet. Create your first one.</div>';
+    $$('[data-project-id]',list).forEach(el=>el.onclick=()=>openProject(el.dataset.projectId));
+    if(openId) await openProject(openId);
+  }
+
+  function payloadFromForm(){
+    return {title:$('#ytProjectTitle',main).value.trim(),project_type:selectedType,orientation:selectedType==='shorts'?'9:16':$('#ytProjectOrientation',main).value,target_duration_seconds:Math.max(15,Number($('#ytProjectDuration',main).value||TYPES[selectedType].duration)),topic:$('#ytProjectTopic',main).value.trim()||null,objective:$('#ytProjectObjective',main).value||null,audience:$('#ytProjectAudience',main).value.trim()||null,tone:$('#ytProjectTone',main).value||null,source_material:$('#ytProjectSource',main).value.trim()||null,call_to_action:$('#ytProjectCta',main).value.trim()||null,updated_at:new Date().toISOString()};
+  }
+
+  async function saveDraft(){
+    const p=payloadFromForm();if(!p.title)throw new Error('Project title is required.');
+    if(state.project?.id){const {data,error}=await c.from('video_projects').update(p).eq('id',state.project.id).select('*').single();if(error)throw error;state.project=data;}
+    else{const {data,error}=await c.from('video_projects').insert({...p,created_by:u.id,status:'draft'}).select('*').single();if(error)throw error;state.project=data;}
+    renderProjectDetail();await refreshProjects();return state.project;
+  }
+
+  async function generatePackage(){
+    try{const p=await saveDraft();showResult('ytCreateResult','Generating script, storyboard, YouTube metadata and repurpose ideas…');const d=await invoke('video-studio-ai',{action:'generate_package',project_id:p.id});state.project=d.project;fillProject(state.project);await loadProjectRelated();showResult('ytCreateResult','AI production package created. Review the script and storyboard before production.');setTab('script');await refreshProjects();}catch(e){showResult('ytCreateResult','Error: '+(e.message||e));}
+  }
+
+  function fillProject(p){
+    if(!p)return;selectedType=p.project_type||'long';$$('[data-yt-type]',main).forEach(x=>x.classList.toggle('on',x.dataset.ytType===selectedType));
+    $('#ytProjectTitle',main).value=p.title||'';$('#ytProjectDuration',main).value=p.target_duration_seconds||TYPES[selectedType]?.duration||900;$('#ytProjectOrientation',main).value=p.orientation||TYPES[selectedType]?.orientation||'16:9';$('#ytProjectOrientation',main).disabled=selectedType==='shorts';
+    $('#ytProjectObjective',main).value=p.objective||'education';$('#ytProjectAudience',main).value=p.audience||'';$('#ytProjectTone',main).value=p.tone||'Confident and human';$('#ytProjectTopic',main).value=p.topic||'';$('#ytProjectSource',main).value=p.source_material||'';$('#ytProjectCta',main).value=p.call_to_action||'';
+    $('#ytHook',main).value=p.hook||'';$('#ytOutline',main).value=(Array.isArray(p.outline)?p.outline:[]).join('\n');$('#ytScript',main).value=p.script||'';$('#ytCaptions',main).value=p.captions||'';
+    $('#ytYoutubeTitle',main).value=p.youtube_title||'';$('#ytYoutubeDescription',main).value=p.youtube_description||'';$('#ytTags',main).value=(Array.isArray(p.tags)?p.tags:[]).join(', ');$('#ytThumbnailPrompt',main).value=p.thumbnail_prompt||'';
+    renderStoryboard(Array.isArray(p.storyboard)?p.storyboard:[]);renderSceneProduction(Array.isArray(p.storyboard)?p.storyboard:[]);renderMetadata();renderProjectDetail();
+  }
+
+  async function openProject(id){
+    try{const {data,error}=await c.from('video_projects').select('*').eq('id',id).single();if(error)throw error;state.project=data;fillProject(data);await loadProjectRelated();$$('[data-project-id]',main).forEach(x=>x.classList.toggle('on',x.dataset.projectId===id));}catch(e){toastMsg('Unable to open video project: '+(e.message||e));}
+  }
+
+  async function loadProjectRelated(){
+    if(!state.project?.id){state.assets=[];state.jobs=[];renderAssets();renderJobs();return}
+    const [a,j]=await Promise.all([c.from('video_project_assets').select('*').eq('project_id',state.project.id).order('created_at',{ascending:false}),c.from('video_publish_jobs').select('*').eq('project_id',state.project.id).order('created_at',{ascending:false})]);
+    if(a.error)throw a.error;if(j.error)throw j.error;state.assets=a.data||[];state.jobs=j.data||[];renderAssets();renderSceneProduction(Array.isArray(state.project.storyboard)?state.project.storyboard:[]);renderMetadata();renderJobs();renderPublishAssets();
+  }
+
+  function renderProjectDetail(){
+    const e=$('#ytCurrentProject',main);if(!e)return;if(!state.project){e.innerHTML='No project selected.';return}
+    e.innerHTML=`<strong style="color:white">${esc(state.project.title)}</strong><div style="margin-top:7px">${esc(projectBadge(state.project))}<br>${esc(state.project.orientation)} • target ${fmtTime(state.project.target_duration_seconds)}<br>Status: <span class="yt-status">${esc(state.project.status)}</span></div><div class="row-actions"><button id="ytArchiveProject" class="tiny-btn">Archive</button><button id="ytDeleteProject" class="tiny-btn">Delete</button></div>`;
+    $('#ytArchiveProject',e).onclick=async()=>{if(!requireProject())return;const {error}=await c.from('video_projects').update({status:'archived',updated_at:new Date().toISOString()}).eq('id',state.project.id);if(error)return toastMsg(error.message);state.project.status='archived';renderProjectDetail();refreshProjects();};
+    $('#ytDeleteProject',e).onclick=async()=>{if(!requireProject()||!confirm('Delete this video project and its project assets/jobs? Uploaded media-library files remain unless removed separately.'))return;const {error}=await c.from('video_projects').delete().eq('id',state.project.id);if(error)return toastMsg(error.message);clearForm();refreshProjects();};
+  }
+
+  function renderStoryboard(scenes){
+    const box=$('#ytStoryboard',main);if(!box)return;box.innerHTML=scenes.length?scenes.map((s,i)=>`<div class="yt-scene" data-scene="${i}"><div class="yt-scene-head"><strong>Scene ${i+1}: <input data-scene-title class="mini-input" style="display:inline-block;width:min(360px,60vw)" value="${esc(s.title||'')}"></strong><button class="tiny-btn" data-remove-scene="${i}">Remove</button></div><div class="yt-scene-grid"><div><label>Duration (sec)</label><input data-scene-duration type="number" min="1" class="mini-input" value="${Number(s.duration_seconds||8)}"></div><div><label>On-screen Text</label><input data-scene-text class="mini-input" value="${esc(s.on_screen_text||'')}"></div></div><label style="display:block;margin-top:9px">Narration</label><textarea data-scene-narration class="mini-input" style="height:90px">${esc(s.narration||'')}</textarea><label style="display:block;margin-top:9px">Visual Direction</label><textarea data-scene-visual class="mini-input" style="height:75px">${esc(s.visual_direction||'')}</textarea><label style="display:block;margin-top:9px">AI Video Prompt</label><textarea data-scene-prompt class="mini-input" style="height:75px">${esc(s.sora_prompt||s.visual_direction||'')}</textarea></div>`).join(''):'<div class="yt-empty">Generate a production package or add a scene.</div>';
+    $$('[data-remove-scene]',box).forEach(b=>b.onclick=()=>{const arr=collectStoryboard();arr.splice(Number(b.dataset.removeScene),1);renderStoryboard(arr);renderSceneProduction(arr);});
+  }
+
+  function collectStoryboard(){return $$('[data-scene]',main).map(card=>({title:$('[data-scene-title]',card)?.value.trim()||'',duration_seconds:Math.max(1,Number($('[data-scene-duration]',card)?.value||8)),narration:$('[data-scene-narration]',card)?.value.trim()||'',visual_direction:$('[data-scene-visual]',card)?.value.trim()||'',on_screen_text:$('[data-scene-text]',card)?.value.trim()||'',sora_prompt:$('[data-scene-prompt]',card)?.value.trim()||''}));}
+
+  async function saveScript(){
+    if(!requireProject())return;
+    try{const patch={hook:$('#ytHook',main).value.trim()||null,outline:$('#ytOutline',main).value.split('\n').map(x=>x.trim()).filter(Boolean),script:$('#ytScript',main).value.trim()||null,captions:$('#ytCaptions',main).value.trim()||null,storyboard:collectStoryboard(),status:'script_ready',updated_at:new Date().toISOString()};const {data,error}=await c.from('video_projects').update(patch).eq('id',state.project.id).select('*').single();if(error)throw error;state.project=data;fillProject(data);toastMsg('Script and storyboard saved.');}catch(e){toastMsg('Save failed: '+(e.message||e));}
+  }
+
+  function renderSceneProduction(scenes){
+    const box=$('#ytSceneProduction',main);if(!box)return;if(!state.project){box.innerHTML='<div class="yt-empty">Create or open a project first.</div>';return}
+    box.innerHTML=scenes.length?scenes.map((s,i)=>{const related=state.assets.filter(a=>a.scene_index===i&&(a.asset_type==='ai_clip'||a.asset_type==='voiceover'));return `<div class="yt-scene"><div class="yt-scene-head"><div><strong>Scene ${i+1}: ${esc(s.title||'Untitled')}</strong><div class="yt-note">${esc(s.visual_direction||'No visual direction yet.')}</div></div><span class="yt-status">${related.length} assets</span></div><div class="form-grid"><div><label>AI Clip Length</label><select class="mini-input" data-clip-seconds="${i}"><option value="4">4 sec</option><option value="8" selected>8 sec</option><option value="12">12 sec</option></select></div><div><label>Voice</label><select class="mini-input" data-voice="${i}"><option>cedar</option><option>alloy</option><option>coral</option><option>echo</option><option>fable</option><option>nova</option><option>onyx</option><option>sage</option><option>shimmer</option></select></div></div><div class="row-actions"><button class="tiny-btn" data-generate-clip="${i}">✦ Generate AI Scene Clip</button><button class="tiny-btn" data-generate-voice="${i}">Generate Voiceover</button></div>${related.map(a=>`<div class="yt-note">${esc(a.asset_type)} • ${esc(a.status)}${a.duration_seconds?' • '+a.duration_seconds+' sec':''}${a.metadata?.progress!==undefined?' • '+a.metadata.progress+'%':''}</div>`).join('')}</div>`}).join(''):'<div class="yt-empty">No storyboard scenes yet. Generate a package or add scenes under Script + Storyboard.</div>';
+    $$('[data-generate-clip]',box).forEach(b=>b.onclick=()=>generateClip(Number(b.dataset.generateClip)));
+    $$('[data-generate-voice]',box).forEach(b=>b.onclick=()=>generateVoice(Number(b.dataset.generateVoice)));
+  }
+
+  async function generateClip(i){if(!requireProject())return;try{await saveScript();const scene=(state.project.storyboard||[])[i]||collectStoryboard()[i]||{};const seconds=Number($(`[data-clip-seconds="${i}"]`,main)?.value||8);toastMsg('AI scene clip generation started.');await invoke('video-studio-ai',{action:'generate_scene_clip',project_id:state.project.id,scene_index:i,seconds,prompt:scene.sora_prompt||scene.visual_direction||''});await loadProjectRelated();}catch(e){toastMsg('AI clip generation failed: '+(e.message||e));}}
+  async function generateVoice(i){if(!requireProject())return;try{await saveScript();const scene=(state.project.storyboard||[])[i]||{};if(!String(scene.narration||'').trim())throw new Error('Add narration to this scene first.');const voice=$(`[data-voice="${i}"]`,main)?.value||'cedar';toastMsg('Generating voiceover…');await invoke('video-studio-ai',{action:'generate_voiceover',project_id:state.project.id,scene_index:i,text:scene.narration,voice,title:`${state.project.title} — Scene ${i+1} Voiceover`});await loadProjectRelated();toastMsg('Voiceover ready.');}catch(e){toastMsg('Voiceover generation failed: '+(e.message||e));}}
+  async function syncClips(){if(!requireProject())return;try{const d=await invoke('video-studio-ai',{action:'sync_clips',project_id:state.project.id});await loadProjectRelated();toastMsg(`AI clip sync complete (${(d.updates||[]).length} checked).`);}catch(e){toastMsg('Clip sync failed: '+(e.message||e));}}
+
+  async function previewAsset(id){const a=state.assets.find(x=>x.id===id);if(!a)return;if(a.public_url)return window.open(a.public_url,'_blank','noopener');if(!a.storage_path)return toastMsg('This asset is still generating or has no stored file.');const {data,error}=await c.storage.from(a.storage_bucket||'allshield-private').createSignedUrl(a.storage_path,180);if(error)return toastMsg(error.message);window.open(data.signedUrl,'_blank','noopener');}
+
+  function renderAssets(){
+    const box=$('#ytAssets',main);if(!box)return;box.innerHTML=state.assets.length?state.assets.map(a=>`<div class="yt-asset"><div class="yt-asset-head"><div><strong>${esc(a.title||a.asset_type)}</strong><div class="yt-note">${esc(a.asset_type)} • ${esc(a.status)}${a.duration_seconds?' • '+a.duration_seconds+' sec':''}</div></div><div class="team-actions">${(a.public_url||a.storage_path)?`<button class="tiny-btn" data-preview-asset="${a.id}">Preview</button>`:''}<button class="tiny-btn" data-delete-asset="${a.id}">Remove</button></div></div></div>`).join(''):'<div class="yt-empty">No assets attached to this project yet.</div>';
+    $$('[data-preview-asset]',box).forEach(b=>b.onclick=()=>previewAsset(b.dataset.previewAsset));
+    $$('[data-delete-asset]',box).forEach(b=>b.onclick=async()=>{const a=state.assets.find(x=>x.id===b.dataset.deleteAsset);if(!a||!confirm('Remove this project asset?'))return;if(a.storage_path){const rm=await c.storage.from(a.storage_bucket||'allshield-private').remove([a.storage_path]);if(rm.error)return toastMsg(rm.error.message);}if(a.media_library_id)await c.from('media_library').delete().eq('id',a.media_library_id);const {error}=await c.from('video_project_assets').delete().eq('id',a.id);if(error)return toastMsg(error.message);await loadProjectRelated();});
+    renderPublishAssets();
+  }
+
+  async function uploadAsset(){
+    if(!requireProject())return;const file=$('#ytUploadFile',main).files?.[0],type=$('#ytUploadType',main).value,title=$('#ytUploadTitle',main).value.trim()||file?.name;if(!file)return toastMsg('Choose a video or audio file first.');
+    try{const path=`video-projects/${u.id}/${state.project.id}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;const up=await c.storage.from('allshield-private').upload(path,file,{upsert:false,contentType:file.type||undefined});if(up.error)throw up.error;const mediaType=file.type||((type==='audio'||type==='voiceover')?'audio':'video');const {data:ml,error:me}=await c.from('media_library').insert({title,description:`YouTube Studio asset for ${state.project.title}`,storage_path:path,media_type:mediaType,audience:'internal',status:'draft',created_by:u.id,metadata:{source:'youtube-studio',project_id:state.project.id,asset_type:type,original_filename:file.name}}).select('*').single();if(me)throw me;const {data:a,error:ae}=await c.from('video_project_assets').insert({project_id:state.project.id,created_by:u.id,asset_type:type,title,status:'ready',storage_bucket:'allshield-private',storage_path:path,media_library_id:ml.id,orientation:state.project.orientation,metadata:{mime_type:mediaType,original_filename:file.name,size_bytes:file.size}}).select('*').single();if(ae)throw ae;if(type==='final_video'){const {data:p,error:pe}=await c.from('video_projects').update({final_media_library_id:ml.id,status:'ready',updated_at:new Date().toISOString()}).eq('id',state.project.id).select('*').single();if(pe)throw pe;state.project=p;fillProject(p);}$('#ytUploadFile',main).value='';$('#ytUploadTitle',main).value='';await loadProjectRelated();toastMsg(type==='final_video'?'Final video attached and ready for publishing.':'Asset uploaded.');}catch(e){toastMsg('Asset upload failed: '+(e.message||e));}
+  }
+
+  function renderMetadata(){
+    const thumb=$('#ytThumbnailPreview',main),ideas=$('#ytClipIdeas',main);if(!thumb||!ideas)return;const thumbs=state.assets.filter(a=>a.asset_type==='thumbnail'&&a.status==='ready');thumb.innerHTML=thumbs.length?`<img class="yt-thumb" src="${esc(thumbs[0].public_url||'')}" alt="Generated YouTube thumbnail"><div class="row-actions"><a class="tiny-btn" href="${esc(thumbs[0].public_url||'#')}" target="_blank" rel="noopener">Open Full Size</a></div>`:'<div class="yt-empty">No thumbnail generated yet.</div>';
+    const clips=Array.isArray(state.project?.metadata?.clip_ideas)?state.project.metadata.clip_ideas:[];ideas.innerHTML=clips.length?clips.map((x,i)=>`<div class="yt-asset"><strong>${esc(x.title||`Clip ${i+1}`)}</strong><div class="yt-note">${esc(x.format||'short')} • ${Number(x.duration_seconds||0)||'—'} sec<br>${esc(x.hook||'')}<br>${esc(x.source_section||'')}</div><button class="tiny-btn" data-create-cutdown="${i}" style="margin-top:8px">Create Linked ${String(x.format||'short').toLowerCase()==='shorts'?'Shorts':'Short-form'} Project</button></div>`).join(''):'<div class="yt-empty">Generate a production package to create cutdown ideas.</div>';
+    $$('[data-create-cutdown]',ideas).forEach(b=>b.onclick=()=>createCutdown(Number(b.dataset.createCutdown)));
+  }
+
+  async function saveMetadata(){if(!requireProject())return null;const patch={youtube_title:$('#ytYoutubeTitle',main).value.trim()||null,youtube_description:$('#ytYoutubeDescription',main).value.trim()||null,tags:$('#ytTags',main).value.split(',').map(x=>x.trim()).filter(Boolean).slice(0,50),thumbnail_prompt:$('#ytThumbnailPrompt',main).value.trim()||null,metadata:{...(state.project.metadata||{}),youtube_category_id:$('#ytCategory',main)?.value||state.project.metadata?.youtube_category_id||'27'},updated_at:new Date().toISOString()};const {data,error}=await c.from('video_projects').update(patch).eq('id',state.project.id).select('*').single();if(error)throw error;state.project=data;return data;}
+  async function generateMetadata(){if(!requireProject())return;try{await saveDraft();const d=await invoke('video-studio-ai',{action:'generate_metadata',project_id:state.project.id});state.project=d.project;fillProject(state.project);await loadProjectRelated();toastMsg('YouTube metadata generated.');}catch(e){toastMsg('Metadata generation failed: '+(e.message||e));}}
+  async function generateThumbnail(){if(!requireProject())return;try{await saveMetadata();toastMsg('Generating YouTube thumbnail…');await invoke('video-studio-ai',{action:'generate_thumbnail',project_id:state.project.id,prompt:$('#ytThumbnailPrompt',main).value.trim()});await loadProjectRelated();toastMsg('Thumbnail ready.');}catch(e){toastMsg('Thumbnail generation failed: '+(e.message||e));}}
+
+  async function createCutdown(i){
+    if(!requireProject())return;const x=state.project.metadata?.clip_ideas?.[i];if(!x)return;const type=String(x.format||'short').toLowerCase()==='shorts'?'shorts':'short';const spec=TYPES[type];const source=[`Parent project: ${state.project.title}`,`Suggested source section: ${x.source_section||''}`,`Parent script: ${state.project.script||''}`].join('\n\n');const payload={created_by:u.id,title:x.title||`${state.project.title} — Short`,project_type:type,orientation:'9:16',target_duration_seconds:Math.max(15,Math.min(type==='shorts'?60:180,Number(x.duration_seconds||spec.duration))),topic:x.hook||x.title||'',objective:state.project.objective,audience:state.project.audience,tone:state.project.tone,source_material:source,call_to_action:state.project.call_to_action,status:'draft',metadata:{parent_project_id:state.project.id,source_clip_idea:x}};const {data,error}=await c.from('video_projects').insert(payload).select('*').single();if(error)return toastMsg(error.message);await refreshProjects(data.id);setTab('create');toastMsg('Linked short-form project created.');
+  }
+
+  function renderPublishAssets(){const s=$('#ytPublishAsset',main);if(!s)return;const finals=state.assets.filter(a=>['final_video','raw_video'].includes(a.asset_type)&&a.status==='ready');s.innerHTML='<option value="">Select final video…</option>'+finals.map(a=>`<option value="${a.id}" ${a.media_library_id&&a.media_library_id===state.project?.final_media_library_id?'selected':''}>${esc(a.title||a.asset_type)} (${esc(a.asset_type)})</option>`).join('');}
+  function renderJobs(){const box=$('#ytPublishJobs',main);if(!box)return;box.innerHTML=state.jobs.length?state.jobs.map(j=>`<div class="yt-asset"><div class="yt-asset-head"><div><strong>${esc(j.platform)}</strong><div class="yt-note">${esc(j.status)}${j.scheduled_for?' • '+new Date(j.scheduled_for).toLocaleString():''}${j.external_ref?' • '+esc(j.external_ref):''}${j.error_message?'<br>'+esc(j.error_message):''}</div></div>${j.external_ref&&j.platform==='youtube'?`<a class="tiny-btn" href="https://www.youtube.com/watch?v=${encodeURIComponent(j.external_ref)}" target="_blank" rel="noopener">Open</a>`:''}</div></div>`).join(''):'<div class="yt-empty">No YouTube publishing jobs yet.</div>';}
+
+  async function loadServiceStatus(){try{state.ai=await invoke('video-studio-ai',{action:'status'});}catch(e){state.ai={ai_ready:false,error:e.message||String(e)}}try{state.youtube=await invoke('youtube-oauth',{action:'status'});}catch(e){state.youtube={configured:false,connection:{status:'not_connected'},error:e.message||String(e)}}renderConnection();}
+  function renderConnection(){
+    const t=$('#ytConnectionText',main),a=$('#ytConnectionActions',main),cb=$('#ytCallback',main);if(!t||!a||!cb)return;const y=state.youtube||{},conn=y.connection||{},connected=conn.status==='connected';t.innerHTML=connected?`<span class="yt-status good">CONNECTED</span> ${esc(conn.account_name||'YouTube Channel')}`:y.configured?`<span class="yt-status warn">NOT CONNECTED</span> Google OAuth is configured. Connect the channel once, then publishing can run from this studio.`:`<span class="yt-status warn">SETUP REQUIRED</span> Add YouTube/Google OAuth Client ID and Client Secret to Supabase Edge Function secrets before direct YouTube publishing can be authorized.`;
+    a.innerHTML=connected?'<button id="ytDisconnectYoutube" class="tiny-btn">Disconnect</button>':y.configured?'<button id="ytConnectYoutube" class="btn btn-primary">Connect YouTube</button>':'';cb.textContent=y.callback_url?`OAuth callback URL: ${y.callback_url}`:'';if($('#ytConnectYoutube',a))$('#ytConnectYoutube',a).onclick=connectYoutube;if($('#ytDisconnectYoutube',a))$('#ytDisconnectYoutube',a).onclick=disconnectYoutube;
+  }
+  async function connectYoutube(){try{const d=await invoke('youtube-oauth',{action:'start',return_url:location.href});if(d.authorization_url)location.href=d.authorization_url;else throw new Error('Authorization URL was not returned.');}catch(e){toastMsg('YouTube connection could not start: '+(e.message||e));}}
+  async function disconnectYoutube(){if(!confirm('Disconnect the YouTube channel from Allshield?'))return;try{await invoke('youtube-oauth',{action:'disconnect'});await loadServiceStatus();toastMsg('YouTube disconnected.');}catch(e){toastMsg(e.message||e)}}
+
+  async function publishYoutube(){
+    if(!requireProject())return;const assetId=$('#ytPublishAsset',main).value;if(!assetId)return showResult('ytPublishResult','Select a final video asset first.');
+    try{await saveMetadata();const destinations=$$('[data-dest].on',main).map(x=>x.dataset.dest);await c.from('video_projects').update({publish_destinations:destinations,scheduled_for:$('#ytSchedule',main).value?new Date($('#ytSchedule',main).value).toISOString():null,updated_at:new Date().toISOString()}).eq('id',state.project.id);if(!destinations.includes('youtube')&&!destinations.includes('youtube_shorts'))throw new Error('Select YouTube or YouTube Shorts for direct YouTube publishing.');showResult('ytPublishResult','Uploading to YouTube. Keep this page open until the upload finishes…');const d=await invoke('youtube-publish',{action:'publish',project_id:state.project.id,asset_id:assetId,privacy:$('#ytPrivacy',main).value,scheduled_for:$('#ytSchedule',main).value?new Date($('#ytSchedule',main).value).toISOString():null,category_id:$('#ytCategory',main).value,title:$('#ytYoutubeTitle',main).value.trim(),description:$('#ytYoutubeDescription',main).value.trim()});showResult('ytPublishResult',d.status==='scheduled'?`YouTube upload complete and scheduled. Video ID: ${d.video_id||'pending'}`:`Published to YouTube. ${d.youtube_url||''}`);await openProject(state.project.id);}catch(e){showResult('ytPublishResult','Error: '+(e.message||e));}
+  }
+
+  $$('[data-dest]',main).forEach(b=>b.onclick=()=>b.classList.toggle('on'));
+  $('#ytNewProject',main).onclick=clearForm;$('#ytRefreshProjects',main).onclick=()=>refreshProjects();$('#ytSaveDraft',main).onclick=async()=>{try{await saveDraft();showResult('ytCreateResult','Draft saved.');await refreshProjects();}catch(e){showResult('ytCreateResult','Error: '+(e.message||e));}};
+  $('#ytGeneratePackage',main).onclick=generatePackage;$('#ytSaveScript',main).onclick=saveScript;$('#ytAddScene',main).onclick=()=>{const arr=collectStoryboard();arr.push({title:`Scene ${arr.length+1}`,duration_seconds:8,narration:'',visual_direction:'',on_screen_text:'',sora_prompt:''});renderStoryboard(arr);renderSceneProduction(arr);};
+  $('#ytSyncClips',main).onclick=syncClips;$('#ytUploadAsset',main).onclick=uploadAsset;$('#ytGenerateMetadata',main).onclick=generateMetadata;$('#ytSaveMetadata',main).onclick=async()=>{try{await saveMetadata();toastMsg('YouTube metadata saved.');}catch(e){toastMsg(e.message||e)}};
+  $('#ytGenerateThumbnail',main).onclick=generateThumbnail;$('#ytPublishNow',main).onclick=publishYoutube;$('#ytOpenSocial',main).onclick=()=>window.showOwnerView?.('social',document.querySelector('#ownerPortal .side-link[onclick*="social"]'));
+  await Promise.all([refreshProjects(),loadServiceStatus()]);
+  const qs=new URLSearchParams(location.search);if(qs.get('youtube_oauth'))toastMsg(qs.get('youtube_oauth')==='success'?'YouTube connected.':'YouTube connection returned an error.');
+}

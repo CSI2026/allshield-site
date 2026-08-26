@@ -13,14 +13,15 @@ try{
   rec('Mobile homepage HTTP',!!r&&r.ok(),r?`HTTP ${r.status()}`:'no response');
   const m=await page.evaluate(()=>{
     const box=s=>{const e=document.querySelector(s);if(!e)return null;const b=e.getBoundingClientRect();const cs=getComputedStyle(e);return {left:b.left,right:b.right,width:b.width,height:b.height,font:parseFloat(cs.fontSize)||0,color:cs.color,display:cs.display}};
-    const buttons=[...document.querySelectorAll('nav .nav-links .btn')].map(e=>{const b=e.getBoundingClientRect();return {text:e.textContent.trim(),left:b.left,right:b.right,width:b.width,color:getComputedStyle(e).color}});
-    return {innerWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth,nav:box('nav .nav-inner'),h1:box('.hero h1'),logo:box('.hero .logo-panel'),logoImg:box('.hero .logo-panel img'),cta:box('.cta .btn-primary'),heroButton:box('.hero .btn-primary'),buttons};
+    const buttons=[...document.querySelectorAll('nav .nav-links .btn')].map(e=>{const b=e.getBoundingClientRect();return {text:e.textContent.trim(),primary:e.classList.contains('btn-primary'),left:b.left,right:b.right,width:b.width,color:getComputedStyle(e).color}});
+    return {innerWidth:innerWidth,scrollWidth:document.documentElement.scrollWidth,h1:box('.hero h1'),logo:box('.hero .logo-panel'),logoImg:box('.hero .logo-panel img'),cta:box('.cta .btn-primary'),heroButton:box('.hero .btn-primary'),buttons};
   });
   rec('No horizontal overflow',m.scrollWidth<=m.innerWidth+2,`scrollWidth=${m.scrollWidth}; innerWidth=${m.innerWidth}`);
   rec('Mobile header controls fit',m.buttons.length>=2&&m.buttons.every(b=>b.left>=0&&b.right<=m.innerWidth+1),JSON.stringify(m.buttons));
   rec('Mobile hero scale',!!m.h1&&m.h1.width<=m.innerWidth-20&&m.h1.font<=47,JSON.stringify(m.h1));
   rec('Mobile logo compact',!!m.logo&&!!m.logoImg&&m.logo.width<=300&&m.logoImg.width<=300,`panel=${m.logo?.width}; image=${m.logoImg?.width}`);
-  rec('Primary button contrast',m.buttons.every(b=>/rgb\(255, 255, 255\)/.test(b.color))&&/rgb\(255, 255, 255\)/.test(m.heroButton?.color||'')&&/rgb\(255, 255, 255\)/.test(m.cta?.color||''),`nav=${m.buttons.map(b=>b.color).join(',')}; hero=${m.heroButton?.color}; cta=${m.cta?.color}`);
+  const primaryNav=m.buttons.filter(b=>b.primary);
+  rec('Primary button contrast',primaryNav.length>0&&primaryNav.every(b=>/rgb\(255, 255, 255\)/.test(b.color))&&/rgb\(255, 255, 255\)/.test(m.heroButton?.color||'')&&/rgb\(255, 255, 255\)/.test(m.cta?.color||''),`primaryNav=${primaryNav.map(b=>b.color).join(',')}; hero=${m.heroButton?.color}; cta=${m.cta?.color}`);
   rec('CTA fits mobile viewport',!!m.cta&&m.cta.left>=0&&m.cta.right<=m.innerWidth+1,JSON.stringify(m.cta));
   rec('Mobile browser errors',errs.length===0,errs.join(' | ')||'none');
   await page.screenshot({path:'certification/public-mobile-home.png',fullPage:true});

@@ -26,8 +26,8 @@ jobs:
           import re
           p=Path('index.html')
           s=p.read_text()
-          css='<link rel="stylesheet" href="./responsive.css?v=2026.08.26.004">'
-          js='<script defer src="./responsive-ui.js?v=2026.08.26.004"></script>'
+          css='<link rel="stylesheet" href="./responsive.css?v=2026.08.26.005">'
+          js='<script defer src="./responsive-ui.js?v=2026.08.26.005"></script>'
           if 'responsive.css' not in s:
               if '</head>' not in s: raise SystemExit('index.html has no </head>')
               s=s.replace('</head>',css+'\n</head>',1)
@@ -40,8 +40,14 @@ jobs:
               s=re.sub(r'<script defer src="\./responsive-ui\.js\?v=[^"]+"></script>', js, s, count=1)
           s=re.sub(r'<script defer src="\./phase16-ai-command-production\.js\?v=[^"]+"></script>', '<script defer src="./phase16-ai-command-production.js?v=2026.08.26.003"></script>', s, count=1)
           p.write_text(s)
-          if 'responsive.css?v=2026.08.26.004' not in s or 'responsive-ui.js?v=2026.08.26.004' not in s or 'phase16-ai-command-production.js?v=2026.08.26.003' not in s:
-              raise SystemExit('responsive/AI runtime installation did not complete')
+          rp=Path('responsive.css')
+          rs=rp.read_text()
+          marker='/* Mobile actual-device correction: remove duplicate hero logo and stabilize login screen. */'
+          if marker not in rs:
+              rs += '''\n\n/* Mobile actual-device correction: remove duplicate hero logo and stabilize login screen. */\n@media (max-width:600px){\n  .hero .logo-stage{display:none!important}\n  .hero{padding-bottom:42px}\n  .portal-login{min-height:100dvh;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px calc(24px + env(safe-area-inset-bottom))}\n  .portal-login.show{display:grid}\n  .portal-login .login-card{width:min(440px,100%);margin:max(12px,env(safe-area-inset-top)) auto 0;padding:20px 16px 22px}\n  .portal-login .login-card img{width:min(132px,42vw);margin-bottom:12px}\n  .portal-login .login-card h2{font-size:27px}\n  .portal-login .login-card p{margin-bottom:16px;line-height:1.5}\n  .portal-login .field{min-height:48px;margin:7px 0 10px}\n  .portal-login .btn-primary{min-height:48px}\n  .portal-login .back-link{display:block;padding:12px 0 4px;min-height:44px}\n}\n'''
+              rp.write_text(rs)
+          if 'responsive.css?v=2026.08.26.005' not in s or 'responsive-ui.js?v=2026.08.26.005' not in s or marker not in rp.read_text():
+              raise SystemExit('responsive/mobile runtime installation did not complete')
           PY
       - name: Validate production source
         run: |
@@ -52,10 +58,10 @@ jobs:
         run: |
           git config user.name "Allshield Production Completion"
           git config user.email "actions@users.noreply.github.com"
-          git add index.html
+          git add index.html responsive.css
           if git diff --cached --quiet; then
             echo "Responsive runtime already installed."
             exit 0
           fi
-          git commit -m "Enable mobile-polished responsive production runtime"
+          git commit -m "Fix mobile logo placement and portal login usability"
           git push origin main

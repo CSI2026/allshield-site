@@ -1,0 +1,195 @@
+{
+  "certification": "ALLSHIELD Owner Portal functional browser certification",
+  "base_url": "https://allshieldinsurancegroup.com",
+  "completed_at": "2026-08-26T18:26:33.696Z",
+  "status": "FAIL",
+  "passed": 33,
+  "total": 36,
+  "checks": [
+    {
+      "name": "Completed Owner portal source deployed",
+      "ok": true,
+      "detail": "new canonical source markers are live"
+    },
+    {
+      "name": "HTTPS browser navigation",
+      "ok": true,
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "23 Owner handlers registered",
+      "ok": true,
+      "detail": "registered=23"
+    },
+    {
+      "name": "Owner dashboard",
+      "ok": true,
+      "detail": "ALLSHIELD OWNER CONTROL | The whole company in one view. |  | Live operations, licensing, training, CRM, recruiting and system health. |  | Refresh Live Data | LI"
+    },
+    {
+      "name": "Owner ai",
+      "ok": true,
+      "detail": "AI COMMAND CENTER | Live AI across Allshield. |  | Authenticated AI uses current Allshield records available to your role. Only current authorized Allshield"
+    },
+    {
+      "name": "Owner ai revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner permissions",
+      "ok": true,
+      "detail": "ROLES & PERMISSIONS | Live access control. |  | Manage role-based access and explicit user-level permission overrides. |  | LIVE SUPABASE DATA | ROLE\tACTIVE PEOPL"
+    },
+    {
+      "name": "Owner teamaccounts",
+      "ok": true,
+      "detail": "TEAM ACCOUNTS | People, roles and reporting lines. |  | Create and manage live Allshield user accounts, departments and manager assignments. |  | LIVE SUPABASE "
+    },
+    {
+      "name": "Owner departments",
+      "ok": true,
+      "detail": "DEPARTMENTS & ACCESS | Department structure and assignments. |  | Create departments and assign live team accounts to the correct operating group. |  | LIVE SUP"
+    },
+    {
+      "name": "Owner communications",
+      "ok": true,
+      "detail": "COMPANY COMMUNICATIONS | Company communications control. |  | Create, edit, publish, schedule, archive and remove internal announcements. |  | LIVE SUPABASE DAT"
+    },
+    {
+      "name": "Owner communications revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner hierarchy",
+      "ok": true,
+      "detail": "HIERARCHY & PROMOTIONS | Organization and promotion ladder. |  | Live reporting lines, qualification snapshots and approved promotion levels. |  | LIVE SUPABASE"
+    },
+    {
+      "name": "Owner states",
+      "ok": true,
+      "detail": "STATE LICENSING MATRIX | All 50 states. |  | Live team license coverage plus Academy rollout readiness for every state. |  | Refresh | LIVE SUPABASE LICENSING + A"
+    },
+    {
+      "name": "Owner states revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner academy",
+      "ok": true,
+      "detail": "ACADEMY GOVERNANCE | Academy launch control. |  | Curriculum, question validation, state readiness, AI status and agent progress. |  | Refresh | TRUE MASTER • LIV"
+    },
+    {
+      "name": "Owner testing",
+      "ok": true,
+      "detail": "AGENT TESTING OVERSIGHT | Testing, courses and exam readiness. |  | Live scores, attempts, course progress and state readiness. Use View As for complete age"
+    },
+    {
+      "name": "Owner versions",
+      "ok": true,
+      "detail": "CONTENT VERSIONING | Controlled content history. |  | Create immutable versions, publish approved revisions and retire superseded content. |  | LIVE SUPABASE DA"
+    },
+    {
+      "name": "Owner updates",
+      "ok": true,
+      "detail": "PLATFORM UPDATE CENTER | Controlled release queue. |  | Create, approve, release, cancel and remove platform change records. |  | LIVE SUPABASE DATA | Update Titl"
+    },
+    {
+      "name": "Owner performance",
+      "ok": true,
+      "detail": "COMPANY PERFORMANCE | Live company operating picture. |  | Production, people and finance indicators from current records. |  | LIVE SUPABASE DATA | ACTIVE USERS | "
+    },
+    {
+      "name": "Owner meetings",
+      "ok": false,
+      "detail": "MEETINGS | Company meeting center. |  | Schedule, edit, complete and cancel company meetings from the live meeting registry. |  | LIVE SUPABASE DATA | Schedule / "
+    },
+    {
+      "name": "Owner meetings revisit",
+      "ok": false,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner marketing",
+      "ok": true,
+      "detail": "CORPORATE MARKETING CENTER | Corporate content workflow. |  | Prepare, approve and schedule company marketing content. Social Publishing remains the direct "
+    },
+    {
+      "name": "Owner social",
+      "ok": true,
+      "detail": "SOCIAL + BRAND AI | Build the brand once. Create original content from it forever. |  | Generate platform-specific company profiles, approve the Allshield s"
+    },
+    {
+      "name": "Owner social revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner video",
+      "ok": true,
+      "detail": "VIDEO & YOUTUBE STUDIO | Company video library. |  | Upload, preview, publish, archive and remove video assets. Direct social delivery stays in Social Publi"
+    },
+    {
+      "name": "Owner video revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner media",
+      "ok": true,
+      "detail": "MEDIA STUDIO | Controlled company media library. |  | Upload, preview, publish, archive and remove company media assets. |  | LIVE SUPABASE STORAGE + DATABASE | A"
+    },
+    {
+      "name": "Owner media revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner brand",
+      "ok": true,
+      "detail": "BRAND CENTER | Approved Allshield brand system. |  | The homepage shield and wordmark are the approved production identity. No alternate legacy crest is use"
+    },
+    {
+      "name": "Owner brand revisit",
+      "ok": true,
+      "detail": "tab rebuilds after route change"
+    },
+    {
+      "name": "Owner files",
+      "ok": true,
+      "detail": "OWNER FILE VAULT | Your controlled company asset library. |  | Private owner-only files stored in Supabase Storage. |  | PRIVATE SUPABASE STORAGE • OWNER ONLY | U"
+    },
+    {
+      "name": "Owner audit",
+      "ok": true,
+      "detail": "AUDIT & CHANGE HISTORY | Live system audit trail. |  | Recorded actions from production data. |  | LIVE SUPABASE DATA | Time\tAction\tObject\tDetails | No audit events"
+    },
+    {
+      "name": "Owner buildhistory",
+      "ok": true,
+      "detail": "BUILD & RELEASE CONTROL | Production build history. |  | Recorded releases from the live build history table. |  | LIVE SUPABASE DATA | Build\tLabel\tChannel\tReleas"
+    },
+    {
+      "name": "Owner settings",
+      "ok": true,
+      "detail": "GLOBAL SETTINGS | Platform configuration. |  | Settings stored in Supabase. |  | LIVE SUPABASE DATA | Company Display Name | Default Passing Score | Support Email | Qua"
+    },
+    {
+      "name": "Browser page errors",
+      "ok": true,
+      "detail": "none"
+    },
+    {
+      "name": "Required JS/CSS resource failures",
+      "ok": false,
+      "detail": "https://allshieldinsurancegroup.com/phase16-agent-academy-production.js?v=B2026.08.21.001 :: net::ERR_ABORTED"
+    }
+  ],
+  "failures": [
+    "Owner meetings: MEETINGS | Company meeting center. |  | Schedule, edit, complete and cancel company meetings from the live meeting registry. |  | LIVE SUPABASE DATA | Schedule / ",
+    "Owner meetings revisit: tab rebuilds after route change",
+    "Required JS/CSS resource failures: https://allshieldinsurancegroup.com/phase16-agent-academy-production.js?v=B2026.08.21.001 :: net::ERR_ABORTED"
+  ]
+}

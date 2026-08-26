@@ -1,15 +1,20 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T18:26:33.696Z",
-  "status": "FAIL",
-  "passed": 33,
-  "total": 36,
+  "completed_at": "2026-08-26T18:30:26.079Z",
+  "status": "PASS",
+  "passed": 37,
+  "total": 37,
   "checks": [
     {
       "name": "Completed Owner portal source deployed",
       "ok": true,
       "detail": "new canonical source markers are live"
+    },
+    {
+      "name": "Critical runtime assets retrievable",
+      "ok": true,
+      "detail": "all critical runtime scripts return content"
     },
     {
       "name": "HTTPS browser navigation",
@@ -103,12 +108,12 @@
     },
     {
       "name": "Owner meetings",
-      "ok": false,
+      "ok": true,
       "detail": "MEETINGS | Company meeting center. |  | Schedule, edit, complete and cancel company meetings from the live meeting registry. |  | LIVE SUPABASE DATA | Schedule / "
     },
     {
       "name": "Owner meetings revisit",
-      "ok": false,
+      "ok": true,
       "detail": "tab rebuilds after route change"
     },
     {
@@ -183,13 +188,9 @@
     },
     {
       "name": "Required JS/CSS resource failures",
-      "ok": false,
-      "detail": "https://allshieldinsurancegroup.com/phase16-agent-academy-production.js?v=B2026.08.21.001 :: net::ERR_ABORTED"
+      "ok": true,
+      "detail": "none"
     }
   ],
-  "failures": [
-    "Owner meetings: MEETINGS | Company meeting center. |  | Schedule, edit, complete and cancel company meetings from the live meeting registry. |  | LIVE SUPABASE DATA | Schedule / ",
-    "Owner meetings revisit: tab rebuilds after route change",
-    "Required JS/CSS resource failures: https://allshieldinsurancegroup.com/phase16-agent-academy-production.js?v=B2026.08.21.001 :: net::ERR_ABORTED"
-  ]
+  "failures": []
 }

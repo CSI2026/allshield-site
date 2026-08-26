@@ -132,3 +132,45 @@ input,select,textarea,button{max-width:100%}
     .portal-main{padding-left:max(13px,env(safe-area-inset-left));padding-right:max(13px,env(safe-area-inset-right));padding-bottom:max(28px,env(safe-area-inset-bottom))}
   }
 }
+
+/* Public homepage mobile polish based on real-device review. */
+.btn-primary{color:#fff!important}
+@media (max-width:600px){
+  nav .wrap{width:calc(100% - 20px)}
+  nav .nav-inner{height:68px;gap:8px}
+  nav .brand{flex:0 0 auto;gap:0}
+  nav .brand img{height:40px}
+  nav .nav-links{gap:7px;margin-left:auto;min-width:0}
+  nav .nav-links .btn{min-height:40px;padding:9px 12px;font-size:11px;line-height:1.1;white-space:nowrap}
+  .hero{padding:42px 0 50px;gap:18px}
+  .hero>div:first-child{min-width:0}
+  .hero h1{font-size:clamp(38px,11vw,46px);line-height:1.02;letter-spacing:-.038em;margin:16px 0 20px}
+  .hero .kicker{font-size:9px;letter-spacing:.18em}
+  .hero .lead{font-size:15px;line-height:1.58}
+  .hero .actions{margin-top:24px}
+  .hero .actions .btn{min-height:48px;font-size:13px}
+  .trust-row{display:grid;grid-template-columns:1fr;gap:14px;margin-top:28px;padding-top:20px;font-size:12px;line-height:1.45}
+  .logo-stage{min-height:255px;margin-top:8px}
+  .logo-stage:before{width:250px;height:250px}
+  .logo-panel{width:min(285px,76vw);padding:0}
+  .logo-panel img{width:100%;margin:0 auto}
+  .micro{margin-top:8px;font-size:9px;line-height:1.4;letter-spacing:.1em}
+  .section{padding:52px 0}
+  .section-title{font-size:32px;line-height:1.08}
+  .section-copy{font-size:15px;line-height:1.6}
+  .card{padding:22px;border-radius:18px}
+  .promise-box{padding:22px;border-radius:20px}
+  .promise h3{font-size:26px}
+  .quote{font-size:22px;line-height:1.4}
+  .cta{padding:58px 0}
+  .cta h2{font-size:32px;line-height:1.08}
+  .cta p{font-size:15px;line-height:1.6}
+  .cta .btn{width:100%;min-height:48px;font-size:13px}
+  footer{padding:28px 0 calc(28px + env(safe-area-inset-bottom))}
+}
+@media (max-width:380px){
+  nav .nav-links .btn{padding:8px 9px;font-size:10px}
+  nav .brand img{height:36px}
+  .hero h1{font-size:36px}
+  .logo-panel{width:min(260px,74vw)}
+}

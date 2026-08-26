@@ -1,10 +1,10 @@
 {
-  "certification": "ALLSHIELD public mobile homepage certification",
+  "certification": "ALLSHIELD public mobile homepage + Owner login certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T20:38:14.459Z",
+  "completed_at": "2026-08-26T20:39:35.726Z",
   "status": "PASS",
-  "passed": 8,
-  "total": 8,
+  "passed": 12,
+  "total": 12,
   "checks": [
     {
       "name": "Mobile homepage HTTP",
@@ -27,9 +27,9 @@
       "detail": "{\"left\":12,\"right\":378,\"width\":366,\"height\":131.25,\"font\":42.9,\"color\":\"rgb(255, 255, 255)\",\"display\":\"block\"}"
     },
     {
-      "name": "Mobile logo compact",
+      "name": "Duplicate hero logo removed on phone",
       "ok": true,
-      "detail": "panel=285; image=222.296875"
+      "detail": "{\"left\":0,\"right\":0,\"width\":0,\"height\":0,\"font\":16,\"color\":\"rgb(255, 255, 255)\",\"display\":\"none\"}"
     },
     {
       "name": "Primary button contrast",
@@ -40,6 +40,26 @@
       "name": "CTA fits mobile viewport",
       "ok": true,
       "detail": "{\"left\":12,\"right\":378,\"width\":366,\"height\":48,\"font\":13,\"color\":\"rgb(255, 255, 255)\",\"display\":\"inline-flex\"}"
+    },
+    {
+      "name": "Owner login card fits phone",
+      "ok": true,
+      "detail": "{\"card\":{\"left\":12,\"right\":378,\"width\":366,\"top\":28,\"bottom\":614.234375},\"userAutocomplete\":\"username\",\"userAutocapitalize\":\"none\",\"passAutocomplete\":\"current-password\"}"
+    },
+    {
+      "name": "Owner login mobile input settings",
+      "ok": true,
+      "detail": "{\"card\":{\"left\":12,\"right\":378,\"width\":366,\"top\":28,\"bottom\":614.234375},\"userAutocomplete\":\"username\",\"userAutocapitalize\":\"none\",\"passAutocomplete\":\"current-password\"}"
+    },
+    {
+      "name": "Owner login button invokes secure login path",
+      "ok": true,
+      "detail": "invoked=owner"
+    },
+    {
+      "name": "Owner login Enter key works on mobile",
+      "ok": true,
+      "detail": "invoked=owner"
     },
     {
       "name": "Mobile browser errors",

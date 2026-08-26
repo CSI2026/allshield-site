@@ -14,7 +14,29 @@ function enhance(portal){
  shade.addEventListener('click',()=>closePortal(portal));
  sidebar.addEventListener('click',e=>{if(window.innerWidth<=BREAKPOINT&&e.target.closest('.side-link'))setTimeout(()=>closePortal(portal),40);});
 }
-function init(){document.querySelectorAll('.portal-page').forEach(enhance);}
+function enhanceLogin(role){
+ const login=document.getElementById(role+'Login');
+ if(!login||login.dataset.mobileLoginReady==='1')return;
+ const user=login.querySelector('input:not([type]),input[type="text"],input[type="email"]');
+ const pass=login.querySelector('input[type="password"]');
+ const button=login.querySelector('button.btn-primary');
+ if(!user||!pass||!button)return;
+ login.dataset.mobileLoginReady='1';
+ user.type='text';user.autocomplete='username';user.setAttribute('autocapitalize','none');user.setAttribute('autocorrect','off');user.spellcheck=false;user.inputMode='email';
+ pass.autocomplete='current-password';
+ button.removeAttribute('onclick');
+ const submit=async()=>{
+   if(button.dataset.busy==='1')return;
+   if(typeof window.productionLogin!=='function'){alert('Secure login is still loading. Please try again in a moment.');return;}
+   button.dataset.busy='1';
+   const original=button.textContent;
+   button.disabled=true;button.textContent='Signing in…';
+   try{await window.productionLogin(role);}finally{button.dataset.busy='0';button.disabled=false;button.textContent=original;}
+ };
+ button.addEventListener('click',e=>{e.preventDefault();submit();});
+ [user,pass].forEach(input=>input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();submit();}}));
+}
+function init(){document.querySelectorAll('.portal-page').forEach(enhance);['agent','admin','owner'].forEach(enhanceLogin);}
 function closeAll(){document.querySelectorAll('.portal-page.mobile-nav-open').forEach(closePortal);}
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();});
 window.addEventListener('resize',()=>{if(window.innerWidth>BREAKPOINT)closeAll();},{passive:true});

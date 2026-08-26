@@ -23,20 +23,24 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text()
-          css='<link rel="stylesheet" href="./responsive.css?v=2026.08.26.003">'
-          js='<script defer src="./responsive-ui.js?v=2026.08.26.003"></script>'
+          css='<link rel="stylesheet" href="./responsive.css?v=2026.08.26.004">'
+          js='<script defer src="./responsive-ui.js?v=2026.08.26.004"></script>'
           if 'responsive.css' not in s:
               if '</head>' not in s: raise SystemExit('index.html has no </head>')
               s=s.replace('</head>',css+'\n</head>',1)
+          else:
+              s=re.sub(r'<link rel="stylesheet" href="\./responsive\.css\?v=[^"]+">', css, s, count=1)
           if 'responsive-ui.js' not in s:
               if '</body>' not in s: raise SystemExit('index.html has no </body>')
               s=s.replace('</body>',js+'\n</body>',1)
-          import re
+          else:
+              s=re.sub(r'<script defer src="\./responsive-ui\.js\?v=[^"]+"></script>', js, s, count=1)
           s=re.sub(r'<script defer src="\./phase16-ai-command-production\.js\?v=[^"]+"></script>', '<script defer src="./phase16-ai-command-production.js?v=2026.08.26.003"></script>', s, count=1)
           p.write_text(s)
-          if 'responsive.css' not in s or 'responsive-ui.js' not in s or 'phase16-ai-command-production.js?v=2026.08.26.003' not in s:
+          if 'responsive.css?v=2026.08.26.004' not in s or 'responsive-ui.js?v=2026.08.26.004' not in s or 'phase16-ai-command-production.js?v=2026.08.26.003' not in s:
               raise SystemExit('responsive/AI runtime installation did not complete')
           PY
       - name: Validate production source
@@ -53,5 +57,5 @@ jobs:
             echo "Responsive runtime already installed."
             exit 0
           fi
-          git commit -m "Enable live AI responsive production runtime"
+          git commit -m "Enable mobile-polished responsive production runtime"
           git push origin main

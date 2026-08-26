@@ -1,0 +1,134 @@
+/* ALLSHIELD PRODUCTION RESPONSIVE SYSTEM
+   Desktop, tablet and mobile layouts for public site + Agent/Admin/Owner portals. */
+html,body{max-width:100%;overflow-x:hidden}
+img,video,iframe,canvas,svg{max-width:100%;height:auto}
+.portal-page,.portal-shell,.portal-main,.bo-card,.ai-panel,.social-card,.video-editor,.login-card,.modal-card{min-width:0}
+.portal-main{overflow-x:hidden}
+input,select,textarea,button{max-width:100%}
+.table-scroll,.team-table-wrap,.admin-table-wrap{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.admin-table,.team-live-table,.rank-table,.permission-matrix{max-width:100%}
+.resource,.account-row,.queue-item,.activity,.task{min-width:0}
+.resource strong,.resource small,.queue-item,.ai-output,.ai-live-output,.ai-history-row span{overflow-wrap:anywhere;word-break:break-word}
+.mobile-portal-menu,.portal-nav-backdrop{display:none}
+.ai-head-actions,.ai-agent-actions,.row-actions,.publish-toolbar,.team-actions,.ai-quick-prompts,.ai-output-head{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.ai-output-head{justify-content:space-between;align-items:flex-start}
+.ai-helper-copy{color:#8fa3b8;font-size:12px;line-height:1.6;margin:-4px 0 12px}
+.ai-prompt{width:100%;height:128px!important;margin-top:12px;resize:vertical}
+.ai-live-output{white-space:pre-wrap;min-height:180px;line-height:1.65;font-size:13px}
+.ai-card-status{font-size:9px;letter-spacing:.12em;color:#75c8ff;margin:5px 0 10px;font-weight:800}
+.ai-card-status.running{color:#f0c675}
+.ai-run-history{display:grid;gap:8px}
+.ai-history-row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.ai-history-row:last-child{border-bottom:0}
+.ai-history-row small{display:block;color:#7f93aa;font-size:10px;margin-top:4px}
+.ai-history-empty{color:#8095aa;font-size:12px;padding:10px 0}
+.ai-pass{color:#91dfba}
+.ai-provider-warning{color:#f2c47b!important}
+.ai-status-value{font-size:24px!important}
+
+@media (max-width:1180px){
+  .wrap{width:min(100% - 32px,1220px)}
+  .nav-links{gap:18px}
+  .hero{gap:34px}
+  .portal-main{padding:24px}
+  .stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .ai-command-grid,.room-grid,.action-grid,.dept-grid,.team-form-grid,.form-grid,.channel-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .bo-grid,.social-layout,.video-layout,.orgchart,.promotion-track,.mediaflow,.promise{grid-template-columns:1fr!important}
+}
+
+@media (max-width:1100px){
+  .portal-top{position:sticky;top:0;z-index:140;padding:0 18px}
+  .portal-shell{grid-template-columns:1fr!important}
+  .portal-main{width:100%;min-width:0;padding:22px}
+  .portal-page .sidebar{display:block!important;position:fixed;top:76px;left:0;bottom:0;width:min(330px,86vw);height:auto;overflow-y:auto;-webkit-overflow-scrolling:touch;z-index:135;background:#07101c;border-right:1px solid rgba(255,255,255,.12);box-shadow:24px 0 60px rgba(0,0,0,.45);transform:translateX(-105%);transition:transform .22s ease;padding:22px 16px calc(26px + env(safe-area-inset-bottom))}
+  .portal-page.mobile-nav-open .sidebar{transform:translateX(0)}
+  .mobile-portal-menu{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:9px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:#0d2137;color:#fff;font-size:12px;font-weight:800;cursor:pointer}
+  .portal-nav-backdrop{position:fixed;inset:76px 0 0;background:rgba(0,0,0,.58);z-index:130}
+  .portal-page.mobile-nav-open .portal-nav-backdrop{display:block}
+  body.portal-nav-lock{overflow:hidden}
+  .sidebar .side-link{min-height:46px;padding:13px 12px;margin-bottom:5px;align-items:center}
+  .dashboard-head{gap:16px;flex-wrap:wrap}
+  .dashboard-head>div:first-child{min-width:0;flex:1 1 420px}
+  .ai-head-actions{flex:0 1 auto}
+  .ai-command-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .social-platform-grid,.profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .video-layout{grid-template-columns:1fr!important}
+}
+
+@media (max-width:900px){
+  .nav-links a:not(.login){display:none}
+  .hero{grid-template-columns:1fr!important;min-height:auto;padding:54px 0 68px}
+  .logo-stage{min-height:390px}
+  .cards{grid-template-columns:1fr 1fr!important}
+  .section{padding:72px 0}
+  .portal-page .sidebar{display:block!important}
+  .bo-grid,.social-layout,.video-layout,.promise{grid-template-columns:1fr!important}
+  .team-table-wrap,.admin-table-wrap{overflow-x:auto}
+  .team-live-table,.admin-table,.permission-matrix,.rank-table{min-width:720px}
+}
+
+@media (max-width:720px){
+  .wrap{width:min(100% - 24px,1220px)}
+  .portal-top{height:68px;padding:0 12px;gap:8px}
+  .portal-top .left{gap:9px;min-width:0}
+  .portal-top img{height:40px}
+  .portal-top strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+  .portal-top>.btn{padding:10px 13px;font-size:11px}
+  .portal-page .sidebar{top:68px}
+  .portal-nav-backdrop{inset:68px 0 0}
+  .portal-main{padding:16px 13px 28px}
+  .dashboard-head{display:flex!important;flex-direction:column;align-items:stretch;margin-bottom:18px}
+  .dashboard-head h2{font-size:30px;line-height:1.08}
+  .dashboard-head p{font-size:12px;line-height:1.55}
+  .dashboard-head .btn,.ai-head-actions .btn,.ai-head-actions .tiny-btn{width:100%}
+  .stat-grid,.ai-command-grid,.room-grid,.action-grid,.dept-grid,.team-form-grid,.form-grid,.channel-grid,.cards,.social-platform-grid,.profile-grid{grid-template-columns:1fr!important}
+  .stat{padding:16px}
+  .stat .value{font-size:26px}
+  .bo-card,.social-card,.video-editor,.ai-panel{padding:16px;border-radius:15px}
+  .bo-card h3,.social-card h3{font-size:20px}
+  .resource{display:flex!important;flex-direction:column;align-items:stretch!important;gap:10px}
+  .resource .team-actions,.account-row .team-actions{width:100%}
+  .resource .tiny-btn,.team-actions .tiny-btn{flex:1 1 120px;min-height:42px}
+  .ai-agent-actions .tiny-btn,.row-actions .btn,.row-actions .tiny-btn,.publish-toolbar .btn,.publish-toolbar .tiny-btn{flex:1 1 145px;min-height:43px}
+  .ai-quick-prompts .tiny-btn{flex:1 1 100%;min-height:42px;text-align:left}
+  .ai-output-head{flex-direction:column;align-items:stretch}
+  .ai-output-head .tiny-btn{width:100%}
+  .ai-history-row{align-items:flex-start;flex-direction:column}
+  .ai-history-row .pill{align-self:flex-start}
+  .modal{padding:10px}
+  .modal-card{padding:20px;border-radius:18px;max-height:92vh;overflow-y:auto}
+  .login-card{padding:22px 18px}
+  .login-card img{width:min(170px,65%)}
+  .field,.mini-input,input,select,textarea{font-size:16px!important}
+  button,.btn,.tiny-btn,.side-link{touch-action:manipulation}
+  .video-stage{min-height:200px}
+  .video-tools{grid-template-columns:1fr 1fr!important}
+  .format-switch{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+  .format-btn{width:100%;min-height:42px}
+  .footer-inner{flex-direction:column}
+}
+
+@media (max-width:480px){
+  .brand{gap:7px}.brand img{height:44px}.nav-inner{height:68px}
+  h1{font-size:clamp(42px,13vw,54px);line-height:1}
+  .lead{font-size:15px;line-height:1.6}
+  .actions{display:grid;grid-template-columns:1fr;gap:10px}.actions .btn{width:100%}
+  .logo-stage{min-height:310px}
+  .section-title,.cta h2{font-size:34px}
+  .section{padding:58px 0}
+  .portal-top strong{max-width:34vw}
+  .mobile-portal-menu{padding:8px 10px;font-size:11px}
+  .portal-main{padding:14px 10px 26px}
+  .dashboard-head h2{font-size:27px}
+  .kicker{font-size:10px;letter-spacing:.18em}
+  .bo-card,.social-card,.video-editor,.ai-panel{padding:14px}
+  .format-switch,.video-tools{grid-template-columns:1fr!important}
+  .btn,.tiny-btn{min-height:42px}
+  .ai-live-output{font-size:12px;min-height:160px}
+}
+
+@supports (padding:max(0px)){
+  @media(max-width:720px){
+    .portal-main{padding-left:max(13px,env(safe-area-inset-left));padding-right:max(13px,env(safe-area-inset-right));padding-bottom:max(28px,env(safe-area-inset-bottom))}
+  }
+}

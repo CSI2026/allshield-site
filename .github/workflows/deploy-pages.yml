@@ -39,3 +39,5 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+# Owner Portal completion deployment gate: B2026.08.23.021 baseline + completed Owner controls.

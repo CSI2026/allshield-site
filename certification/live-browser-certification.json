@@ -1,10 +1,10 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T18:30:26.079Z",
+  "completed_at": "2026-08-26T19:06:55.348Z",
   "status": "PASS",
-  "passed": 37,
-  "total": 37,
+  "passed": 39,
+  "total": 39,
   "checks": [
     {
       "name": "Completed Owner portal source deployed",
@@ -134,7 +134,7 @@
     {
       "name": "Owner video",
       "ok": true,
-      "detail": "VIDEO & YOUTUBE STUDIO | Company video library. |  | Upload, preview, publish, archive and remove video assets. Direct social delivery stays in Social Publi"
+      "detail": "VIDEO & YOUTUBE STUDIO | Create, edit, repurpose and publish. |  | Build long-form, mid-form, short-form and YouTube Shorts from a brief or source material,"
     },
     {
       "name": "Owner video revisit",
@@ -180,6 +180,16 @@
       "name": "Owner settings",
       "ok": true,
       "detail": "GLOBAL SETTINGS | Platform configuration. |  | Settings stored in Supabase. |  | LIVE SUPABASE DATA | Company Display Name | Default Passing Score | Support Email | Qua"
+    },
+    {
+      "name": "Full YouTube Studio workflow",
+      "ok": true,
+      "detail": "all creation modes and workbench sections present"
+    },
+    {
+      "name": "YouTube Studio internal tabs",
+      "ok": true,
+      "detail": "Create, Script, Assets, Metadata and Publish tabs switch correctly"
     },
     {
       "name": "Browser page errors",

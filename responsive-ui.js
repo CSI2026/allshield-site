@@ -2,7 +2,8 @@
 'use strict';
 
 const MOBILE_BREAKPOINT=820;
-const VERSION='2026.08.26.006';
+const TABLET_BREAKPOINT=1100;
+const VERSION='2026.08.26.007';
 
 const roleConfig={
   agent:{
@@ -112,7 +113,8 @@ function showRoute(portal,role,route){
   if(typeof fn!=='function')return;
   fn(route,link);
   syncPortal(portal,route);
-  closeMenu(portal);
+  closeAppMenu(portal);
+  closeTabletDrawer(portal);
   window.scrollTo({top:0,behavior:'auto'});
 }
 
@@ -132,17 +134,19 @@ function syncPortal(portal,forcedRoute){
 
   portal?.querySelectorAll('.mobile-app-tab').forEach(btn=>{
     const tabRoute=btn.dataset.route;
-    btn.classList.toggle('active',tabRoute===route || (tabRoute==='more' && !roleConfig[role]?.tabs.some(t=>t.route===route)));
+    const primary=roleConfig[role]?.tabs.some(t=>t.route===route);
+    btn.classList.toggle('active',tabRoute===route || (tabRoute==='more'&&!primary));
   });
   portal?.querySelectorAll('.mobile-tool-button').forEach(btn=>btn.classList.toggle('active',btn.dataset.route===route));
 }
 
-function closeMenu(portal){
+/* ---------- Phone app menu ---------- */
+function closeAppMenu(portal){
   portal?.querySelector('.mobile-app-menu')?.classList.remove('open');
-  document.body.classList.remove('mobile-app-menu-lock');
+  if(!document.querySelector('.mobile-app-menu.open'))document.body.classList.remove('mobile-app-menu-lock');
 }
 
-function openMenu(portal){
+function openAppMenu(portal){
   if(!portal)return;
   document.querySelectorAll('.mobile-app-menu.open').forEach(menu=>{
     if(!portal.contains(menu))menu.classList.remove('open');
@@ -150,7 +154,7 @@ function openMenu(portal){
   portal.querySelector('.mobile-app-menu')?.classList.add('open');
   document.body.classList.add('mobile-app-menu-lock');
   const search=portal.querySelector('.mobile-app-menu-search input');
-  if(search){search.value='';filterMenu(portal,'');setTimeout(()=>search.focus({preventScroll:true}),140);}
+  if(search){search.value='';filterMenu(portal,'');}
 }
 
 function filterMenu(portal,value){
@@ -218,12 +222,12 @@ function buildMenu(portal,role){
   const remaining=[...map.keys()].filter(route=>!used.has(route));
   if(remaining.length)addGroup('More',remaining);
 
-  menu.querySelector('.mobile-menu-close').addEventListener('click',()=>closeMenu(portal));
-  menu.addEventListener('click',e=>{if(e.target===menu)closeMenu(portal);});
+  menu.querySelector('.mobile-menu-close').addEventListener('click',()=>closeAppMenu(portal));
+  menu.addEventListener('click',e=>{if(e.target===menu)closeAppMenu(portal);});
   menu.querySelector('.mobile-app-menu-search input').addEventListener('input',e=>filterMenu(portal,e.target.value));
   menu.querySelector('[data-menu-dashboard]').addEventListener('click',()=>showRoute(portal,role,'dashboard'));
   menu.querySelector('[data-menu-exit]').addEventListener('click',()=>{
-    closeMenu(portal);
+    closeAppMenu(portal);
     if(typeof window.allshieldSignOut==='function')window.allshieldSignOut();
     else if(typeof window.returnHome==='function')window.returnHome();
   });
@@ -241,10 +245,49 @@ function buildTabbar(portal,role){
     btn.className='mobile-app-tab';
     btn.dataset.route=tab.route;
     btn.innerHTML=`<span class="tab-icon">${esc(tab.icon)}</span><span class="tab-label">${esc(tab.label)}</span>`;
-    btn.addEventListener('click',()=>tab.route==='more'?openMenu(portal):showRoute(portal,role,tab.route));
+    btn.addEventListener('click',()=>tab.route==='more'?openAppMenu(portal):showRoute(portal,role,tab.route));
     bar.appendChild(btn);
   });
   portal.appendChild(bar);
+}
+
+/* ---------- 821–1100 tablet drawer compatibility ---------- */
+function closeTabletDrawer(portal){
+  if(!portal)return;
+  portal.classList.remove('mobile-nav-open');
+  portal.querySelector('.mobile-portal-menu')?.setAttribute('aria-expanded','false');
+  if(!document.querySelector('.portal-page.mobile-nav-open'))document.body.classList.remove('portal-nav-lock');
+}
+
+function openTabletDrawer(portal){
+  if(!portal)return;
+  document.querySelectorAll('.portal-page.mobile-nav-open').forEach(p=>{if(p!==portal)closeTabletDrawer(p);});
+  portal.classList.add('mobile-nav-open');
+  portal.querySelector('.mobile-portal-menu')?.setAttribute('aria-expanded','true');
+  document.body.classList.add('portal-nav-lock');
+}
+
+function buildTabletDrawer(portal){
+  const top=portal.querySelector('.portal-top');
+  const sidebar=portal.querySelector('.sidebar');
+  if(!top||!sidebar||portal.querySelector('.mobile-portal-menu'))return;
+  const btn=document.createElement('button');
+  btn.type='button';
+  btn.className='mobile-portal-menu';
+  btn.setAttribute('aria-expanded','false');
+  btn.setAttribute('aria-label','Open portal navigation');
+  btn.innerHTML='<span aria-hidden="true">☰</span><span>Menu</span>';
+  const exit=top.querySelector(':scope > .btn');
+  if(exit)top.insertBefore(btn,exit);else top.appendChild(btn);
+  const shade=document.createElement('div');
+  shade.className='portal-nav-backdrop';
+  shade.setAttribute('aria-hidden','true');
+  portal.appendChild(shade);
+  btn.addEventListener('click',()=>portal.classList.contains('mobile-nav-open')?closeTabletDrawer(portal):openTabletDrawer(portal));
+  shade.addEventListener('click',()=>closeTabletDrawer(portal));
+  sidebar.addEventListener('click',e=>{
+    if(window.innerWidth>MOBILE_BREAKPOINT&&window.innerWidth<=TABLET_BREAKPOINT&&e.target.closest('.side-link'))setTimeout(()=>closeTabletDrawer(portal),30);
+  });
 }
 
 function buildTitle(portal,role){
@@ -264,6 +307,7 @@ function enhancePortal(portal){
   buildTitle(portal,role);
   buildTabbar(portal,role);
   buildMenu(portal,role);
+  buildTabletDrawer(portal);
 
   portal.querySelector('.sidebar').addEventListener('click',e=>{
     const link=e.target.closest('.side-link');
@@ -333,7 +377,10 @@ function buildPublicDock(){
 }
 
 function closeAllMenus(){
-  document.querySelectorAll('.portal-page').forEach(closeMenu);
+  document.querySelectorAll('.portal-page').forEach(portal=>{
+    closeAppMenu(portal);
+    closeTabletDrawer(portal);
+  });
 }
 
 function init(){
@@ -344,7 +391,7 @@ function init(){
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAllMenus();});
-window.addEventListener('resize',()=>{if(window.innerWidth>MOBILE_BREAKPOINT)closeAllMenus();},{passive:true});
+window.addEventListener('resize',()=>{if(window.innerWidth>TABLET_BREAKPOINT)closeAllMenus();},{passive:true});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 new MutationObserver(init).observe(document.documentElement,{childList:true,subtree:true});
 window.allshieldCloseMobilePortalNav=closeAllMenus;

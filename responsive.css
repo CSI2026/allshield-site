@@ -174,3 +174,19 @@ input,select,textarea,button{max-width:100%}
   .hero h1{font-size:36px}
   .logo-panel{width:min(260px,74vw)}
 }
+
+
+/* Mobile actual-device correction: remove duplicate hero logo and stabilize login screen. */
+@media (max-width:600px){
+  .hero .logo-stage{display:none!important}
+  .hero{padding-bottom:42px}
+  .portal-login{min-height:100dvh;place-items:start center;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 12px calc(24px + env(safe-area-inset-bottom))}
+  .portal-login.show{display:grid}
+  .portal-login .login-card{width:min(440px,100%);margin:max(12px,env(safe-area-inset-top)) auto 0;padding:20px 16px 22px}
+  .portal-login .login-card img{width:min(132px,42vw);margin-bottom:12px}
+  .portal-login .login-card h2{font-size:27px}
+  .portal-login .login-card p{margin-bottom:16px;line-height:1.5}
+  .portal-login .field{min-height:48px;margin:7px 0 10px}
+  .portal-login .btn-primary{min-height:48px}
+  .portal-login .back-link{display:block;padding:12px 0 4px;min-height:44px}
+}

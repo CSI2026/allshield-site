@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
+      - 'phase16-production-core.js'
+      - 'phase16-live-backoffice.js'
+      - 'phase16-academy-admin.js'
+      - 'phase16-ai-command-production.js'
+      - 'phase16-social-production.js'
       - 'tests/live-browser-cert.mjs'
       - '.github/workflows/live-browser-cert.yml'
   workflow_dispatch:
@@ -24,7 +30,7 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Run live browser certification
+      - name: Run live Owner portal certification
         id: browsercert
         shell: bash
         run: |
@@ -39,11 +45,11 @@ jobs:
         run: |
           git config user.name "allshield-cert-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add certification/live-browser-certification.json certification/live-homepage.png || true
+          git add certification/live-browser-certification.json certification/live-owner-portal.png || true
           if git diff --cached --quiet; then
             echo "No certification result changes."
           else
-            git commit -m "Record live browser certification result"
+            git commit -m "Record live Owner portal certification result"
             git push
           fi
       - name: Enforce certification result

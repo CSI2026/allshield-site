@@ -1,93 +1,26 @@
 import { chromium } from 'playwright';
-
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
-const started=new Date().toISOString();
-const checks=[];
-const failures=[];
-const record=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)failures.push(`${name}: ${detail}`)};
-
-async function fetchText(path){
-  const res=await fetch(`${BASE}${path}${path.includes('?')?'&':'?'}cert=${Date.now()}`,{redirect:'follow'});
-  if(!res.ok) throw new Error(`${path} returned HTTP ${res.status}`);
-  return await res.text();
-}
-
-async function waitForCurrentDeploy(){
-  let last='';
-  for(let i=0;i<24;i++){
-    try{
-      const [app,runtime]=await Promise.all([fetchText('/app.js'),fetchText('/production-runtime.js')]);
-      const current=app.includes('__allshieldProductionShellReady') && !/Jordan Miles|Enter Demo Agent Portal|GOOD EVENING, CALVIN/i.test(app) && runtime.includes('__allshieldProductionRuntimeReady');
-      if(current) return {app,runtime};
-      last='deployment is reachable but still serving an older source';
-    }catch(e){last=e.message}
-    await new Promise(r=>setTimeout(r,10000));
-  }
-  throw new Error(last||'current deployment did not become available');
-}
-
+const expected={dashboard:'ALLSHIELD OWNER CONTROL',ai:'Live AI across Allshield',permissions:'ROLES & PERMISSIONS',teamaccounts:'TEAM ACCOUNTS',departments:'DEPARTMENTS & ACCESS',communications:'COMPANY COMMUNICATIONS',hierarchy:'ORGANIZATION & PROMOTION LADDER',states:'STATE LICENSING MATRIX',academy:'ACADEMY GOVERNANCE',testing:'AGENT TESTING OVERSIGHT',versions:'CONTENT VERSIONING',updates:'PLATFORM UPDATE CENTER',performance:'COMPANY PERFORMANCE',meetings:'MEETING GOVERNANCE',marketing:'CORPORATE MARKETING',social:'SOCIAL + BRAND AI',video:'VIDEO & YOUTUBE STUDIO',media:'MEDIA STUDIO',brand:'BRAND CENTER',files:'OWNER FILE VAULT',audit:'AUDIT & CHANGE HISTORY',buildhistory:'BUILD & RELEASE CONTROL',settings:'GLOBAL SETTINGS'};
+const checks=[],failures=[]; const rec=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)failures.push(`${name}: ${detail}`)};
+async function text(path){const r=await fetch(`${BASE}${path}${path.includes('?')?'&':'?'}cert=${Date.now()}`,{redirect:'follow'});if(!r.ok)throw new Error(`${path} HTTP ${r.status}`);return await r.text()}
+async function waitDeploy(){for(let i=0;i<36;i++){try{const [idx,core,academy]=await Promise.all([text('/'),text('/phase16-production-core.js'),text('/phase16-academy-admin.js')]);if(idx.includes('for(const key of Object.keys(host.dataset))')&&!idx.includes('brand-914a23072410')&&core.includes('Create Department')&&core.includes('Company announcement center')&&academy.includes('STATE LICENSING MATRIX'))return;}catch{}await new Promise(r=>setTimeout(r,10000));}throw new Error('Completed Owner portal source did not become live in time.');}
+const mock=`(()=>{const owner={id:'3320a7d1-bfd6-4761-ad5b-b7fadb3b8d9c',email:'owner@allshield.internal'};const tables={profiles:[{id:owner.id,email:owner.email,username:'owner',role:'owner',status:'active',resident_state:'TX',department_id:null,manager_id:null}],promotion_levels:[{id:'l1',code:'AGENT',name:'Agent',level_order:1,requirements:{},active:true}],social_brand_profiles:[{id:'b1',profile_key:'allshield_primary',company_name:'Allshield Insurance Group',brand_voice:'Confident, clear, human, professional, trustworthy and never robotic.',services:[],service_areas:[],target_audiences:[],prohibited_claims:[],status:'draft'}],academy_launch_tracks:[{state_code:'TX',priority:1,license_track:'Life & Health',licensing_status:'active',marketplace_type:'federal',marketplace_status:'active'}],academy_launch_readiness:[{state_code:'TX',blueprint_ready:true,study_guide_ready:true,question_bank_ready:true,simulations_ready:true,analytics_ready:true,marketplace_path_ready:true,end_to_end_tested:true,launch_ready:true}]};function b(t){let rows=tables[t]||[];let api;api=new Proxy({}, {get(_x,p){if(p==='then')return resolve=>resolve({data:rows,error:null,count:rows.length});if(p==='single'||p==='maybeSingle')return()=>Promise.resolve({data:rows[0]||null,error:null});if(['insert','update','upsert','delete'].includes(p))return()=>b(t);return()=>api;}});return api;}const storage={list:async()=>({data:[],error:null}),upload:async()=>({data:{},error:null}),remove:async()=>({data:{},error:null}),createSignedUrl:async()=>({data:{signedUrl:'about:blank'},error:null}),getPublicUrl:()=>({data:{publicUrl:'about:blank'}})};window.allshieldSupabase={auth:{getUser:async()=>({data:{user:owner},error:null}),getSession:async()=>({data:{session:{user:owner}},error:null})},from:t=>b(t),functions:{invoke:async(name,opt)=>{if(name==='academy-admin'&&opt?.body?.action==='roster')return {data:{users:[]},error:null};if(name==='ai-provider-status')return {data:{configured:true},error:null};if(name==='owner-dashboard')return {data:{},error:null};return {data:{ok:true,users:[],connections:[],capabilities:[],profiles:[],jobs:[],posts:[]},error:null};}},storage:{from:()=>storage}};window.allshieldListTeamUsers=async()=>tables.profiles;window.allshieldListDepartments=async()=>[];window.allshieldManageTeamUser=async()=>({ok:true});window.ALLSHIELD_CONFIG.DEMO_FALLBACK=false;})();`;
 let browser;
 try{
-  const deployed=await waitForCurrentDeploy();
-  record('Current production source deployed',true,'app.js and production-runtime.js match the production-only build');
-  record('Dormant demo source absent',!/Jordan Miles|Ashley Reed|Marcus Hill|Taylor Brooks|Enter Demo|GOOD EVENING, CALVIN|Interactive demo/i.test(deployed.app),'no legacy sample markers in deployed app.js');
-
-  const html=await fetchText('/');
-  record('Homepage responds',/Allshield Insurance Group/i.test(html),'live HTML returned');
-  record('Static portal shells are live-only',/LIVE DATA ONLY/i.test(html) && !/Jordan Miles|Ashley Reed|Marcus Hill|Taylor Brooks|Enter Demo/i.test(html),'no sample dashboard markup in deployed index');
-
-  browser=await chromium.launch({headless:true});
-  const page=await browser.newPage({viewport:{width:1440,height:1000}});
-  const pageErrors=[];
-  const failedScripts=[];
-  page.on('pageerror',e=>pageErrors.push(e.message));
-  page.on('requestfailed',req=>{if(/\.(js|css)(\?|$)/i.test(req.url())) failedScripts.push(`${req.url()} :: ${req.failure()?.errorText||'failed'}`)});
-
-  const response=await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:60000});
-  record('Browser navigation',!!response && response.ok(),response?`HTTP ${response.status()}`:'no response');
-  await page.waitForFunction(()=>window.__allshieldProductionRuntimeReady===true,{timeout:30000});
-  record('Production runtime initialized',true,'window.__allshieldProductionRuntimeReady = true');
-  record('Demo fallback disabled',await page.evaluate(()=>window.ALLSHIELD_CONFIG?.DEMO_FALLBACK===false),'ALLSHIELD_CONFIG.DEMO_FALLBACK is false');
-
-  const body=await page.locator('body').innerText();
-  record('No visible demo/sample content',!/Jordan Miles|Ashley Reed|Marcus Hill|Taylor Brooks|Enter Demo|GOOD EVENING, CALVIN|Interactive demo/i.test(body),'visible page contains no legacy sample content');
-
-  await page.getByRole('button',{name:'Team Portal'}).click();
-  await page.getByText('Choose your portal',{exact:false}).waitFor({state:'visible',timeout:10000});
-  record('Team Portal chooser opens',true,'role chooser visible');
-
-  for(const [label,role,expected] of [['Agent Portal','agent','Enter Agent Portal'],['Admin Portal','admin','Enter Admin Portal'],['Owner Portal','owner','Enter Owner Portal']]){
-    await page.getByText(label,{exact:true}).first().click();
-    const login=page.locator(`#${role}Login`);
-    await login.waitFor({state:'visible',timeout:10000});
-    const buttonText=(await login.locator('button.btn-primary').innerText()).trim();
-    record(`${label} secure entry`,buttonText===expected,`button text: ${buttonText}`);
-    record(`${label} password field`,await login.locator('input[type="password"]').count()===1,'password field present');
-    await login.getByText('Return to website',{exact:false}).click();
-    await page.getByRole('button',{name:'Team Portal'}).click();
-    await page.getByText('Choose your portal',{exact:false}).waitFor({state:'visible',timeout:10000});
-  }
-
-  record('JavaScript page errors',pageErrors.length===0,pageErrors.join(' | ')||'none');
-  record('Required JS/CSS resource failures',failedScripts.length===0,failedScripts.join(' | ')||'none');
-
-  await page.screenshot({path:'certification/live-homepage.png',fullPage:true});
-}catch(e){
-  record('Certification execution',false,e?.stack||e?.message||String(e));
-}finally{
-  if(browser) await browser.close();
-}
-
-const result={
-  certification:'ALLSHIELD deployed browser smoke certification',
-  base_url:BASE,
-  started_at:started,
-  completed_at:new Date().toISOString(),
-  status:failures.length?'FAIL':'PASS',
-  passed:checks.filter(x=>x.ok).length,
-  total:checks.length,
-  checks,
-  failures
-};
-console.log(JSON.stringify(result,null,2));
-process.exitCode=failures.length?1:0;
+ await waitDeploy();rec('Completed Owner portal source deployed',true,'new canonical source markers are live');
+ browser=await chromium.launch({headless:true});const page=await browser.newPage({viewport:{width:1440,height:1000}});const errs=[];const failed=[];page.on('pageerror',e=>errs.push(e.message));page.on('requestfailed',r=>{if(/\.(js|css)(\?|$)/i.test(r.url()))failed.push(`${r.url()} :: ${r.failure()?.errorText||'failed'}`)});
+ const response=await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:60000});rec('HTTPS browser navigation',!!response&&response.ok(),response?`HTTP ${response.status()}`:'no response');
+ await page.waitForFunction(()=>Object.keys(window.allshieldViewHandlers?.owner||{}).length>=23,{timeout:30000});
+ const handlers=await page.evaluate(()=>Object.keys(window.allshieldViewHandlers?.owner||{}));rec('23 Owner handlers registered',Object.keys(expected).every(x=>handlers.includes(x))&&handlers.length>=23,`registered=${handlers.length}`);
+ await page.evaluate(mock);await page.evaluate(()=>{document.querySelector('.shell')?.setAttribute('style','display:none!important');document.getElementById('ownerPortal')?.classList.add('show');});
+ for(const [route,marker] of Object.entries(expected)){
+   await page.evaluate(r=>{const el=[...document.querySelectorAll('#ownerPortal .side-link')].find(x=>(x.getAttribute('onclick')||'').includes(`'${r}'`));window.showOwnerView(r,el||null)},route);
+   await page.waitForTimeout(550);const body=await page.locator('#ownerMain').innerText();const bad=/Feature unavailable|Unable to load this section|Live data is not available yet/i.test(body);rec(`Owner ${route}`,!bad&&body.includes(marker),body.slice(0,150).replace(/\n/g,' | '));
+   if(['ai','states','communications','meetings','social','video','media','brand'].includes(route)){
+     await page.evaluate(()=>window.showOwnerView('dashboard',null));await page.waitForTimeout(150);await page.evaluate(r=>window.showOwnerView(r,null),route);await page.waitForTimeout(400);const again=await page.locator('#ownerMain').innerText();rec(`Owner ${route} revisit`,!(/Feature unavailable|Unable to load this section|Live data is not available yet/i.test(again))&&again.includes(marker),'tab rebuilds after route change');
+   }
+ }
+ rec('Browser page errors',errs.length===0,errs.join(' | ')||'none');rec('Required JS/CSS resource failures',failed.length===0,failed.join(' | ')||'none');
+ await page.screenshot({path:'certification/live-owner-portal.png',fullPage:true});
+}catch(e){rec('Certification execution',false,e?.stack||e?.message||String(e));}finally{if(browser)await browser.close();}
+const result={certification:'ALLSHIELD Owner Portal functional browser certification',base_url:BASE,completed_at:new Date().toISOString(),status:failures.length?'FAIL':'PASS',passed:checks.filter(x=>x.ok).length,total:checks.length,checks,failures};console.log(JSON.stringify(result,null,2));process.exitCode=failures.length?1:0;

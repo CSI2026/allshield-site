@@ -1,9 +1,9 @@
 {
   "certification": "ALLSHIELD public mobile homepage certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T20:05:46.469Z",
-  "status": "FAIL",
-  "passed": 7,
+  "completed_at": "2026-08-26T20:07:17.332Z",
+  "status": "PASS",
+  "passed": 8,
   "total": 8,
   "checks": [
     {
@@ -19,7 +19,7 @@
     {
       "name": "Mobile header controls fit",
       "ok": true,
-      "detail": "[{\"text\":\"Team Portal\",\"left\":186.703125,\"right\":274.859375,\"width\":88.15625,\"color\":\"rgb(230, 238, 247)\"},{\"text\":\"Get Protected\",\"left\":281.859375,\"right\":380,\"width\":98.140625,\"color\":\"rgb(255, 255, 255)\"}]"
+      "detail": "[{\"text\":\"Team Portal\",\"primary\":false,\"left\":186.703125,\"right\":274.859375,\"width\":88.15625,\"color\":\"rgb(230, 238, 247)\"},{\"text\":\"Get Protected\",\"primary\":true,\"left\":281.859375,\"right\":380,\"width\":98.140625,\"color\":\"rgb(255, 255, 255)\"}]"
     },
     {
       "name": "Mobile hero scale",
@@ -33,8 +33,8 @@
     },
     {
       "name": "Primary button contrast",
-      "ok": false,
-      "detail": "nav=rgb(230, 238, 247),rgb(255, 255, 255); hero=rgb(255, 255, 255); cta=rgb(255, 255, 255)"
+      "ok": true,
+      "detail": "primaryNav=rgb(255, 255, 255); hero=rgb(255, 255, 255); cta=rgb(255, 255, 255)"
     },
     {
       "name": "CTA fits mobile viewport",
@@ -47,7 +47,5 @@
       "detail": "none"
     }
   ],
-  "failures": [
-    "Primary button contrast: nav=rgb(230, 238, 247),rgb(255, 255, 255); hero=rgb(255, 255, 255); cta=rgb(255, 255, 255)"
-  ]
+  "failures": []
 }

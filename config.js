@@ -9,7 +9,8 @@ window.ALLSHIELD_CONFIG = {
   const scripts=[
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
     ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011'],
-    ['allshieldSocialOAuthPopupLoader','./social-oauth-popup-return-2026-08-26.js?v=2026.08.26.012']
+    ['allshieldSocialOAuthPopupLoader','./social-oauth-popup-return-2026-08-26.js?v=2026.08.26.012'],
+    ['allshieldSocialConnectGuardLoader','./social-connect-guard-2026-08-26.js?v=2026.08.26.013']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

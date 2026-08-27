@@ -6,11 +6,16 @@ window.ALLSHIELD_CONFIG = {
 };
 
 (()=>{
-  const id='allshieldProductionPolishLoader';
-  if(document.getElementById(id))return;
-  const s=document.createElement('script');
-  s.id=id;
-  s.src='./production-polish-2026-08-26.js?v=2026.08.26.010';
-  s.async=false;
-  document.head.appendChild(s);
+  const scripts=[
+    ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
+    ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011']
+  ];
+  for(const [id,src] of scripts){
+    if(document.getElementById(id)) continue;
+    const s=document.createElement('script');
+    s.id=id;
+    s.src=src;
+    s.async=false;
+    document.head.appendChild(s);
+  }
 })();

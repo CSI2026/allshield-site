@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.27.008';
+const VERSION='2026.08.27.009';
 const VIDEO_URL='https://allshieldinsurancegroup.com/assets/video/allshield-careers-built-around-the-customer.mp4';
 
 function injectStyles(){
@@ -18,6 +18,8 @@ function injectStyles(){
   document.head.appendChild(s);
 }
 
+function setText(el,text){if(el&&el.textContent!==text)el.textContent=text}
+
 function removeHomeRecruitingCTA(){
   document.querySelectorAll('.shell .hero .mobile-join-team').forEach(el=>el.remove());
   document.querySelectorAll('.shell .hero .actions button,.shell .hero .actions a').forEach(el=>{
@@ -30,39 +32,61 @@ function polishCareers(){
   const sizzle=careers?.querySelector('.career-sizzle-placeholder');
   const canvas=careers?.querySelector('.career-canvas');
   if(!sizzle||!canvas)return;
-  sizzle.classList.add('career-sizzle-top');
+  if(!sizzle.classList.contains('career-sizzle-top'))sizzle.classList.add('career-sizzle-top');
   if(canvas.firstElementChild!==sizzle)canvas.insertBefore(sizzle,canvas.firstElementChild);
   const copy=sizzle.querySelector('.career-sizzle-card>div:first-child');
   if(copy){
-    const eyebrow=copy.querySelector('.career-eyebrow');
-    const h=copy.querySelector('h2');
-    const p=copy.querySelector('p');
-    if(eyebrow)eyebrow.textContent='WATCH FIRST • THE ALLSHIELD OPPORTUNITY';
-    if(h)h.textContent='See why ALLSHIELD is built differently.';
-    if(p)p.textContent='Before you explore the rest of the Careers page, watch how ALLSHIELD is building a customer-first system for licensed agents and people preparing to become licensed.';
+    setText(copy.querySelector('.career-eyebrow'),'WATCH FIRST • THE ALLSHIELD OPPORTUNITY');
+    setText(copy.querySelector('h2'),'See why ALLSHIELD is built differently.');
+    setText(copy.querySelector('p'),'Before you explore the rest of the Careers page, watch how ALLSHIELD is building a customer-first system for licensed agents and people preparing to become licensed.');
     if(!copy.querySelector('.career-live-badge')){
-      const badge=document.createElement('div');badge.className='career-live-badge';badge.textContent='Professional opportunity video';copy.appendChild(badge);
+      const badge=document.createElement('div');
+      badge.className='career-live-badge';
+      badge.textContent='Professional opportunity video';
+      copy.appendChild(badge);
     }
   }
   const video=sizzle.querySelector('video');
   if(video){
     if(video.getAttribute('src')!==VIDEO_URL)video.src=VIDEO_URL;
-    video.controls=true;video.playsInline=true;video.preload='metadata';
-    video.setAttribute('aria-label','ALLSHIELD Careers — Built Around the Customer');
+    if(!video.controls)video.controls=true;
+    if(!video.playsInline)video.playsInline=true;
+    if(video.preload!=='metadata')video.preload='metadata';
+    if(video.getAttribute('aria-label')!=='ALLSHIELD Careers — Built Around the Customer')video.setAttribute('aria-label','ALLSHIELD Careers — Built Around the Customer');
   }
 }
 
 function polishOwnerStudio(){
   const studio=document.getElementById('ytStudio');if(!studio)return;
-  studio.querySelectorAll('.career-route-card').forEach((card,i)=>{if(i>0)card.remove()});
-  const card=studio.querySelector('.career-route-card');if(!card)return;
-  const title=card.querySelector('.route-title');if(title)title.textContent='WEBSITE DESTINATION • PROFESSIONAL VIDEO LIVE';
-  const h=card.querySelector('h3');if(h)h.textContent='Careers Page → Professional Opportunity Video';
-  const note=card.querySelector('.route-provider-note');if(note)note.textContent='The approved HeyGen master is published on the ALLSHIELD domain and is live at the top of the Careers page. Browser text-to-speech is disabled.';
-  const btn=card.querySelector('#openCareerSizzlePreview');if(btn)btn.textContent='Watch Live Careers Video';
+  const cards=[...studio.querySelectorAll('.career-route-card')];
+  cards.slice(1).forEach(card=>card.remove());
+  const card=cards[0];if(!card)return;
+  setText(card.querySelector('.route-title'),'WEBSITE DESTINATION • PROFESSIONAL VIDEO LIVE');
+  setText(card.querySelector('h3'),'Careers Page → Professional Opportunity Video');
+  setText(card.querySelector('.route-provider-note'),'The approved HeyGen master is published on the ALLSHIELD domain and is live at the top of the Careers page. Browser text-to-speech is disabled.');
+  setText(card.querySelector('#openCareerSizzlePreview'),'Watch Live Careers Video');
 }
 
-function scan(){injectStyles();removeHomeRecruitingCTA();polishCareers();polishOwnerStudio();window.ALLSHIELD_CAREERS_PRO_VIDEO_VERSION=VERSION}
-function install(){scan();const o=new MutationObserver(scan);o.observe(document.documentElement,{subtree:true,childList:true});setInterval(()=>{if(document.visibilityState==='visible')scan()},3000)}
+function scan(){
+  injectStyles();
+  removeHomeRecruitingCTA();
+  polishCareers();
+  polishOwnerStudio();
+  window.ALLSHIELD_CAREERS_PRO_VIDEO_VERSION=VERSION;
+}
+
+function install(){
+  scan();
+  let queued=false;
+  const schedule=()=>{
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{queued=false;scan()});
+  };
+  const o=new MutationObserver(schedule);
+  o.observe(document.documentElement,{subtree:true,childList:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')schedule()});
+}
+
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

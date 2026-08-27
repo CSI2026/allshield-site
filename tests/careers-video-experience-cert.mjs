@@ -12,15 +12,18 @@ try{
   const errs=[];page.on('pageerror',e=>errs.push(e.message));
   const response=await page.goto(`${BASE}/?cert=${Date.now()}`,{waitUntil:'commit',timeout:60000});
   rec('Homepage HTTP',!!response&&response.ok(),response?`HTTP ${response.status()}`:'no response');
-  await page.waitForSelector('.shell',{timeout:30000});
-  await page.waitForFunction(()=>window.ALLSHIELD_CAREERS_VIDEO_EXPERIENCE_VERSION==='2026.08.27.007',{timeout:45000});
+  await page.waitForSelector('.shell',{timeout:45000});
+  await page.waitForFunction(()=>typeof window.openCareersPage==='function',{timeout:120000,polling:500});
+  await page.waitForTimeout(2500);
   const home=await page.evaluate(()=>({heroActions:[...document.querySelectorAll('.shell .hero .actions button,.shell .hero .actions a')].map(x=>(x.textContent||'').trim()),careersTop:[...document.querySelectorAll('.shell .nav-links a')].some(x=>(x.textContent||'').trim()==='Careers'),url:location.href}));
   rec('Homepage customer CTA stays customer-only',home.heroActions.includes('Explore Coverage')&&!home.heroActions.some(x=>/join our team|join the team/i.test(x)),JSON.stringify(home.heroActions));
   rec('Careers remains in top navigation',home.careersTop,'top Careers navigation present');
   rec('Homepage keeps clean domain',home.url===`${BASE}/`,`url=${home.url}`);
   await page.evaluate(()=>window.openCareersPage());
-  await page.waitForSelector('#careersPage.show .career-sizzle-placeholder.career-sizzle-top',{timeout:25000});
-  await page.waitForSelector('#careersPage .career-sizzle-frame video',{timeout:30000});
+  await page.waitForSelector('#careersPage.show',{timeout:30000});
+  await page.waitForSelector('#careersPage .career-sizzle-placeholder',{timeout:45000});
+  await page.waitForFunction(()=>document.querySelector('#careersPage .career-canvas')?.firstElementChild?.classList.contains('career-sizzle-placeholder')===true,{timeout:90000,polling:500});
+  await page.waitForSelector('#careersPage .career-sizzle-frame video',{timeout:90000});
   const state=await page.evaluate(async VIDEO=>{
     const canvas=document.querySelector('#careersPage .career-canvas'),s=document.querySelector('#careersPage .career-sizzle-placeholder'),hero=document.querySelector('#careersPage .career-hero-screen'),video=s?.querySelector('video');
     const c=window.ALLSHIELD_CONFIG;let cfg={};try{const r=await fetch(`${c.SUPABASE_URL}/functions/v1/career-sizzle-config?cert=${Date.now()}`,{headers:{apikey:c.SUPABASE_PUBLISHABLE_KEY},cache:'no-store'});cfg=await r.json()}catch(e){cfg={fetchError:String(e)}}

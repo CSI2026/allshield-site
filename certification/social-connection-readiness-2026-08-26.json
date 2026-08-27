@@ -1,0 +1,40 @@
+{
+  "certification": "ALLSHIELD social connection readiness",
+  "build": "2026.08.26.013",
+  "status": "PASS_WITH_PROVIDER_SETUP_PENDING",
+  "completed_at": "2026-08-27T03:35:00Z",
+  "checks": {
+    "frontend_connection_readiness_loaded": "PASS",
+    "oauth_popup_return_flow_loaded": "PASS",
+    "provider_setup_guard_loaded": "PASS",
+    "social_connection_registry_12_platforms": "PASS",
+    "social_oauth_edge_function_v2_active": "PASS",
+    "social_diagnostics_edge_function_v2_active": "PASS",
+    "social_publish_edge_function_v2_active": "PASS",
+    "social_scheduler_edge_function_v2_active": "PASS",
+    "youtube_oauth_edge_function_v1_active": "PASS",
+    "youtube_publish_edge_function_v1_active": "PASS",
+    "server_only_token_rls": "PASS",
+    "oauth_state_pkce_metadata": "PASS",
+    "video_studio_ai_active": "PASS"
+  },
+  "connection_adapters": {
+    "facebook": "Meta OAuth ready when provider app credentials are supplied",
+    "instagram": "Meta OAuth ready when provider app credentials are supplied",
+    "tiktok": "TikTok OAuth ready when provider app credentials are supplied",
+    "linkedin": "LinkedIn OAuth adapter installed; provider app approval/credentials required",
+    "youtube": "Google/YouTube OAuth and publish backend installed; provider credentials required",
+    "x": "OAuth 2.0 PKCE adapter installed; provider credentials required",
+    "threads": "Threads OAuth adapter installed; provider credentials required",
+    "pinterest": "Pinterest OAuth adapter installed; provider app approval/credentials required",
+    "reddit": "Reddit OAuth adapter installed; provider credentials required",
+    "snapchat": "Provider-specific business/API setup slot installed",
+    "whatsapp": "Meta Business setup slot installed",
+    "messenger": "Meta Business setup slot installed"
+  },
+  "notes": [
+    "No social accounts were connected during certification.",
+    "External provider authorization cannot be completed until the owner chooses to create/approve provider developer apps and supplies their credentials.",
+    "Direct social publishing currently exists for Facebook, Instagram, TikTok, and YouTube through their dedicated production paths; other platforms are connection-ready but do not yet have direct publishing adapters."
+  ]
+}

@@ -1,3 +1,4 @@
+// Re-run marker: config loader is now cache-busted in index.html.
 import { chromium } from 'playwright';
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
 const checks=[];const failures=[];const rec=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)failures.push(`${name}: ${detail}`)};

@@ -1,0 +1,41 @@
+name: Promote Approved Careers Video To Site
+
+on:
+  push:
+    paths:
+      - '.github/workflows/promote-careers-video-to-site.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    env:
+      RELEASE_VIDEO: "https://github.com/CSI2026/allshield-site/releases/download/careers-sizzle-v1/allshield-careers-built-around-the-customer.mp4"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Download approved master into website assets
+        run: |
+          set -euo pipefail
+          mkdir -p assets/video
+          curl --fail --location --retry 4 --retry-delay 3 "$RELEASE_VIDEO" --output assets/video/allshield-careers-built-around-the-customer.mp4
+          test -s assets/video/allshield-careers-built-around-the-customer.mp4
+          SIZE=$(stat -c%s assets/video/allshield-careers-built-around-the-customer.mp4)
+          test "$SIZE" -gt 50000000
+          test "$SIZE" -lt 100000000
+          echo "Approved Careers video ready: $SIZE bytes"
+      - name: Commit first-party video asset
+        run: |
+          set -euo pipefail
+          git config user.name 'allshield-build-bot'
+          git config user.email 'allshield-build-bot@users.noreply.github.com'
+          git add assets/video/allshield-careers-built-around-the-customer.mp4
+          if git diff --cached --quiet; then
+            echo 'Video asset already committed.'
+            exit 0
+          fi
+          git commit -m 'Host approved Careers video on ALLSHIELD domain'
+          git push origin HEAD:main

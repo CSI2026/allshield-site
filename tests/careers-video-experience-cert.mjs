@@ -1,4 +1,4 @@
-// Re-run marker: config loader is now cache-busted in index.html.
+// Re-run marker: config loader is cache-busted and navigation tolerates slow third-party assets.
 import { chromium } from 'playwright';
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
 const checks=[];const failures=[];const rec=(name,ok,detail='')=>{checks.push({name,ok,detail});if(!ok)failures.push(`${name}: ${detail}`)};
@@ -10,9 +10,10 @@ try{
   browser=await chromium.launch({headless:true});
   const page=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:3,isMobile:true,hasTouch:true});
   const errs=[];page.on('pageerror',e=>errs.push(e.message));
-  const response=await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:60000});
+  const response=await page.goto(`${BASE}/?cert=${Date.now()}`,{waitUntil:'commit',timeout:60000});
   rec('Homepage HTTP',!!response&&response.ok(),response?`HTTP ${response.status()}`:'no response');
-  await page.waitForFunction(()=>window.ALLSHIELD_CAREERS_VIDEO_EXPERIENCE_VERSION==='2026.08.27.007',{timeout:30000});
+  await page.waitForSelector('.shell',{timeout:30000});
+  await page.waitForFunction(()=>window.ALLSHIELD_CAREERS_VIDEO_EXPERIENCE_VERSION==='2026.08.27.007',{timeout:45000});
   const home=await page.evaluate(()=>({
     heroActions:[...document.querySelectorAll('.shell .hero .actions button,.shell .hero .actions a')].map(x=>(x.textContent||'').trim()),
     careersTop:[...document.querySelectorAll('.shell .nav-links a')].some(x=>(x.textContent||'').trim()==='Careers'),
@@ -23,7 +24,7 @@ try{
   rec('Homepage keeps clean domain',home.url===`${BASE}/`,`url=${home.url}`);
 
   await page.evaluate(()=>window.openCareersPage());
-  await page.waitForSelector('#careersPage.show .career-sizzle-placeholder.career-sizzle-top',{timeout:15000});
+  await page.waitForSelector('#careersPage.show .career-sizzle-placeholder.career-sizzle-top',{timeout:20000});
   await page.waitForTimeout(3500);
   const state=await page.evaluate(async()=>{
     const canvas=document.querySelector('#careersPage .career-canvas');const s=document.querySelector('#careersPage .career-sizzle-placeholder');const hero=document.querySelector('#careersPage .career-hero-screen');const btn=s?.querySelector('.career-sizzle-final-button');

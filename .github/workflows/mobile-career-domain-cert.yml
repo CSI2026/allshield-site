@@ -1,0 +1,30 @@
+name: Certify Mobile Career + Clean Domain
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config.js'
+      - 'mobile-career-domain-fix-2026-08-27.js'
+      - 'tests/mobile-career-domain-cert.mjs'
+      - '.github/workflows/mobile-career-domain-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify career sheet scrolling and clean domain
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/mobile-career-domain-cert.mjs

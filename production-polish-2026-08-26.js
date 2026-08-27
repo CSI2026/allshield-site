@@ -1,12 +1,12 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.26.009';
+const VERSION='2026.08.26.010';
 const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 function injectStyles(){
-  if(document.getElementById('allshieldProductionPolish009'))return;
+  if(document.getElementById('allshieldProductionPolish010'))return;
   const s=document.createElement('style');
-  s.id='allshieldProductionPolish009';
+  s.id='allshieldProductionPolish010';
   s.textContent=`
   .career-sizzle-placeholder{margin:0;background:linear-gradient(135deg,#07111f,#0d2744);color:#fff;padding:72px 0;border-top:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08)}
   .career-sizzle-card{display:grid;grid-template-columns:1.05fr .95fr;gap:30px;align-items:center;padding:32px;border-radius:26px;border:1px solid rgba(255,255,255,.11);background:linear-gradient(145deg,rgba(13,38,66,.9),rgba(7,17,31,.94));box-shadow:0 24px 70px rgba(0,0,0,.28)}
@@ -22,7 +22,8 @@ function injectStyles(){
   .career-path-option strong{display:block;font-size:13px;margin-bottom:4px}.career-path-option span{font-size:10px;color:#8fa4b9;line-height:1.35}
   .career-conditional{display:none}.career-conditional.show{display:block}
   .career-consent{display:flex;gap:9px;align-items:flex-start;padding:11px 0;color:#8ea2b7;font-size:11px;line-height:1.45}.career-consent input{margin-top:2px;flex:0 0 auto}
-  .mobile-hero-company-logo{display:none}
+  .mobile-hero-company-logo,.mobile-public-topnav{display:none}
+
   @media(max-width:820px){
     .shell{padding-bottom:0!important}
     .public-app-dock{display:none!important}
@@ -36,11 +37,25 @@ function injectStyles(){
     .hero .actions{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
     .mobile-join-team{display:inline-flex!important;width:100%!important;min-height:46px!important}
 
+    /* Public mobile navigation stays visible at the top. */
+    .mobile-public-topnav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));position:sticky;top:60px;z-index:175;background:rgba(7,17,31,.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.09);box-shadow:0 10px 24px rgba(0,0,0,.18);padding:6px 8px;gap:5px}
+    .mobile-public-topnav button{appearance:none;border:1px solid transparent;background:transparent;color:#91a7bd;min-height:42px;border-radius:12px;padding:5px 3px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:inherit;touch-action:manipulation}
+    .mobile-public-topnav button:active,.mobile-public-topnav button.active{background:#102943;color:#fff;border-color:rgba(111,189,245,.12)}
+    .mobile-public-topnav .nav-icon{font-size:15px;line-height:1}.mobile-public-topnav .nav-label{font-size:8.5px;font-weight:800;white-space:nowrap}
+
     /* Mobile portal navigation belongs at the top, directly under the portal header. */
     .portal-page .mobile-app-tabbar{display:grid!important;position:fixed!important;top:64px!important;bottom:auto!important;left:0!important;right:0!important;height:58px!important;padding:5px 8px!important;border-radius:0 0 17px 17px!important;border-left:0!important;border-right:0!important;background:rgba(8,19,33,.98)!important;box-shadow:0 12px 30px rgba(0,0,0,.28)!important;z-index:405!important}
     .portal-page .mobile-app-tab{border-radius:13px!important;padding:3px 1px!important}
     .portal-page .mobile-app-tab .tab-icon{font-size:16px!important}.portal-page .mobile-app-tab .tab-label{font-size:8.5px!important}
     .portal-page .portal-main{padding-top:76px!important;padding-bottom:max(26px,env(safe-area-inset-bottom))!important}
+
+    /* Protection form is a true scrollable mobile sheet. */
+    #leadModal.modal.show{display:flex!important;align-items:flex-end!important;justify-content:center!important;padding:0!important;overflow:hidden!important;background:rgba(0,0,0,.68)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);touch-action:pan-y!important}
+    #leadModal .modal-card{position:relative!important;width:100%!important;max-width:none!important;height:auto!important;max-height:92dvh!important;margin:0!important;border-radius:26px 26px 0 0!important;padding:14px 15px calc(24px + env(safe-area-inset-bottom))!important;border-left:0!important;border-right:0!important;border-bottom:0!important;overflow-y:auto!important;overflow-x:hidden!important;-webkit-overflow-scrolling:touch!important;overscroll-behavior-y:auto!important;touch-action:pan-y!important;box-shadow:0 -30px 70px rgba(0,0,0,.52)!important;scroll-behavior:auto!important}
+    #leadModal .modal-card>.close{position:sticky!important;top:0!important;z-index:80!important;float:none!important;display:grid!important;place-items:center!important;width:42px!important;height:42px!important;margin:0 0 8px auto!important;padding:0!important;border-radius:13px!important;border:1px solid rgba(255,255,255,.13)!important;background:#102238!important;color:#fff!important;font-size:25px!important;line-height:1!important;box-shadow:0 8px 18px rgba(0,0,0,.24)!important;touch-action:manipulation!important}
+    #leadModal .modal-card>.close:active{transform:scale(.96)}
+    #leadModal .modal-card:before{content:'';display:block;width:38px;height:4px;border-radius:999px;background:rgba(255,255,255,.18);margin:0 auto 8px}
+    #leadModal input,#leadModal select,#leadModal textarea{font-size:16px!important}
 
     .career-sizzle-placeholder{padding:46px 0}.career-sizzle-card{grid-template-columns:1fr;gap:16px;padding:20px;border-radius:20px}.career-sizzle-card h2{font-size:31px}.career-sizzle-frame{border-radius:17px}.career-sizzle-play{width:58px;height:58px}
     .career-path-grid{grid-template-columns:1fr;gap:8px}.career-path-option{min-height:70px;padding:12px}
@@ -70,6 +85,30 @@ function addMobileJoinTeam(){
   b.type='button';b.className='btn btn-ghost mobile-join-team';b.textContent='Join Our Team';
   b.onclick=()=>{if(typeof window.openCareersPage==='function')window.openCareersPage();};
   actions.appendChild(b);
+}
+
+function addMobilePublicTopNav(){
+  const shell=document.querySelector('.shell');
+  const main=shell?.querySelector('main#top');
+  if(!shell||!main||shell.querySelector('.mobile-public-topnav'))return;
+  const nav=document.createElement('nav');
+  nav.className='mobile-public-topnav';
+  nav.setAttribute('aria-label','Mobile site navigation');
+  nav.innerHTML=`
+    <button type="button" data-mobile-public="home"><span class="nav-icon">⌂</span><span class="nav-label">Home</span></button>
+    <button type="button" data-mobile-public="coverage"><span class="nav-icon">◇</span><span class="nav-label">Coverage</span></button>
+    <button type="button" data-mobile-public="careers"><span class="nav-icon">◆</span><span class="nav-label">Careers</span></button>
+    <button type="button" data-mobile-public="portal"><span class="nav-icon">◎</span><span class="nav-label">Team Portal</span></button>`;
+  nav.addEventListener('click',e=>{
+    const btn=e.target.closest('button[data-mobile-public]');if(!btn)return;
+    nav.querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===btn));
+    const action=btn.dataset.mobilePublic;
+    if(action==='home')document.getElementById('top')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if(action==='coverage')document.getElementById('coverage')?.scrollIntoView({behavior:'smooth',block:'start'});
+    if(action==='careers'&&typeof window.openCareersPage==='function')window.openCareersPage();
+    if(action==='portal'&&typeof window.openPortalChooser==='function')window.openPortalChooser();
+  });
+  shell.insertBefore(nav,main);
 }
 
 function addSizzlePlaceholder(){
@@ -173,8 +212,33 @@ async function submitCareerApplication(){
   }catch(e){status.style.color='#ff9696';status.textContent=e.message||'Unable to submit your application.';btn.disabled=false;btn.textContent='Submit My Application';}
 }
 
+function fixProtectionForm(){
+  const modal=document.getElementById('leadModal');
+  const card=modal?.querySelector('.modal-card');
+  if(!modal||!card)return;
+  let close=card.querySelector(':scope > .close');
+  if(!close){
+    close=document.createElement('button');
+    close.type='button';close.className='close';close.textContent='×';close.setAttribute('aria-label','Close protection form');
+    card.insertBefore(close,card.firstChild);
+  }
+  close.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.closeLead==='function')window.closeLead();};
+  if(modal.dataset.protectionScrollFix!=='1'){
+    modal.dataset.protectionScrollFix='1';
+    modal.addEventListener('click',e=>{if(e.target===modal&&typeof window.closeLead==='function')window.closeLead();});
+  }
+  const previousOpen=window.openLead;
+  if(typeof previousOpen==='function'&&!window.__allshieldLeadOpenWrapped){
+    window.__allshieldLeadOpenWrapped=true;
+    window.openLead=function(){
+      previousOpen.apply(this,arguments);
+      requestAnimationFrame(()=>{const c=document.querySelector('#leadModal .modal-card');if(c)c.scrollTop=0;});
+    };
+  }
+}
+
 function overrideCareerFlow(){
-  window.openCareer=function(){buildCareerApplication();careerModal()?.classList.add('show')};
+  window.openCareer=function(){buildCareerApplication();careerModal()?.classList.add('show');const c=careerModal()?.querySelector('.modal-card');if(c)c.scrollTop=0;};
   window.closeCareer=function(){careerModal()?.classList.remove('show')};
   window.submitCareer=submitCareerApplication;
 }
@@ -184,9 +248,11 @@ function init(){
   addMobileHeroBrand();
   removeTrustBlock();
   addMobileJoinTeam();
+  addMobilePublicTopNav();
   addSizzlePlaceholder();
   buildCareerApplication();
   overrideCareerFlow();
+  fixProtectionForm();
   window.ALLSHIELD_PRODUCTION_POLISH_VERSION=VERSION;
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();

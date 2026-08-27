@@ -30,7 +30,7 @@ try{
   rec('Permanent approved MP4 is reachable',(range.ok||range.status===206)&&bytes.byteLength>10000,`HTTP ${range.status}; ${bytes.byteLength} bytes`);
   rec('Permanent asset is video/mp4',/video\/mp4/i.test(type),`content-type=${type}`);
 
-  browser=await chromium.launch({headless:true});
+  browser=await chromium.launch({headless:true,channel:'chrome'});
   const page=await browser.newPage({viewport:{width:1280,height:720}});
   const errs=[];page.on('pageerror',e=>errs.push(e.message));
   await page.setContent(`<html><body style="margin:0;background:#050b14"><video id="v" controls playsinline preload="auto" style="width:100%;height:auto" src="${VIDEO}"></video></body></html>`,{waitUntil:'domcontentloaded'});
@@ -41,9 +41,9 @@ try{
     await new Promise(r=>setTimeout(r,2200));
     const out={readyState:v.readyState,duration:v.duration,currentTime:v.currentTime,paused:v.paused,controls:v.controls,playError,error:v.error?{code:v.error.code,message:v.error.message}:null};v.pause();return out;
   });
-  rec('Video metadata decodes',media.readyState>=1&&Number.isFinite(media.duration)&&!media.error,JSON.stringify(media));
+  rec('Video metadata decodes in Google Chrome',media.readyState>=1&&Number.isFinite(media.duration)&&!media.error,JSON.stringify(media));
   rec('Approved video duration matches',media.duration>150&&media.duration<165,`duration=${media.duration}`);
-  rec('Actual MP4 playback advances',media.currentTime>0&&!media.error,JSON.stringify({currentTime:media.currentTime,paused:media.paused,playError:media.playError}));
+  rec('Actual MP4 playback advances in Google Chrome',media.currentTime>0&&!media.error,JSON.stringify({currentTime:media.currentTime,paused:media.paused,playError:media.playError}));
   rec('Player controls are enabled',media.controls===true,'controls=true');
   rec('Media browser has no page errors',errs.length===0,errs.join(' | ')||'none');
 }catch(e){rec('Certification execution',false,e?.stack||e?.message||String(e));}finally{if(browser)await browser.close();}

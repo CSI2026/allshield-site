@@ -57,5 +57,8 @@ jobs:
         run: |
           mkdir -p certification
           ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/live-browser-cert.mjs | tee certification/live-owner-portal-certification.json
+      - name: Certify Careers sizzle generation stability
+        run: |
+          ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/video-sizzle-stability-cert.mjs | tee certification/video-sizzle-stability-certification.json
 
-# Production is not considered complete until the post-deploy Owner Portal browser certification passes.
+# Production is not considered complete until the post-deploy Owner Portal and Careers sizzle browser certifications pass.

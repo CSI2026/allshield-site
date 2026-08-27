@@ -11,7 +11,7 @@ permissions:
 jobs:
   certify:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -24,3 +24,6 @@ jobs:
       - name: Certify Careers sizzle generation stability on live production
         run: |
           ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/video-sizzle-stability-cert.mjs
+      - name: Certify public Careers Play button on live production
+        run: |
+          ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/public-career-sizzle-play-cert.mjs

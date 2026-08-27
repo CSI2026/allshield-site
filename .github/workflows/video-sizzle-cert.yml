@@ -1,4 +1,4 @@
-name: Certify Careers Sizzle
+name: Certify Careers Video
 
 on:
   push:
@@ -21,9 +21,6 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Certify Careers sizzle generation stability on live production
-        run: |
-          ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/video-sizzle-stability-cert.mjs
-      - name: Certify public Careers Play button on live production
+      - name: Certify approved professional Careers video on live production
         run: |
           ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/public-career-sizzle-play-cert.mjs

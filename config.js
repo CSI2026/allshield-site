@@ -8,7 +8,8 @@ window.ALLSHIELD_CONFIG = {
 (()=>{
   const scripts=[
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
-    ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011']
+    ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011'],
+    ['allshieldSocialOAuthPopupLoader','./social-oauth-popup-return-2026-08-26.js?v=2026.08.26.012']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

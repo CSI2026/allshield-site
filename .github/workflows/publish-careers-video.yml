@@ -1,0 +1,35 @@
+name: Publish Approved Careers Video
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-careers-video.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      VIDEO_URL: "https://files2.heygen.ai/aws_pacific/avatar_tmp/63a514fdb9a2407fa74f0da0338d73bd/ved164e8134bc44e5a13ba16c88b7b352/657f78aa158640888bf12b0a60a88861.mp4?Expires=1788445502&Signature=oGqFr4Z8PpHZIc6YtGjrb7S1B4wID5ew2GrvABq67aFG~DIp6tT38SupkKbZzUDu~EoPNsdZHB-qvRIgbmn1YM7ftqa8KZAZuSIwC9MtSPtO7pLgjvgWVcVReC0XxrYELUXcgQHSEd3IpPLf99f7-ClgMM~py~jmzjXTQ8m9AH0kTQstnkTGKNfUvKHAbpSXwmIJxuK3S~DuUk3mUh7H1NpiA8sZHqLxU-ouGG1dK0aG5lUUkkLR6jdkw6R~edMd4ZABVmOk0VczaQw~uFQOQgoM9xizEkWcsz-HMKdzATB6nraxDitnHlf5ewUR4GWS9gQlQrp-nBw4u6W3fZthDg__&Key-Pair-Id=K38HBHX5LX3X2H"
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download approved HeyGen master
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 4 --retry-delay 3 "$VIDEO_URL" --output allshield-careers-built-around-the-customer.mp4
+          test -s allshield-careers-built-around-the-customer.mp4
+          echo "Downloaded $(du -h allshield-careers-built-around-the-customer.mp4 | cut -f1) approved master"
+      - name: Publish permanent release asset
+        run: |
+          set -euo pipefail
+          TAG='careers-sizzle-v1'
+          FILE='allshield-careers-built-around-the-customer.mp4'
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$FILE" --clobber
+          else
+            gh release create "$TAG" "$FILE" --target main --title 'ALLSHIELD Careers — Built Around the Customer' --notes 'Approved professional Careers opportunity video for the ALLSHIELD website.'
+          fi
+          echo "Published https://github.com/CSI2026/allshield-site/releases/download/$TAG/$FILE"

@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
-const VIDEO='https://github.com/CSI2026/allshield-site/releases/download/careers-sizzle-v1/allshield-careers-built-around-the-customer.mp4';
+const VIDEO='https://allshieldinsurancegroup.com/assets/video/allshield-careers-built-around-the-customer.mp4';
 const checks=[];const rec=(name,ok,detail='')=>checks.push({name,ok,detail});
 let browser;
 try{

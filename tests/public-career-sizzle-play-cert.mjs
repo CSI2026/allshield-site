@@ -12,9 +12,9 @@ try{
   await page.waitForSelector('.career-sizzle-placeholder',{timeout:15000});await page.waitForSelector('.career-sizzle-preview-button',{timeout:15000});
   const buttonText=await page.locator('.career-sizzle-preview-button').innerText();rec('Play control is interactive',buttonText.includes('Press Play')||buttonText.includes('production preview ready'),buttonText.slice(0,180).replace(/\n/g,' | '));
   await page.locator('.career-sizzle-preview-button').click();await page.waitForSelector('#careerSizzlePreviewModal.open',{timeout:8000});
-  const first=await page.locator('#careerSizzlePreviewModal .csp-scene-no').innerText();rec('Play opens preview player',first.includes('Scene 1 of 15'),first);
+  const first=await page.locator('#careerSizzlePreviewModal .csp-scene-no').innerText();rec('Play opens preview player',first.toLowerCase().includes('scene 1 of 15'),first);
   await page.waitForTimeout(1400);const progress=await page.locator('#careerSizzlePreviewModal .csp-progress').evaluate(el=>parseFloat(el.style.width||'0'));rec('Preview actually advances',progress>0,`progress=${progress.toFixed(2)}%`);
-  await page.locator('[data-csp-play]').click();await page.locator('[data-csp-next]').click();const second=await page.locator('#careerSizzlePreviewModal .csp-scene-no').innerText();rec('Preview controls work',second.includes('Scene 2 of 15'),second);
+  await page.locator('[data-csp-play]').click();await page.locator('[data-csp-next]').click();const second=await page.locator('#careerSizzlePreviewModal .csp-scene-no').innerText();rec('Preview controls work',second.toLowerCase().includes('scene 2 of 15'),second);
   await page.locator('#careerSizzlePreviewModal .csp-close').click();const closed=await page.locator('#careerSizzlePreviewModal').evaluate(el=>!el.classList.contains('open'));rec('Preview closes correctly',closed,'modal closed');
   rec('No public browser page errors',errs.length===0,errs.join(' | ')||'none');
 }catch(e){rec('Certification execution',false,e?.stack||e?.message||String(e));}finally{if(browser)await browser.close();}

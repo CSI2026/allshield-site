@@ -23,23 +23,25 @@ try{
 
   await page.evaluate(()=>window.openCareersPage());
   await page.waitForSelector('#careersPage.show .career-sizzle-placeholder.career-sizzle-top',{timeout:15000});
-  await page.waitForSelector('#careersPage .career-sizzle-final-button',{timeout:15000});
-  const order=await page.evaluate(()=>{
-    const canvas=document.querySelector('#careersPage .career-canvas');const s=document.querySelector('#careersPage .career-sizzle-placeholder');const hero=document.querySelector('#careersPage .career-hero-screen');
-    return {first:canvas?.firstElementChild===s,sizzleTop:s?.getBoundingClientRect().top,heroTop:hero?.getBoundingClientRect().top,headline:s?.querySelector('h2')?.textContent||'',buttonText:s?.querySelector('.career-sizzle-final-button')?.innerText||''};
+  await page.waitForTimeout(3500);
+  const state=await page.evaluate(async()=>{
+    const canvas=document.querySelector('#careersPage .career-canvas');const s=document.querySelector('#careersPage .career-sizzle-placeholder');const hero=document.querySelector('#careersPage .career-hero-screen');const btn=s?.querySelector('.career-sizzle-final-button');
+    const c=window.ALLSHIELD_CONFIG;let cfg={};try{const r=await fetch(`${c.SUPABASE_URL}/functions/v1/career-sizzle-config?cert=${Date.now()}`,{headers:{apikey:c.SUPABASE_PUBLISHABLE_KEY},cache:'no-store'});cfg=await r.json()}catch(e){cfg={fetchError:String(e)}}
+    return {first:canvas?.firstElementChild===s,sizzleTop:s?.getBoundingClientRect().top,heroTop:hero?.getBoundingClientRect().top,headline:s?.querySelector('h2')?.textContent||'',buttonText:btn?.innerText||'',buttonCount:btn?1:0,frameText:s?.querySelector('.career-sizzle-frame')?.innerText||'',cfg};
   });
-  rec('Sizzle is first section on Careers page',order.first,JSON.stringify(order));
-  rec('Sizzle visually appears before Careers hero',Number(order.sizzleTop)<Number(order.heroTop),`sizzleTop=${order.sizzleTop}; heroTop=${order.heroTop}`);
-  rec('Sizzle top copy is upgraded',/built differently/i.test(order.headline),order.headline);
-  rec('Robot narration is not advertised',!/Narrated/i.test(order.buttonText),order.buttonText.slice(0,220).replace(/\n/g,' | '));
-
-  const cfg=await page.evaluate(async()=>{const c=window.ALLSHIELD_CONFIG;const r=await fetch(`${c.SUPABASE_URL}/functions/v1/career-sizzle-config?cert=${Date.now()}`,{headers:{apikey:c.SUPABASE_PUBLISHABLE_KEY},cache:'no-store'});return await r.json();});
-  rec('Browser TTS disabled at backend',cfg.voice_enabled===false,`voice_enabled=${cfg.voice_enabled}`);
-  await page.locator('#careersPage .career-sizzle-final-button').click();
-  await page.waitForSelector('#careerSizzlePlayer.open',{timeout:8000});
-  const voiceDisplay=await page.locator('#careerSizzlePlayer [data-asz-voice]').evaluateAll(nodes=>nodes.length?getComputedStyle(nodes[0]).display:'missing');
-  rec('Robot voice control removed/hidden',voiceDisplay==='none'||voiceDisplay==='missing',`voiceControl=${voiceDisplay}`);
-  await page.locator('#careerSizzlePlayer [data-asz-close]').click();
+  rec('Sizzle is first section on Careers page',state.first,JSON.stringify({first:state.first,sizzleTop:state.sizzleTop,heroTop:state.heroTop}));
+  rec('Sizzle visually appears before Careers hero',Number(state.sizzleTop)<Number(state.heroTop),`sizzleTop=${state.sizzleTop}; heroTop=${state.heroTop}`);
+  rec('Sizzle top copy is upgraded',/built differently/i.test(state.headline),state.headline);
+  rec('Browser TTS disabled at backend',state.cfg?.voice_enabled===false,`voice_enabled=${state.cfg?.voice_enabled}; mode=${state.cfg?.player_mode}; scenes=${state.cfg?.preview_scenes?.length}`);
+  rec('Careers sizzle remains playable',state.buttonCount===1,`buttonCount=${state.buttonCount}; frame=${state.frameText.slice(0,250).replace(/\n/g,' | ')}; cfgMode=${state.cfg?.player_mode}; cfgError=${state.cfg?.error||state.cfg?.fetchError||'none'}`);
+  if(state.buttonCount===1){
+    rec('Robot narration is not advertised',!/Narrated/i.test(state.buttonText),state.buttonText.slice(0,220).replace(/\n/g,' | '));
+    await page.locator('#careersPage .career-sizzle-final-button').click();
+    await page.waitForSelector('#careerSizzlePlayer.open',{timeout:8000});
+    const voiceDisplay=await page.locator('#careerSizzlePlayer [data-asz-voice]').evaluateAll(nodes=>nodes.length?getComputedStyle(nodes[0]).display:'missing');
+    rec('Robot voice control removed/hidden',voiceDisplay==='none'||voiceDisplay==='missing',`voiceControl=${voiceDisplay}`);
+    await page.locator('#careerSizzlePlayer [data-asz-close]').click();
+  }
   rec('No browser page errors',errs.length===0,errs.join(' | ')||'none');
 }catch(e){rec('Certification execution',false,e?.stack||e?.message||String(e));}finally{if(browser)await browser.close();}
 const out={certification:'ALLSHIELD Careers top sizzle + customer-only homepage + no browser robot narration',base_url:BASE,completed_at:new Date().toISOString(),status:failures.length?'FAIL':'PASS',passed:checks.filter(x=>x.ok).length,total:checks.length,checks,failures};

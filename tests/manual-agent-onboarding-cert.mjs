@@ -44,15 +44,6 @@ await page.goto(base,{waitUntil:'networkidle',timeout:120000});
 await page.waitForFunction(()=>window.ALLSHIELD_TEAM_ACCOUNTS_INVITE_OVERRIDE_VERSION==='2026.08.28.001',{timeout:30000});
 
 const result=await page.evaluate(async()=>{
-  const ids=['teamFirst','teamLast','teamUsername','teamPassword','teamInternalEmail'];
-  for(const id of ids){
-    let e=document.getElementById(id);
-    if(!e){e=document.createElement('input');e.id=id;document.body.appendChild(e)}
-  }
-  document.getElementById('teamFirst').value='Tanita';
-  document.getElementById('teamLast').value='Flowers';
-  window.syncManualCredentials?.();
-
   let html='';
   try{html=eval('ownerViews.teamaccounts')||''}catch{}
 
@@ -62,10 +53,16 @@ const result=await page.evaluate(async()=>{
   const handler=window.allshieldViewHandlers?.owner?.teamaccounts;
   if(main && typeof handler==='function') await handler(main,'teamaccounts',null);
 
+  const first=main?.querySelector('#teamFirst');
+  const last=main?.querySelector('#teamLast');
+  if(first) first.value='Tanita';
+  if(last) last.value='Flowers';
+  window.syncManualCredentials?.();
+
   return {
-    username:document.getElementById('teamUsername')?.value||'',
-    password:document.getElementById('teamPassword')?.value||'',
-    internal:document.getElementById('teamInternalEmail')?.value||'',
+    username:main?.querySelector('#teamUsername')?.value||'',
+    password:main?.querySelector('#teamPassword')?.value||'',
+    internal:main?.querySelector('#teamInternalEmail')?.value||'',
     html,
     handlerRegistered:typeof handler==='function',
     visibleInviteField:!!main?.querySelector('#teamEmail'),

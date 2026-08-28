@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'index.html'
       - 'tests/esign-production-cert.mjs'
       - 'esign-agreements-2026-08-28.js'
       - 'onboarding-esign-bridge-2026-08-28.js'

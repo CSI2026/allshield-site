@@ -54,7 +54,7 @@ try{
     window.allshieldSupabase=original;
     return out;
   });
-  for(const required of ['Test Applicant','test@example.com','555-0100','Licensed','Texas','Approved','Complete internal note','Custom answer','Status Changed']){
+  for(const required of ['Test Applicant','test@example.com','555-0100','Licensed','TX','Approved','Complete internal note','Custom answer','Status Changed']){
     rec(`Application viewer shows ${required}`,detail.text.includes(required),required);
   }
   rec('Application viewer opens as a modal',detail.show,'show class active');

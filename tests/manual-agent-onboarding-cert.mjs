@@ -7,12 +7,12 @@ const add=(name,ok,detail='')=>checks.push({name,ok:!!ok,detail});
 
 const index=await (await fetch(base,{cache:'no-store'})).text();
 add('Manual onboarding runtime loader',index.includes('manual-agent-onboarding-2026-08-28.js?v=2026.08.28.008'),'v008 loader present');
-add('Fresh config loader deployed',index.includes('config.js?v=2026.08.28.016'),'2026.08.28.016 config loader present');
+add('Fresh config loader deployed',index.includes('config.js?v=2026.08.28.017'),'2026.08.28.017 config loader present');
 add('Direct Team Accounts fail-safe loader deployed',index.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.003'),'v003 direct loader present');
 
 const configText=await (await fetch(`${base}/config.js?v=${Date.now()}`,{cache:'no-store'})).text();
 add('Current onboarding router loader deployed',configText.includes('onboarding-router-2026-08-27.js?v=2026.08.28.013'));
-add('Priority Team Accounts override loader deployed',configText.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.002'));
+add('Priority Team Accounts override loader deployed',configText.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.003'));
 
 const overrideText=await (await fetch(`${base}/team-accounts-invite-override-2026-08-28.js?v=${Date.now()}`,{cache:'no-store'})).text();
 add('Priority override targets Owner Team Accounts',overrideText.includes("registerAllshieldView('owner','teamaccounts'")&&overrideText.includes('renderLiveTeamAccounts'));

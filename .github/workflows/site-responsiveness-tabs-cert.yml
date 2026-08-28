@@ -1,0 +1,31 @@
+name: Certify Site Responsiveness And Tabs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'config.js'
+      - 'careers-video-experience-fix-2026-08-27.js'
+      - 'careers-professional-video-live-2026-08-27.js'
+      - 'tests/site-responsiveness-tabs-cert.mjs'
+      - '.github/workflows/site-responsiveness-tabs-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify live responsiveness and tabs
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/site-responsiveness-tabs-cert.mjs

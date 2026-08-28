@@ -1,0 +1,42 @@
+name: Apply B033 AI Workforce Cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-ai-workforce-b033-index.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Publish AI workforce runtime cache key
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='./phase16-ai-command-production.js?v=2026.08.26.003'
+          new='./phase16-ai-command-production.js?v=2026.08.28.004'
+          if old not in s and new not in s:
+              raise SystemExit('AI workforce script reference not found')
+          s=s.replace(old,new)
+          p.write_text(s)
+          PY
+      - name: Commit canonical loader update
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'Loader already current.'
+          else
+            git commit -m 'Publish B033 AI workforce runtime'
+            git push
+          fi

@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST, OPTIONS"};
 const DEFAULT_ONBOARDING=[["profile",1],["license",2],["standards",3],["training",4],["test",5]] as const;
+const DIRECT_AGENT_ONBOARDING=[["licensing_status",1],["profile",2],["contracting",3],["comp_setup",4],["marketplace",5],["ready",6]] as const;
 function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
 
 Deno.serve(async(req:Request)=>{
@@ -30,28 +31,39 @@ Deno.serve(async(req:Request)=>{
   const validStatuses=["invited","onboarding","active","inactive","terminated"];
 
   if(action==="create"){
-   const username=String(body.username||"").trim().toLowerCase(),password=String(body.password||""),role=String(body.role||"agent"),status=String(body.status||"onboarding");
+   const username=String(body.username||"").trim().toLowerCase(),password=String(body.password||""),role=String(body.role||"agent");
+   let status=String(body.status||(role==="admin"?"active":"onboarding"));
    const residentState=String(body.resident_state||"").trim().toUpperCase()||null;
    if(!/^[a-z0-9._-]{3,40}$/.test(username))return json({error:"Username must be 3-40 characters using letters, numbers, dot, underscore or hyphen."},400);
    if(password.length<8)return json({error:"Temporary password must be at least 8 characters."},400);
    if(!validRoles.includes(role)||role==="owner"||(!isOwner&&!adminRoles.includes(role)))return json({error:"You cannot create that role."},403);
+   if(role==="agent")status="onboarding";
+   if(role==="admin")status="active";
    if(!validStatuses.includes(status))return json({error:"Invalid status."},400);
    if(residentState&&!/^[A-Z]{2}$/.test(residentState))return json({error:"Resident state must be a 2-letter code."},400);
    const email=`${username}@allshield.internal`;
    const {data:created,error:createError}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{first_name:body.first_name||"",last_name:body.last_name||"",username}});
    if(createError||!created.user)return json({error:createError?.message||"Unable to create user"},400);
-   const {error:profileError}=await admin.from("profiles").update({username,first_name:body.first_name||null,last_name:body.last_name||null,role,status,resident_state:residentState,department_id:body.department_id||null,updated_at:new Date().toISOString()}).eq("id",created.user.id);
+   const {error:profileError}=await admin.from("profiles").update({
+     username,first_name:body.first_name||null,last_name:body.last_name||null,role,status,resident_state:residentState,
+     department_id:body.department_id||null,manager_id:body.manager_id||null,updated_at:new Date().toISOString()
+   }).eq("id",created.user.id);
    if(profileError){await admin.auth.admin.deleteUser(created.user.id);return json({error:profileError.message},400)}
-   if(["agent","team_lead","manager"].includes(role)){
-    const rows=DEFAULT_ONBOARDING.map(([step_key,step_order])=>({user_id:created.user.id,step_key,step_order,completed:false,metadata:{}}));
+
+   if(role==="agent"){
+    const rows=DIRECT_AGENT_ONBOARDING.map(([step_key,step_order])=>({
+      user_id:created.user!.id,step_key,step_order,completed:false,
+      metadata:{pathway:"self_select",source:"direct_account_creation"}
+    }));
     const {error:onboardingError}=await admin.from("onboarding_progress").upsert(rows,{onConflict:"user_id,step_key"});
     if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
-    if(residentState){const {error:licenseError}=await admin.from("user_state_licenses").upsert({user_id:created.user.id,state_code:residentState,license_type:"life_health",is_resident:true,status:"studying",readiness_percent:0,metadata:{}},{onConflict:"user_id,state_code,license_type"});if(licenseError){await admin.auth.admin.deleteUser(created.user.id);return json({error:licenseError.message},400)}}
-    const {data:foundation}=await admin.from("courses").select("id").eq("title","Allshield Life & Health Foundations").eq("version",1).eq("status","published").maybeSingle();
-    if(foundation){const {error:assignError}=await admin.from("course_assignments").insert({user_id:created.user.id,course_id:foundation.id,assigned_by:actor.id,progress_percent:0});if(assignError){await admin.auth.admin.deleteUser(created.user.id);return json({error:assignError.message},400)}}
+   } else if(["team_lead","manager"].includes(role)){
+    const rows=DEFAULT_ONBOARDING.map(([step_key,step_order])=>({user_id:created.user!.id,step_key,step_order,completed:false,metadata:{source:"direct_account_creation"}}));
+    const {error:onboardingError}=await admin.from("onboarding_progress").upsert(rows,{onConflict:"user_id,step_key"});
+    if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
    }
-   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_created",object_type:"profile",object_id:created.user.id,details:{username,role,status,resident_state:residentState}});
-   return json({ok:true,user_id:created.user.id,username,role,status});
+   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_created",object_type:"profile",object_id:created.user.id,details:{username,role,status,resident_state:residentState,onboarding_pathway:role==="agent"?"self_select":null}});
+   return json({ok:true,user_id:created.user.id,username,role,status,onboarding_pathway:role==="agent"?"self_select":null});
   }
 
   if(action==="update"){
@@ -61,7 +73,10 @@ Deno.serve(async(req:Request)=>{
    const patch:Record<string,unknown>={updated_at:new Date().toISOString()};
    if(body.role!==undefined){if(!validRoles.includes(body.role)||body.role==="owner"||(!isOwner&&!adminRoles.includes(body.role)))return json({error:"You cannot assign that role."},403);patch.role=body.role;}
    if(body.status!==undefined){if(!validStatuses.includes(body.status))return json({error:"Invalid status"},400);patch.status=body.status;}
+   if(body.first_name!==undefined)patch.first_name=String(body.first_name||"").trim()||null;
+   if(body.last_name!==undefined)patch.last_name=String(body.last_name||"").trim()||null;
    if(body.department_id!==undefined)patch.department_id=body.department_id||null;
+   if(body.manager_id!==undefined)patch.manager_id=body.manager_id||null;
    if(body.resident_state!==undefined){const s=String(body.resident_state||"").trim().toUpperCase()||null;if(s&&!/^[A-Z]{2}$/.test(s))return json({error:"Resident state must be a 2-letter code."},400);patch.resident_state=s;}
    const {error}=await admin.from("profiles").update(patch).eq("id",userId);if(error)return json({error:error.message},400);
    await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_updated",object_type:"profile",object_id:userId,details:patch});return json({ok:true});

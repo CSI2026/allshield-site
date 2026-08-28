@@ -34,11 +34,13 @@ const result=await page.evaluate(()=>{
   document.getElementById('teamFirst').value='Tanita';
   document.getElementById('teamLast').value='Flowers';
   window.syncManualCredentials?.();
+  let html='';
+  try{html=eval('ownerViews.teamaccounts')||''}catch{}
   return {
     username:document.getElementById('teamUsername').value,
     password:document.getElementById('teamPassword').value,
     internal:document.getElementById('teamInternalEmail').value,
-    html:window.ownerViews?.teamaccounts||''
+    html
   };
 });
 add('Username format works',result.username==='Tanita.Flowers',result.username);

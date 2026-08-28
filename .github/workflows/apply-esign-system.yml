@@ -1,0 +1,79 @@
+name: Apply Production E-Sign System
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'esign-agreements-2026-08-28.js'
+      - '.github/workflows/apply-esign-system.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wire E-Sign runtime and onboarding integration
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          # index.html: cache-bust Owner Signature and load production E-Sign runtime.
+          p=Path('index.html'); s=p.read_text()
+          s=s.replace('./owner-signature-management-2026-08-28.js?v=2026.08.28.003','./owner-signature-management-2026-08-28.js?v=2026.08.28.004')
+          es='<script defer src="./esign-agreements-2026-08-28.js?v=2026.08.28.004"></script>'
+          if es not in s:
+              marker='<script defer src="./owner-signature-management-2026-08-28.js?v=2026.08.28.004"></script>'
+              if marker not in s: raise SystemExit('Owner signature loader marker not found')
+              s=s.replace(marker,marker+'\n'+es,1)
+          p.write_text(s)
+
+          # config.js: cache-bust the onboarding router after e-sign integration.
+          p=Path('config.js'); s=p.read_text()
+          s=s.replace('./onboarding-router-2026-08-27.js?v=2026.08.27.012','./onboarding-router-2026-08-27.js?v=2026.08.27.013')
+          p.write_text(s)
+
+          # Onboarding: required legal docs now route through the real Documents & E-Sign center.
+          p=Path('onboarding-router-2026-08-27.js'); s=p.read_text()
+          s=s.replace("const VERSION='2026.08.27.012';","const VERSION='2026.08.27.013';")
+          replacement='''function contractBlock(ctx,unlocked){
+  if(!unlocked)return `<div class="as-step"><div class="as-step-head"><h3>Contracting & e-sign</h3><span class="as-wait">Locked</span></div><p>This automatically unlocks after your license is verified.</p></div>`;
+  if(stepDone(ctx,'contracting'))return `<div class="as-step"><div class="as-step-head"><h3>Contracting & e-sign</h3><span class="as-ok">✓ Fully executed</span></div><p>Your required ALLSHIELD agreements have been electronically signed and Owner-countersigned. Your executed records remain available in Documents & E-Sign.</p><button class="btn btn-ghost" onclick="asOpenAgentESignFromOnboarding()">Open Executed Agreements</button></div>`;
+  return `<div class="as-step"><div class="as-step-head"><h3>Contracting & e-sign</h3><span class="as-wait">Action required</span></div><p>Your license is verified. Review and electronically sign the published ALLSHIELD Independent Contractor Agreement and ACA Marketplace SOP & Compliance Agreement. The onboarding step completes after the required Owner countersignatures are applied.</p><button class="btn btn-primary" onclick="asOpenAgentESignFromOnboarding()">Open Documents & E-Sign</button></div>`;
+}
+function compBlock(ctx){
+  const accepted=stepDone(ctx,'contracting'),ready=accepted&&ctx.comp_plan?.status==='published';
+  return `<div class="as-step"><div class="as-step-head"><h3>Compensation & pay setup</h3><span class="${ready?'as-ok':'as-wait'}">${ready?'✓ Plan assigned':accepted?'Pending plan publication':'Follows executed agreements'}</span></div><p>${ready?`Compensation plan version ${esc(ctx.comp_plan.version)} is assigned through your onboarding record.`:'Compensation is maintained separately from the Independent Contractor Agreement and Compliance SOP. Banking or payment credentials are not collected on an unsecured form.'}</p></div>`;
+}
+'''
+          pattern=r"function contractBlock\(ctx,unlocked\)\{.*?\n\}\nfunction compBlock\(ctx\)\{.*?\n\}\n"
+          s2,n=re.subn(pattern,replacement,s,count=1,flags=re.S)
+          if n!=1: raise SystemExit(f'Expected one contract/comp block replacement, got {n}')
+          p.write_text(s2)
+
+          # Owner Signature copy: the e-sign workflow is now enabled but still requires explicit countersign authorization.
+          p=Path('owner-signature-management-2026-08-28.js'); s=p.read_text()
+          s=s.replace("const VERSION='2026.08.28.003';","const VERSION='2026.08.28.004';")
+          s=s.replace('Applying it to a specific agreement will require an explicit Owner authorization step when the e-sign workflow is enabled.','Applying it to a specific agreement requires an explicit Owner authorization step in the E-Sign Agreement Center.')
+          p.write_text(s)
+
+          # Production release metadata.
+          p=Path('build-info.js'); s=p.read_text()
+          s=s.replace("label:'Approved B021 + Automated Onboarding + Recruiting & Leads + Centered Mobile Experience',","label:'Approved B021 + Automated Onboarding + Production E-Sign + Recruiting & Leads + Centered Mobile Experience',")
+          s=s.replace("completion_release:'2026.08.28.002',","completion_release:'2026.08.28.004',")
+          p.write_text(s)
+          PY
+      - name: Commit production E-Sign wiring
+        run: |
+          if git diff --quiet -- index.html config.js onboarding-router-2026-08-27.js owner-signature-management-2026-08-28.js build-info.js; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add index.html config.js onboarding-router-2026-08-27.js owner-signature-management-2026-08-28.js build-info.js
+          git commit -m "Wire production E-Sign into ALLSHIELD onboarding and portals"
+          git push

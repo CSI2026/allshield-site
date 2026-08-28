@@ -4,16 +4,19 @@ const VIDEO='https://allshieldinsurancegroup.com/assets/video/allshield-careers-
 const checks=[];const rec=(name,ok,detail='')=>checks.push({name,ok,detail});
 let browser;
 try{
-  const [home,cfgText,routeText,careerText]=await Promise.all([
+  const [home,cfgText,careerText,proText,guardText]=await Promise.all([
     fetch(`${BASE}/?cert=${Date.now()}`,{redirect:'follow',cache:'no-store'}),
     fetch(`${BASE}/config.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
-    fetch(`${BASE}/video-sizzle-routing-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
-    fetch(`${BASE}/careers-video-experience-fix-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
+    fetch(`${BASE}/careers-video-experience-fix-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
+    fetch(`${BASE}/careers-professional-video-live-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
+    fetch(`${BASE}/runtime-mutation-guard-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
   ]);
   rec('Public homepage reachable',home.ok,`HTTP ${home.status}`);
-  rec('Final Careers runtime is deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.007'),'config includes Careers .007 runtime');
-  rec('Routing runtime supports real video mode',routeText.includes('if(cfg.video_url)')&&routeText.includes('<video controls'),'production routing swaps the Careers slot to a real HTML5 video');
-  rec('Homepage recruiting CTA removal remains deployed',careerText.includes('removeHomeRecruitingCTA')&&careerText.includes('moveSizzleToTop'),'customer-only homepage and top Careers placement logic present');
+  rec('Audited Careers runtime is deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010')&&cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'),'config includes passive Careers .010 + professional video .011');
+  rec('Obsolete sizzle scanner is removed',!cfgText.includes('video-sizzle-routing-2026-08-27.js'),'obsolete whole-page sizzle scanner not loaded');
+  rec('Runtime mutation guard is deployed',cfgText.includes('runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011')&&guardText.includes("VERSION='2026.08.27.011'"),'global mutation storm guard .011 present');
+  rec('Homepage recruiting CTA removal remains deployed',careerText.includes('removeHomeRecruitingCTA')&&proText.includes('removeHomeRecruitingCTA'),'customer-only homepage cleanup remains present');
+  rec('Professional video runtime directly mounts MP4',proText.includes(VIDEO)&&proText.includes("video.controls=true")&&proText.includes("video.playsInline=true"),'deterministic native HTML5 video integration present');
 
   const url=(cfgText.match(/SUPABASE_URL:\s*"([^"]+)"/)||[])[1];
   const key=(cfgText.match(/SUPABASE_PUBLISHABLE_KEY:\s*"([^"]+)"/)||[])[1];

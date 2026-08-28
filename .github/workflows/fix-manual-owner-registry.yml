@@ -1,0 +1,41 @@
+name: Fix Manual Onboarding Owner Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-manual-owner-registry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Fix global owner registry binding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('manual-agent-onboarding-2026-08-28.js')
+          s=p.read_text()
+          old='if (!window.ownerViews) return;'
+          new="if (typeof ownerViews === 'undefined') return;"
+          if old in s:
+              s=s.replace(old,new,1)
+              p.write_text(s)
+          elif new not in s:
+              raise SystemExit('ownerViews guard not found')
+          PY
+      - name: Commit registry fix
+        run: |
+          if git diff --quiet -- manual-agent-onboarding-2026-08-28.js; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add manual-agent-onboarding-2026-08-28.js
+          git commit -m "Fix manual onboarding owner view binding"
+          git push

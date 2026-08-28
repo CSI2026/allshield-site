@@ -38,9 +38,9 @@ try{
   await page.fill('#ytProjectTitle','Why Join Our Team');await page.fill('#ytProjectDuration','180');await page.selectOption('#ytProjectObjective','recruiting');await page.fill('#ytProjectAudience','Licensed or not-yet-licensed agents');
   const before=await page.evaluate(()=>window.__videoInsertCount);rec('No pre-existing duplicate inserts',before===0,`insert_count=${before}`);
   await page.locator('#ytGeneratePackage').click();
-  await page.waitForFunction(()=>document.getElementById('ytCreateResult')?.textContent?.includes('Production package ready'),{timeout:12000});
+  await page.waitForFunction(()=>document.getElementById('ytCreateResult')?.textContent?.includes('AI production package created.'),{timeout:12000});
   const result=await page.locator('#ytCreateResult').innerText();const inserts=await page.evaluate(()=>window.__videoInsertCount);const scriptLen=await page.locator('#ytScript').inputValue().then(v=>v.length);const scriptTab=await page.locator('[data-yt-panel="script"]').evaluate(el=>el.classList.contains('on'));
-  rec('Generate returns prepared package',result.includes('Production package ready')&&!result.includes('non-2xx'),result);
+  rec('Generate returns prepared package',result.includes('AI production package created.')&&!result.includes('non-2xx'),result);
   rec('Generate creates no duplicate project',inserts===0,`video_projects inserts=${inserts}`);
   rec('Canonical script opens for review',scriptTab&&scriptLen>100,`script_tab=${scriptTab}; script_chars=${scriptLen}`);
   rec('No browser page errors',pageErrors.length===0,pageErrors.join(' | ')||'none');

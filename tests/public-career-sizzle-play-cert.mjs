@@ -15,7 +15,7 @@ try{
   rec('Audited Careers runtime is deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010')&&cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'),'config includes passive Careers .010 + professional video .011');
   rec('Obsolete sizzle scanner is removed',!cfgText.includes('video-sizzle-routing-2026-08-27.js'),'obsolete whole-page sizzle scanner not loaded');
   rec('Runtime mutation guard is deployed',cfgText.includes('runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011')&&guardText.includes("VERSION='2026.08.27.011'"),'global mutation storm guard .011 present');
-  rec('Homepage recruiting CTA removal remains deployed',careerText.includes('removeHomeRecruitingCTA')&&proText.includes('removeHomeRecruitingCTA'),'customer-only homepage cleanup remains present');
+  rec('Homepage recruiting CTA removal remains deployed',careerText.includes('removeLegacyHomeJoinCTA')&&proText.includes('removeHomeRecruitingCTA'),'customer-only homepage cleanup remains present');
   rec('Professional video runtime directly mounts MP4',proText.includes(VIDEO)&&proText.includes("video.controls=true")&&proText.includes("video.playsInline=true"),'deterministic native HTML5 video integration present');
 
   const url=(cfgText.match(/SUPABASE_URL:\s*"([^"]+)"/)||[])[1];

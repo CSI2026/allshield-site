@@ -1,0 +1,34 @@
+name: Certify Avery Chief of Staff
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'phase16-ai-command-production.js'
+      - 'index.html'
+      - 'build-info.js'
+      - 'config.js'
+      - 'tests/avery-chief-of-staff-cert.mjs'
+      - 'supabase/functions/ai-avery-chief-of-staff/index.ts'
+      - 'supabase/migrations/20260828230138_ai_workforce_capability_and_certification_foundation_b034.sql'
+      - 'supabase/migrations/20260828230157_seed_avery_capabilities_b034.sql'
+      - 'supabase/migrations/20260828230208_add_avery_cert_indexes_b034.sql'
+      - 'supabase/migrations/20260828230221_mark_avery_cert_pending_b034.sql'
+      - 'supabase/migrations/20260828230421_temporary_avery_cert_trigger_b034.sql'
+      - 'supabase/migrations/20260828230916_retire_temporary_avery_cert_trigger_b034.sql'
+      - '.github/workflows/avery-chief-of-staff-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Certify Avery Chief of Staff execution contract
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/avery-chief-of-staff-cert.mjs

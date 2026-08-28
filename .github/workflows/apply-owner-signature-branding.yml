@@ -1,0 +1,47 @@
+name: Apply Owner Signature And Brand Metadata
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'owner-signature-management-2026-08-28.js'
+      - '.github/workflows/apply-owner-signature-branding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Wire owner signature runtime and approved search branding
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          favicon='./assets/brand-9aa0ec99b3b0.webp'
+          brand_block='''\n<link rel="icon" type="image/webp" href="./assets/brand-9aa0ec99b3b0.webp">\n<link rel="apple-touch-icon" href="./assets/brand-9aa0ec99b3b0.webp">\n<link rel="canonical" href="https://allshieldinsurancegroup.com/">\n<meta property="og:site_name" content="ALLSHIELD Insurance Group">\n<meta property="og:image" content="https://allshieldinsurancegroup.com/assets/brand-9aa0ec99b3b0.webp">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="https://allshieldinsurancegroup.com/assets/brand-9aa0ec99b3b0.webp">\n<script type="application/ld+json" id="allshieldOrganizationSchema">{"@context":"https://schema.org","@type":"Organization","name":"ALLSHIELD Insurance Group","url":"https://allshieldinsurancegroup.com/","logo":"https://allshieldinsurancegroup.com/assets/brand-9aa0ec99b3b0.webp"}</script>\n'''
+          if 'id="allshieldOrganizationSchema"' not in s:
+              marker='</head>'
+              if marker not in s: raise SystemExit('head close marker not found')
+              s=s.replace(marker,brand_block+marker,1)
+          signature='<script defer src="./owner-signature-management-2026-08-28.js?v=2026.08.28.003"></script>\n'
+          if 'owner-signature-management-2026-08-28.js?v=2026.08.28.003' not in s:
+              marker='<script defer src="./responsive-ui.js?v=2026.08.27.011"></script>'
+              if marker not in s: raise SystemExit('responsive-ui marker not found')
+              s=s.replace(marker,signature+marker,1)
+          p.write_text(s)
+          PY
+      - name: Commit production wiring
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add index.html
+          git commit -m "Wire Owner Signature and approved ALLSHIELD brand metadata"
+          git push

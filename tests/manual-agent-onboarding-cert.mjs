@@ -47,7 +47,7 @@ add('Agent Operations requires Owner/Admin',opsSource.includes('Owner/Admin acce
 add('IONOS sync recognizes agent aliases',mailSource.includes('agent_mail_aliases')&&mailSource.includes('alias_address'));
 add('IONOS inbound activates verified alias',mailSource.includes('provider_status:"active"')&&mailSource.includes('last_verified_at'));
 add('IONOS inbound links thread to agent',mailSource.includes('agent_id'));
-add('IONOS sender requires verified agent alias',mailSource.includes('provider_status')&&mailSource.includes('Sender identity is not approved'));
+add('IONOS sender requires verified agent alias',mailSource.includes('.eq("provider_status","active")')&&mailSource.includes('Agent sender identity is not verified for external mail'));
 
 async function waitLive(){
   for(let i=0;i<36;i++){

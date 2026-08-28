@@ -1,0 +1,19 @@
+name: Certify Automated Onboarding Routing
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify live automated onboarding routing
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/onboarding-routing-cert.mjs

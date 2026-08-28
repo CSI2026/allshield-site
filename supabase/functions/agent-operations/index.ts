@@ -145,7 +145,12 @@ Deno.serve(async(req:Request)=>{
       const {data:t,error:te}=await admin.from("email_threads").select("*").eq("id",id).single();if(te||!t)return json({error:"Thread not found"},404);
       const {data:m,error:me}=await admin.from("email_messages").select("*").eq("thread_id",id).order("sent_at");if(me)throw me;
       await admin.from("email_threads").update({unread_count:0,updated_at:new Date().toISOString()}).eq("id",id);
-      return json({ok:true,thread:t,messages:m||[]});
+      let mailAlias=null;
+      if(t.agent_id){
+        const {data:alias,error:ae}=await admin.from("agent_mail_aliases").select("user_id,alias_address,internal_identity,provider_status,active,last_verified_at").eq("user_id",t.agent_id).maybeSingle();
+        if(ae)throw ae;mailAlias=alias||null;
+      }
+      return json({ok:true,thread:t,messages:m||[],mail_alias:mailAlias});
     }
 
     if(action==="assign_thread"){

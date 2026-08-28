@@ -5,6 +5,9 @@ on:
     branches: [main]
     paths:
       - 'index.html'
+      - 'config.js'
+      - 'onboarding-router-2026-08-27.js'
+      - 'team-accounts-invite-override-2026-08-28.js'
       - 'manual-agent-onboarding-2026-08-28.js'
       - 'supabase/functions/manage-team-user/index.ts'
       - 'tests/manual-agent-onboarding-cert.mjs'

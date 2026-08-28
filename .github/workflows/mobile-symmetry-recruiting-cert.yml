@@ -1,0 +1,31 @@
+name: Certify Recruiting And Mobile Symmetry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile-symmetry-fix-2026-08-28.js'
+      - 'recruiting-platform.js'
+      - 'tests/mobile-symmetry-recruiting-cert.mjs'
+      - '.github/workflows/mobile-symmetry-recruiting-cert.yml'
+      - 'index.html'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify live Recruiting & Leads and mobile symmetry
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/mobile-symmetry-recruiting-cert.mjs

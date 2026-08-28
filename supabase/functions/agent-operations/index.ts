@@ -39,15 +39,16 @@ Deno.serve(async(req:Request)=>{
     }
 
     function summarize(s:any){
-      const incomplete=new Set(s.onboarding.filter((x:any)=>!x.completed).map((x:any)=>x.user_id));
+      const agentIds=new Set(s.profiles.map((x:any)=>x.id));
+      const incomplete=new Set(s.onboarding.filter((x:any)=>!x.completed&&agentIds.has(x.user_id)).map((x:any)=>x.user_id));
       const onboardingIds=new Set(s.profiles.filter((x:any)=>x.status==="onboarding").map((x:any)=>x.id));
       incomplete.forEach((x:string)=>onboardingIds.add(x));
       const activeIds=new Set(s.profiles.filter((x:any)=>x.status==="active").map((x:any)=>x.id));
-      const readyIds=new Set(s.licenses.filter((x:any)=>x.status==="active").map((x:any)=>x.user_id));
-      const scores=s.exams.map((x:any)=>Number(x.score_percent)).filter(Number.isFinite);
+      const readyIds=new Set(s.licenses.filter((x:any)=>x.status==="active"&&agentIds.has(x.user_id)).map((x:any)=>x.user_id));
+      const scores=s.exams.filter((x:any)=>agentIds.has(x.user_id)).map((x:any)=>Number(x.score_percent)).filter(Number.isFinite);
       const avg=scores.length?Math.round(scores.reduce((a:number,b:number)=>a+b,0)/scores.length):null;
-      const unread=s.threads.reduce((n:number,x:any)=>n+Number(x.unread_count||0),0);
-      return {activeIds,onboardingIds,readyIds,avg,unread};
+      const unread=s.threads.filter((x:any)=>agentIds.has(x.agent_id)).reduce((n:number,x:any)=>n+Number(x.unread_count||0),0);
+      return {agentIds,activeIds,onboardingIds,readyIds,avg,unread};
     }
 
     function profileRow(p:any,s:any){

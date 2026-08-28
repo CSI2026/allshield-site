@@ -1,14 +1,15 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.28.030',
-  label:'Production B030 — Admin Dashboard Count Integrity',
-  completion_release:'2026.08.28.013',
+  current_build:'B2026.08.28.031',
+  label:'Production B031 — Cross-Portal Dashboard Tile Routing',
+  completion_release:'2026.08.28.014',
   channel:'production',
   released_at:'2026-08-28',
   certification:{
-    agent_operations:'61/61 PASS',
+    dashboard_tile_routing:'31/31 PASS',
     dashboard_count_integrity:'PASS',
+    agent_operations:'61/61 PASS',
     onboarding:'31/31 PASS',
     esign:'28/28 PASS',
     careers_professional_video:'PASS',
@@ -17,11 +18,14 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
-    'Fixed Admin dashboard counts so related onboarding, licensing, exam and email records are counted only when they belong to a current valid agent profile',
-    'Removed Owner/Admin onboarding progress from the Agent Onboarding Users tile without deleting legitimate Owner/Admin records',
-    'Onboarding Users tile and onboarding queue now use the same valid-agent population and return the same number of people',
-    'License Ready, Avg Exam Score and Agent Email aggregates now ignore records that do not belong to the current agent population',
-    'Agent Operations Edge Function promoted to version 3 with JWT protection preserved',
+    'Made all four Owner dashboard tiles clickable and routed each to an exact live work queue',
+    'Owner Active Field Agents, States Represented, Licensing Records and Exam Ready counts now use the same valid-agent dataset as their destination queues',
+    'Added Owner dashboard queue tables with direct Master Agent Profile access where an agent record applies',
+    'Made all four Agent dashboard tiles clickable: Onboarding, License Readiness, Latest Exam and Qualified Records route to their exact work areas',
+    'Re-certified all five Admin command-center tiles and preserved B030 valid-agent count filtering',
+    'Added a permanent cross-portal dashboard tile routing certification that fails future builds if Owner, Admin or Agent tile destinations break',
+    'Owner dashboard Edge Function promoted to version 2 with protected exact queue actions',
+    'Removed the completed one-time B031 cache migration workflow after canonical loader versions were published',
     'Retained B029 Agent Operations Core, Master Agent Profile, Generate-first Team Accounts, E-Sign and Company Communications behavior unchanged'
   ]
 };

@@ -7,7 +7,7 @@ window.ALLSHIELD_CONFIG = {
 
 (()=>{
   const scripts=[
-    ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.023'],
+    ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.024'],
     ['allshieldBackofficeBuildRegistryLoader','./backoffice-build-registry-2026-08-28.js?v=2026.08.28.003'],
     ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011'],
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
@@ -17,7 +17,7 @@ window.ALLSHIELD_CONFIG = {
     ['allshieldVideoStudioStabilityLoader','./video-studio-stability-2026-08-27.js?v=2026.08.27.003'],
     ['allshieldMobileCareerDomainFixLoader','./mobile-career-domain-fix-2026-08-27.js?v=2026.08.27.006'],
     ['allshieldCareersVideoExperienceLoader','./careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010'],
-    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'],
+    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.012'],
     ['allshieldOnboardingRouterLoader','./onboarding-router-2026-08-27.js?v=2026.08.27.012'],
     ['allshieldEsignAgreementsLoader','./esign-agreements-2026-08-28.js?v=2026.08.28.004'],
     ['allshieldOnboardingEsignBridgeLoader','./onboarding-esign-bridge-2026-08-28.js?v=2026.08.28.004'],

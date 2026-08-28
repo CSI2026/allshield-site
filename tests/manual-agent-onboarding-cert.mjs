@@ -7,10 +7,12 @@ const add=(name,ok,detail='')=>checks.push({name,ok:!!ok,detail});
 
 const index=await (await fetch(base,{cache:'no-store'})).text();
 add('Manual onboarding runtime loader',index.includes('manual-agent-onboarding-2026-08-28.js?v=2026.08.28.008'),'v008 loader present');
-add('Fresh config loader deployed',index.includes('config.js?v=2026.08.28.014'),'2026.08.28.014 config loader present');
+add('Fresh config loader deployed',index.includes('config.js?v=2026.08.28.016'),'2026.08.28.016 config loader present');
+add('Direct Team Accounts fail-safe loader deployed',index.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.003'),'v003 direct loader present');
 
 const configText=await (await fetch(`${base}/config.js?v=${Date.now()}`,{cache:'no-store'})).text();
-add('Priority Team Accounts override loader deployed',configText.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.001'));
+add('Current onboarding router loader deployed',configText.includes('onboarding-router-2026-08-27.js?v=2026.08.28.013'));
+add('Priority Team Accounts override loader deployed',configText.includes('team-accounts-invite-override-2026-08-28.js?v=2026.08.28.002'));
 
 const overrideText=await (await fetch(`${base}/team-accounts-invite-override-2026-08-28.js?v=${Date.now()}`,{cache:'no-store'})).text();
 add('Priority override targets Owner Team Accounts',overrideText.includes("registerAllshieldView('owner','teamaccounts'")&&overrideText.includes('renderLiveTeamAccounts'));
@@ -25,7 +27,9 @@ add('Recruiting source deployed',moduleText.includes('Recruiting Source'));
 add('Internal identity retained',moduleText.includes('Internal Login Identity')&&moduleText.includes('@allshield.internal'));
 
 const routerSource=fs.readFileSync('onboarding-router-2026-08-27.js','utf8');
-add('Legacy priority view is detected by certification',routerSource.includes("registerAllshieldView('owner','teamaccounts',main=>renderSimpleTeam(main))")&&routerSource.includes('Keep access simple: Agent or Admin.'));
+add('Legacy Team Accounts renderer removed from router source',!routerSource.includes("registerAllshieldView('owner','teamaccounts',main=>renderSimpleTeam(main))"));
+add('Router protects current invite-email Team Accounts form',routerSource.includes("registerAllshieldView('owner','teamaccounts',main=>{")&&routerSource.includes("current.includes('Agent Email / Invite Email (Required)')"));
+add('Router source version is current',routerSource.includes("const VERSION='2026.08.28.013'"));
 
 const functionSource=fs.readFileSync('supabase/functions/manage-team-user/index.ts','utf8');
 add('Server retains internal auth identity',functionSource.includes('@allshield.internal'));
@@ -81,7 +85,8 @@ const result=await page.evaluate(async()=>{
     visibleInviteButton:[...main.querySelectorAll('button')].some(x=>x.textContent.includes('Create Account & Send Invite')),
     visibleLicensing:!!main.querySelector('#teamLicensing'),
     visibleSource:!!main.querySelector('#teamSource'),
-    legacyHeaderVisible:main.textContent?.includes('Keep access simple: Agent or Admin.')||false
+    legacyHeaderVisible:main.textContent?.includes('Keep access simple: Agent or Admin.')||false,
+    legacyCreateDirectVisible:main.textContent?.includes('Create Direct Account')||false
   };
 });
 
@@ -93,11 +98,11 @@ add('Registered Team Accounts handler exists',result.handlerRegistered);
 add('Registered Team Accounts renders invite email',result.visibleInviteField&&result.visibleInviteLabel,result.syntheticMount?'tested in CI certification mount':'tested in live owner mount');
 add('Registered Team Accounts renders send-invite action',result.visibleInviteButton);
 add('Registered Team Accounts renders agent routing fields',result.visibleLicensing&&result.visibleSource);
-add('Legacy priority Team Accounts screen is no longer rendered',!result.legacyHeaderVisible);
+add('Legacy Team Accounts screen is no longer rendered',!result.legacyHeaderVisible&&!result.legacyCreateDirectVisible);
 add('No browser errors',browserErrors.length===0,browserErrors.join(' | '));
 await browser.close();
 
 const passed=checks.filter(x=>x.ok).length;
-const output={certification:'ALLSHIELD Manual Agent Onboarding — Registered Team Accounts Runtime',base_url:base,status:passed===checks.length?'PASS':'FAIL',passed,total:checks.length,checks,completed_at:new Date().toISOString()};
+const output={certification:'ALLSHIELD Manual Agent Onboarding — Legacy Router Blocked + Invite Email Runtime',base_url:base,status:passed===checks.length?'PASS':'FAIL',passed,total:checks.length,checks,completed_at:new Date().toISOString()};
 console.log(JSON.stringify(output,null,2));
 if(passed!==checks.length)process.exit(1);

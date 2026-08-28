@@ -12,7 +12,7 @@ try{
     fetch(`${BASE}/runtime-mutation-guard-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
   ]);
   rec('Public homepage reachable',home.ok,`HTTP ${home.status}`);
-  rec('Audited Careers runtime is deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010')&&cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'),'config includes passive Careers .010 + professional video .011');
+  rec('Audited Careers runtime is deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010')&&cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.012'),'config includes passive Careers .010 + professional video .012');
   rec('Obsolete sizzle scanner is removed',!cfgText.includes('video-sizzle-routing-2026-08-27.js'),'obsolete whole-page sizzle scanner not loaded');
   rec('Runtime mutation guard is deployed',cfgText.includes('runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011')&&guardText.includes("VERSION='2026.08.27.011'"),'global mutation storm guard .011 present');
   rec('Homepage recruiting CTA removal remains deployed',careerText.includes('removeLegacyHomeJoinCTA')&&proText.includes('removeHomeRecruitingCTA'),'customer-only homepage cleanup remains present');

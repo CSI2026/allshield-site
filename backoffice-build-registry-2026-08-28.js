@@ -1,12 +1,12 @@
 (()=>{
-  const VERSION='2026.08.28.002';
+  const VERSION='2026.08.28.003';
   window.ALLSHIELD_BACKOFFICE_BUILD_REGISTRY_VERSION=VERSION;
 
   const install=()=>{
     const info=window.ALLSHIELD_BUILD_INFO||{};
-    const build=info.current_build||info.build_number||'B2026.08.28.022';
+    const build=info.current_build||info.build_number||'B2026.08.28.023';
     const base=info.base_build||info.build_number||'B2026.08.23.021';
-    const release=info.completion_release||'2026.08.28.005';
+    const release=info.completion_release||'2026.08.28.006';
     window.ALLSHIELD_CURRENT_BUILD=build;
     window.ALLSHIELD_APPROVED_BASE_BUILD=base;
 
@@ -30,7 +30,9 @@
       if(!badge){
         badge=document.createElement('div');
         badge.className='as-build-registry';
-        top.insertBefore(badge,top.querySelector('button')||null);
+        const directButton=[...top.children].find(el=>el.tagName==='BUTTON');
+        if(directButton)top.insertBefore(badge,directButton);
+        else top.appendChild(badge);
       }
       badge.title=`Current production build: ${build} • Approved baseline: ${base} • Release ${release}`;
       badge.innerHTML=`<span class="as-build-dot"></span><span>LIVE BUILD</span><strong>${build}</strong><span class="as-base">• Base ${base}</span><span class="as-release">• ${release}</span>`;

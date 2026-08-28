@@ -10,8 +10,10 @@ on:
       - 'config.js'
       - 'tests/owner-portal-contract.mjs'
       - 'tests/ai-workforce-organization-cert.mjs'
+      - 'supabase/functions/ai-command-center/index.ts'
       - 'supabase/migrations/20260828222801_ai_workforce_learning_and_measurement.sql'
       - 'supabase/migrations/20260828223234_ai_workforce_roster_seed.sql'
+      - 'supabase/migrations/20260828224053_ai_workforce_fk_indexes.sql'
       - '.github/workflows/ai-workforce-cert.yml'
   workflow_dispatch:
 

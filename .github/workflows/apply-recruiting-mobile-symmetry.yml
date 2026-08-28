@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
     paths:
+      - 'recruiting-platform.js'
       - 'mobile-symmetry-fix-2026-08-28.js'
       - '.github/workflows/apply-recruiting-mobile-symmetry.yml'
   workflow_dispatch:
@@ -25,13 +26,19 @@ jobs:
           p=Path('index.html')
           s=p.read_text()
           marker='<script defer src="./responsive-ui.js?v=2026.08.27.011"></script>'
-          block='''<script defer src="./recruiting-platform.js?v=2026.08.28.001"></script>\n<script defer src="./mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001"></script>\n'''
-          if 'recruiting-platform.js?v=2026.08.28.001' not in s:
+          old='<script defer src="./recruiting-platform.js?v=2026.08.28.001"></script>'
+          new='<script defer src="./recruiting-platform.js?v=2026.08.28.002"></script>'
+          symmetry='<script defer src="./mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001"></script>'
+          if old in s:
+              s=s.replace(old,new)
+          elif new not in s:
               if marker not in s:
                   raise SystemExit('responsive-ui marker not found')
-              s=s.replace(marker,block+marker)
-          elif 'mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001' not in s:
-              s=s.replace(marker,'<script defer src="./mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001"></script>\n'+marker)
+              s=s.replace(marker,new+'\n'+marker)
+          if symmetry not in s:
+              if marker not in s:
+                  raise SystemExit('responsive-ui marker not found for symmetry')
+              s=s.replace(marker,symmetry+'\n'+marker)
           p.write_text(s)
           PY
       - name: Commit production wiring
@@ -40,5 +47,5 @@ jobs:
           git config user.name "allshield-build-bot"
           git config user.email "allshield-build-bot@users.noreply.github.com"
           git add index.html
-          git commit -m "Wire Recruiting & Leads and centered mobile layout"
+          git commit -m "Publish Recruiting & Leads mobile navigation fix"
           git push

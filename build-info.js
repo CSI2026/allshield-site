@@ -9,7 +9,7 @@ window.ALLSHIELD_BUILD_INFO={
   certification:{
     esign:'28/28 PASS',
     onboarding:'25/25 PASS',
-    career_application_viewer:'PENDING LIVE CERTIFICATION',
+    career_application_viewer:'22/22 PASS',
     pages:'PASS',
     owner_portal:'PASS'
   }

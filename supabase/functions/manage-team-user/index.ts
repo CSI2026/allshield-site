@@ -4,16 +4,18 @@ const corsHeaders={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Heade
 const DEFAULT_ONBOARDING=[["profile",1],["license",2],["standards",3],["training",4],["test",5]] as const;
 const PRELICENSE_ONBOARDING=[["profile",1],["license_selection",2],["prelicensing_training",3],["state_exam",4],["license_verification",5],["contracting",6],["comp_setup",7],["marketplace",8],["ready",9]] as const;
 const LICENSED_ONBOARDING=[["profile",1],["license_verification",2],["contracting",3],["comp_setup",4],["marketplace",5],["ready",6]] as const;
-function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...corsHeaders,"Content-Type":"application/json"}})}
+function json(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...corsHeaders,"Content-Type":"application/json","Cache-Control":"no-store"}})}
 function clean(v:unknown,max=160){return String(v??"").trim().slice(0,max)}
 function namePart(v:unknown){const s=clean(v,80).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"").slice(0,20).toLowerCase();return s?s[0].toUpperCase()+s.slice(1):""}
 function emailOk(v:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function tempPassword(first:string,last:string){return `${first[0]}${last[0]}${new Date().getFullYear()}AS`.toUpperCase()}
-function welcomeText(first:string,username:string,password:string,internalEmail:string,contactEmail:string,licensing:string){
+function welcomeText(first:string,username:string,password:string,licensing:string){
  const route=licensing==="licensed"
-  ? "Licensed Agent route: license verification, contracting, compensation setup, Marketplace requirements, then production readiness."
-  : "Pre-Licensing route: choose your resident-state track, complete assigned Life & Health training and licensing steps, then move into contracting, compensation setup, Marketplace requirements, and production readiness.";
- return `Hi ${first},\n\nWelcome to ALLSHIELD Insurance Group. Your Agent Portal account is ready.\n\nUsername: ${username}\nTemporary password: ${password}\nInternal ALLSHIELD login identity: ${internalEmail}\nContact email on file: ${contactEmail}\n\n${route}\n\nSign in at: https://allshieldinsurancegroup.com/\n\nKeep these temporary credentials private. If you need help accessing your account, reply to this email or contact ALLSHIELD onboarding.\n\nALLSHIELD Insurance Group\nonboarding@allshieldinsurancegroup.com`;
+  ? "Your next step is license verification. After verification, ALLSHIELD will route you through contracting, Marketplace requirements, and production readiness."
+  : licensing==="not_licensed"||licensing==="studying"
+    ? "Your next step is the ALLSHIELD pre-licensing path. Your state track, training, licensing, contracting, Marketplace requirements, and production readiness will be organized inside your portal."
+    : "Your next step is to sign in and confirm whether you are currently licensed. ALLSHIELD will automatically place you on the correct onboarding path from there.";
+ return `Hi ${first},\n\nWelcome to ALLSHIELD Insurance Group. Your Agent Portal account is ready.\n\nUsername: ${username}\nTemporary password: ${password}\n\n${route}\n\nSign in at: https://allshieldinsurancegroup.com/\n\nKeep these temporary credentials private. If you need help accessing your account, reply to this email or contact ALLSHIELD onboarding.\n\nALLSHIELD Insurance Group\nonboarding@allshieldinsurancegroup.com`;
 }
 
 Deno.serve(async(req:Request)=>{
@@ -41,6 +43,27 @@ Deno.serve(async(req:Request)=>{
   const adminRoles=["manager","team_lead","agent","staff"];
   const validStatuses=["invited","onboarding","active","inactive","terminated"];
 
+  async function availableCredentials(first:string,last:string){
+    const baseDisplay=`${first}.${last}`;
+    let displayUsername=baseDisplay,loginUsername=baseDisplay.toLowerCase();
+    for(let i=1;i<100;i++){
+      const {count}=await admin.from("profiles").select("id",{count:"exact",head:true}).ilike("username",displayUsername);
+      if(!count)break;
+      displayUsername=`${baseDisplay}.${i+1}`;
+      loginUsername=displayUsername.toLowerCase();
+    }
+    const password=tempPassword(first,last);
+    if(password.length<8)throw new Error("Generated temporary password did not meet ALLSHIELD security requirements.");
+    return {username:displayUsername,loginUsername,password,internalEmail:`${loginUsername}@allshield.internal`,operationsAlias:`${loginUsername}@allshieldinsurancegroup.com`};
+  }
+
+  if(action==="preview_credentials"){
+    const first=namePart(body.first_name),last=namePart(body.last_name);
+    if(!first||!last)return json({error:"First name and last name are required before generating credentials."},400);
+    const c=await availableCredentials(first,last);
+    return json({ok:true,username:c.username,temp_password:c.password,internal_email:c.internalEmail});
+  }
+
   if(action==="create"){
    const first=namePart(body.first_name),last=namePart(body.last_name),role=String(body.role||"agent");
    if(!first||!last)return json({error:"First name and last name are required."},400);
@@ -55,42 +78,48 @@ Deno.serve(async(req:Request)=>{
    if(role==="admin")status="active";
    if(!validStatuses.includes(status))return json({error:"Invalid status."},400);
    if(residentState&&!/^[A-Z]{2}$/.test(residentState))return json({error:"Resident state must be a 2-letter code."},400);
-   if(role==="agent"&&!emailOk(realEmail))return json({error:"A valid contact email is required for manual agent onboarding."},400);
-   if(role==="agent"&&!['licensed','not_licensed'].includes(licensingStatus))return json({error:"Select Licensed or Not Licensed."},400);
-   if(role==="agent"&&!recruitingSource)return json({error:"Recruiting source is required for manual agent onboarding."},400);
+   if(role==="agent"&&!emailOk(realEmail))return json({error:"A valid Agent Email / Invite Email is required for manual agent onboarding."},400);
+   if(licensingStatus&&!['licensed','not_licensed','studying'].includes(licensingStatus))return json({error:"Licensing status is invalid."},400);
 
-   const baseDisplay=`${first}.${last}`;
-   let displayUsername=baseDisplay,loginUsername=baseDisplay.toLowerCase();
-   for(let i=1;i<100;i++){
-     const {count}=await admin.from("profiles").select("id",{count:"exact",head:true}).ilike("username",displayUsername);
-     if(!count)break;
-     displayUsername=`${baseDisplay}.${i+1}`;
-     loginUsername=displayUsername.toLowerCase();
-   }
-   const password=tempPassword(first,last);
-   if(password.length<8)return json({error:"Generated temporary password did not meet ALLSHIELD security requirements."},500);
-   const internalEmail=`${loginUsername}@allshield.internal`;
+   const credentials=await availableCredentials(first,last);
+   const requestedUsername=clean(body.generated_username,80);
+   const requestedPassword=String(body.generated_password||"");
+   if(role==="agent"&&(!requestedUsername||!requestedPassword))return json({error:"Generate the username and temporary password before creating the account."},409);
+   if(role==="agent"&&(requestedUsername!==credentials.username||requestedPassword!==credentials.password))return json({error:"The generated credentials are no longer current. Click Generate again before creating the account."},409);
+
    const {data:created,error:createError}=await admin.auth.admin.createUser({
-     email:internalEmail,password,email_confirm:true,
-     user_metadata:{first_name:first,last_name:last,username:displayUsername,internal_email:internalEmail,contact_email:realEmail||null,recruiting_source:recruitingSource||null,licensing_status:licensingStatus||null}
+     email:credentials.internalEmail,password:credentials.password,email_confirm:true,
+     user_metadata:{first_name:first,last_name:last,username:credentials.username,internal_email:credentials.internalEmail,contact_email:realEmail||null,recruiting_source:recruitingSource||null,licensing_status:licensingStatus||null}
    });
    if(createError||!created.user)return json({error:createError?.message||"Unable to create user"},400);
    const {error:profileError}=await admin.from("profiles").update({
-     username:displayUsername,first_name:first,last_name:last,email:realEmail||null,phone,role,status,resident_state:residentState,
+     username:credentials.username,first_name:first,last_name:last,email:realEmail||null,phone,role,status,resident_state:residentState,
      department_id:body.department_id||null,manager_id:body.manager_id||null,updated_at:new Date().toISOString()
    }).eq("id",created.user.id);
    if(profileError){await admin.auth.admin.deleteUser(created.user.id);return json({error:profileError.message},400)}
 
    let onboardingPathway:string|null=null;
    if(role==="agent"){
-    onboardingPathway=licensingStatus==="licensed"?"licensed_verification":"prelicensing";
-    const steps=licensingStatus==="licensed"?LICENSED_ONBOARDING:PRELICENSE_ONBOARDING;
-    const rows=steps.map(([step_key,step_order])=>({
-      user_id:created.user!.id,step_key,step_order,completed:false,
-      metadata:{pathway:onboardingPathway,licensing_status:licensingStatus,source:"manual_onboarding",recruiting_source:recruitingSource,contact_email:realEmail}
-    }));
-    const {error:onboardingError}=await admin.from("onboarding_progress").insert(rows);
-    if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
+    if(licensingStatus){
+      onboardingPathway=licensingStatus==="licensed"?"licensed_verification":"prelicensing";
+      const steps=licensingStatus==="licensed"?LICENSED_ONBOARDING:PRELICENSE_ONBOARDING;
+      const rows=steps.map(([step_key,step_order])=>({
+        user_id:created.user!.id,step_key,step_order,completed:step_key==="profile",completed_at:step_key==="profile"?new Date().toISOString():null,
+        metadata:{pathway:onboardingPathway,licensing_status:licensingStatus,source:"manual_onboarding",recruiting_source:recruitingSource||null,contact_email:realEmail}
+      }));
+      const {error:onboardingError}=await admin.from("onboarding_progress").insert(rows);
+      if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
+    }else{
+      onboardingPathway="self_select";
+      const {error:onboardingError}=await admin.from("onboarding_progress").insert({
+        user_id:created.user.id,step_key:"profile",step_order:1,completed:true,completed_at:new Date().toISOString(),
+        metadata:{pathway:"self_select",source:"manual_onboarding",contact_email:realEmail}
+      });
+      if(onboardingError){await admin.auth.admin.deleteUser(created.user.id);return json({error:onboardingError.message},400)}
+    }
+    await admin.from("agent_operational_status").upsert({user_id:created.user.id,lifecycle_stage:"onboarding",updated_by:actor.id,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+    await admin.from("agent_mail_aliases").upsert({user_id:created.user.id,internal_identity:credentials.internalEmail,alias_address:credentials.operationsAlias,provider:"ionos",provider_status:"pending_provider",active:true,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+    await admin.from("agent_timeline_events").insert({user_id:created.user.id,event_type:"account_created",title:"ALLSHIELD agent account created",detail:"Manual onboarding account created and invite prepared.",visibility:"internal",source:"manage-team-user",actor_id:actor.id,metadata:{contact_email:realEmail,onboarding_pathway:onboardingPathway}});
    } else if(["team_lead","manager"].includes(role)){
     const rows=DEFAULT_ONBOARDING.map(([step_key,step_order])=>({user_id:created.user!.id,step_key,step_order,completed:false,metadata:{source:"direct_account_creation"}}));
     const {error:onboardingError}=await admin.from("onboarding_progress").insert(rows);
@@ -103,7 +132,7 @@ Deno.serve(async(req:Request)=>{
        const mailRes=await fetch(`${url}/functions/v1/ionos-mail`,{
          method:"POST",
          headers:{"Content-Type":"application/json",apikey:publishableKey,Authorization:authHeader},
-         body:JSON.stringify({action:"send",from_address:"onboarding@allshieldinsurancegroup.com",to:realEmail,subject:`Welcome to ALLSHIELD, ${first}`,text:welcomeText(first,displayUsername,password,internalEmail,realEmail,licensingStatus)})
+         body:JSON.stringify({action:"send",from_address:"onboarding@allshieldinsurancegroup.com",to:realEmail,subject:`Welcome to ALLSHIELD, ${first}`,text:welcomeText(first,credentials.username,credentials.password,licensingStatus)})
        });
        const raw=await mailRes.text();
        let mail:any={};try{mail=raw?JSON.parse(raw):{}}catch{mail={error:raw}}
@@ -112,10 +141,10 @@ Deno.serve(async(req:Request)=>{
      }catch(e){notificationError=e instanceof Error?e.message:String(e)}
    }
 
-   const details={username:displayUsername,internal_email:internalEmail,contact_email:realEmail||null,role,status,resident_state:residentState,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError};
+   const details={username:credentials.username,internal_email:credentials.internalEmail,operations_alias:credentials.operationsAlias,contact_email:realEmail||null,role,status,resident_state:residentState,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError};
    await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_created",object_type:"profile",object_id:created.user.id,details});
    if(role==="agent")await admin.from("audit_log").insert({actor_id:actor.id,action:"manual_agent_onboarded",object_type:"profile",object_id:created.user.id,details});
-   return json({ok:true,user_id:created.user.id,username:displayUsername,temp_password:password,internal_email:internalEmail,contact_email:realEmail||null,role,status,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError});
+   return json({ok:true,user_id:created.user.id,username:credentials.username,temp_password:credentials.password,internal_email:credentials.internalEmail,operations_alias:credentials.operationsAlias,operations_alias_status:"pending_provider",contact_email:realEmail||null,role,status,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError});
   }
 
   if(action==="update"){
@@ -133,7 +162,9 @@ Deno.serve(async(req:Request)=>{
    if(body.manager_id!==undefined)patch.manager_id=body.manager_id||null;
    if(body.resident_state!==undefined){const s=String(body.resident_state||"").trim().toUpperCase()||null;if(s&&!/^[A-Z]{2}$/.test(s))return json({error:"Resident state must be a 2-letter code."},400);patch.resident_state=s;}
    const {error}=await admin.from("profiles").update(patch).eq("id",userId);if(error)return json({error:error.message},400);
-   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_updated",object_type:"profile",object_id:userId,details:patch});return json({ok:true});
+   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_updated",object_type:"profile",object_id:userId,details:patch});
+   await admin.from("agent_timeline_events").insert({user_id:userId,event_type:"profile_updated",title:"Agent profile updated",visibility:"internal",source:"manage-team-user",actor_id:actor.id,metadata:patch}).then(()=>{}).catch(()=>{});
+   return json({ok:true});
   }
 
   if(action==="reset_password"){

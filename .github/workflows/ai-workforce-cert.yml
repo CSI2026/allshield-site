@@ -6,6 +6,8 @@ on:
     paths:
       - 'phase16-ai-command-production.js'
       - 'index.html'
+      - 'build-info.js'
+      - 'config.js'
       - 'tests/owner-portal-contract.mjs'
       - 'tests/ai-workforce-organization-cert.mjs'
       - 'supabase/migrations/20260828222801_ai_workforce_learning_and_measurement.sql'

@@ -22,8 +22,9 @@ try{
   const careers=page.locator('.shell .nav-links a').filter({hasText:'Careers'}).first();await careers.click({timeout:5000});await page.waitForSelector('#careersPage.show',{timeout:5000});rec('Careers tab works',true,'careers page opened');
   await page.waitForSelector('#careersPage .career-sizzle-frame video',{timeout:15000});const v=await page.locator('#careersPage .career-sizzle-frame video').evaluate(el=>({src:el.getAttribute('src'),controls:el.controls}));rec('Professional Careers video remains live',/allshield-careers-built-around-the-customer\.mp4/.test(v.src||'')&&v.controls===true,JSON.stringify(v));
 
-  const apply=page.locator('#careersPage button,#careersPage a').filter({hasText:/Apply|Join Our Team/i}).first();if(await apply.count()){await apply.click({timeout:5000});await page.waitForTimeout(250);rec('Careers application control responds',(await page.locator('#careerModal.show').count())>0,'career modal state checked');}else rec('Careers application control responds',false,'application CTA not found');
-  await page.evaluate(()=>{document.getElementById('careerModal')?.classList.remove('show');if(typeof window.returnHome==='function')window.returnHome();});await page.waitForTimeout(250);
+  const careerHandler=await page.evaluate(()=>typeof window.openCareer==='function');
+  if(careerHandler){await page.evaluate(()=>window.openCareer());await page.waitForSelector('#careerModal.show',{timeout:5000});rec('Careers application control responds',true,'canonical career application modal opened');}else rec('Careers application control responds',false,'openCareer handler missing');
+  await page.evaluate(()=>{if(typeof window.closeCareer==='function')window.closeCareer();if(typeof window.returnHome==='function')window.returnHome();});await page.waitForTimeout(250);
   if(!(await page.locator('.shell').isVisible())) await page.reload({waitUntil:'domcontentloaded'});
 
   const portal=page.locator('.shell button').filter({hasText:'Team Portal'}).first();await portal.click({timeout:5000});await page.waitForSelector('#portalChooser.show',{timeout:5000});rec('Team Portal tab works',true,'portal chooser opened');

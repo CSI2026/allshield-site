@@ -1,0 +1,46 @@
+name: Normalize Agent Operations Routes
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/normalize-agent-operations-routes.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Preserve Company Communications and bump canonical core
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('agent-operations-core-2026-08-28.js')
+          s=p.read_text()
+          s=s.replace("const VERSION='2026.08.28.001';","const VERSION='2026.08.28.002';",1)
+          s=s.replace("window.registerAllshieldView('owner','agentcommunications',main=>renderCommunications(main,'owner'));window.registerAllshieldView('owner','communications',main=>renderCommunications(main,'owner'));","window.registerAllshieldView('owner','agentcommunications',main=>renderCommunications(main,'owner'));",1)
+          p.write_text(s)
+
+          p=Path('index.html')
+          s=p.read_text().replace('./agent-operations-core-2026-08-28.js?v=2026.08.28.001','./agent-operations-core-2026-08-28.js?v=2026.08.28.002')
+          p.write_text(s)
+
+          core=Path('agent-operations-core-2026-08-28.js').read_text()
+          idx=Path('index.html').read_text()
+          assert "registerAllshieldView('owner','communications',main=>renderCommunications" not in core
+          assert "registerAllshieldView('owner','agentcommunications'" in core
+          assert "const VERSION='2026.08.28.002'" in core
+          assert 'agent-operations-core-2026-08-28.js?v=2026.08.28.002' in idx
+          PY
+      - name: Syntax check
+        run: node --check agent-operations-core-2026-08-28.js
+      - name: Commit canonical route normalization
+        run: |
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add agent-operations-core-2026-08-28.js index.html
+          git commit -m "Preserve Owner Company Communications in Agent Operations Core"
+          git push

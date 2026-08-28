@@ -1,0 +1,51 @@
+name: Fix Router Team Accounts Source
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-router-teamaccounts-source.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Remove legacy Team Accounts renderer and bust loader caches
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          router=Path('onboarding-router-2026-08-27.js')
+          s=router.read_text()
+          old="window.registerAllshieldView('owner','teamaccounts',main=>renderSimpleTeam(main));"
+          replacement="""window.registerAllshieldView('owner','teamaccounts',main=>{\n    const current=(typeof ownerViews!=='undefined' && ownerViews.teamaccounts)||'';\n    if(current && current.includes('Agent Email / Invite Email (Required)')){\n      main.innerHTML=current;\n      setTimeout(()=>{\n        try{ if(typeof loadTeamDepartments==='function') loadTeamDepartments(); }catch{}\n        try{ window.syncManualCredentials?.(); }catch{}\n        try{ window.syncManualRoleFields?.(); }catch{}\n        try{ window.refreshTeamAccounts?.(); }catch{}\n      },0);\n      return;\n    }\n    main.innerHTML='<div class=\\"bo-card\\"><h3>Team Accounts is updating</h3><p>The current invite-email onboarding form has not loaded yet. Reload the portal once.</p></div>';\n  });"""
+          if old in s:
+              s=s.replace(old,replacement,1)
+          elif "Agent Email / Invite Email (Required)" not in s:
+              raise SystemExit('Legacy Team Accounts registration marker not found')
+          s=s.replace("const VERSION='2026.08.27.012';","const VERSION='2026.08.28.013';",1)
+          router.write_text(s)
+
+          cfg=Path('config.js')
+          c=cfg.read_text()
+          c=c.replace("./onboarding-router-2026-08-27.js?v=2026.08.27.012","./onboarding-router-2026-08-27.js?v=2026.08.28.013")
+          cfg.write_text(c)
+
+          idx=Path('index.html')
+          i=idx.read_text()
+          i=i.replace('./config.js?v=2026.08.28.015','./config.js?v=2026.08.28.016')
+          i=i.replace('./team-accounts-invite-override-2026-08-28.js?v=2026.08.28.002','./team-accounts-invite-override-2026-08-28.js?v=2026.08.28.003')
+          idx.write_text(i)
+          PY
+      - name: Commit source fix
+        run: |
+          if git diff --quiet -- onboarding-router-2026-08-27.js config.js index.html; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add onboarding-router-2026-08-27.js config.js index.html
+          git commit -m "Stop legacy Team Accounts renderer from overriding invite form"
+          git push

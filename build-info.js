@@ -2,15 +2,15 @@ window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
   current_build:'B2026.08.28.034',
-  label:'Production B034 — Avery AI Chief of Staff Live Execution',
-  completion_release:'2026.08.28.017',
+  label:'Production B034 — Avery AI Chief of Staff Live Execution — Certified',
+  completion_release:'2026.08.28.018',
   channel:'production',
   released_at:'2026-08-28',
   certification:{
     avery_chief_of_staff:'LIVE WORK PASS',
     avery_capabilities:'8/8 PASS',
-    avery_runtime_contract:'PENDING FINAL CI',
-    avery_execution_engine:'FALLBACK ACTIVE',
+    avery_runtime_contract:'22/22 PASS',
+    avery_execution_engine:'PRODUCTION ACTIVE — PROVIDER-INDEPENDENT',
     ai_workforce_organization:'31/31 PASS',
     ai_workforce_learning:'PASS',
     ai_workforce_database:'PASS',
@@ -37,6 +37,7 @@ window.ALLSHIELD_BUILD_INFO={
     'The production OPENAI_API_KEY is currently not configured; Avery therefore uses the grounded ALLSHIELD deterministic Chief of Staff engine so core work remains operational now',
     'OpenAI model enrichment is optional and will enhance freeform language when configured, but it is no longer a single point of failure for Avery',
     'Preserved human approval boundaries for account changes, compensation, signatures, regulated content, destructive actions and external publishing',
+    'Final Avery production execution contract certified 22/22 against the live ALLSHIELD site and protected production endpoint',
     'Retained B033 named workforce, B032 E-Sign CORS recovery and prior dashboard, onboarding, Agent Operations and production behavior unchanged'
   ]
 };

@@ -9,15 +9,16 @@ const index=await (await fetch(base,{cache:'no-store'})).text();
 add('Manual onboarding runtime loader',index.includes('manual-agent-onboarding-2026-08-28.js?v=2026.08.28.008'),'v008 loader present');
 
 const moduleText=await (await fetch(`${base}/manual-agent-onboarding-2026-08-28.js?v=${Date.now()}`,{cache:'no-store'})).text();
-add('Contact email field deployed',moduleText.includes('Personal / Contact Email'));
+add('Invite email field deployed',moduleText.includes('Agent Email / Invite Email (Required)')&&moduleText.includes('id="teamEmail"'));
+add('Invite delivery help text deployed',moduleText.includes('onboarding invite and temporary login credentials are sent to this address'));
+add('Invite action deployed',moduleText.includes('Create Account & Send Invite'));
 add('Licensed selector deployed',moduleText.includes('Agent Licensing Status')&&moduleText.includes('value="licensed"')&&moduleText.includes('value="not_licensed"'));
 add('Recruiting source deployed',moduleText.includes('Recruiting Source'));
 add('Internal identity retained',moduleText.includes('Internal Login Identity')&&moduleText.includes('@allshield.internal'));
-add('Welcome email action deployed',moduleText.includes('Create & Send Welcome'));
 
 const functionSource=fs.readFileSync('supabase/functions/manage-team-user/index.ts','utf8');
 add('Server retains internal auth identity',functionSource.includes('@allshield.internal'));
-add('Server stores real contact email',functionSource.includes('email:realEmail||null'));
+add('Server stores real invite email',functionSource.includes('email:realEmail||null'));
 add('Server routes licensed agents',functionSource.includes('licensed_verification')&&functionSource.includes('LICENSED_ONBOARDING'));
 add('Server routes non-licensed agents',functionSource.includes('prelicensing')&&functionSource.includes('PRELICENSE_ONBOARDING'));
 add('Server sends from onboarding mailbox',functionSource.includes('onboarding@allshieldinsurancegroup.com'));
@@ -46,7 +47,7 @@ const result=await page.evaluate(()=>{
 add('Username format works',result.username==='Tanita.Flowers',result.username);
 add('Temporary password format works',result.password==='TF2026AS',result.password);
 add('Internal identity format works',result.internal==='tanita.flowers@allshield.internal',result.internal);
-add('Owner form includes manual fields',result.html.includes('teamEmail')&&result.html.includes('teamLicensing')&&result.html.includes('teamSource'));
+add('Owner form includes invite and routing fields',result.html.includes('teamEmail')&&result.html.includes('teamLicensing')&&result.html.includes('teamSource')&&result.html.includes('Agent Email / Invite Email (Required)'));
 add('No browser errors',browserErrors.length===0,browserErrors.join(' | '));
 await browser.close();
 

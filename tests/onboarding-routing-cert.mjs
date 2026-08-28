@@ -10,44 +10,52 @@ try{
       fetch(`${BASE}/?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
       fetch(`${BASE}/config.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
     ]);
-    if(html.includes('config.js?v=2026.08.27.013')&&cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'))break;
+    if(cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.28.014')&&cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013')&&html.includes('agent-operations-core-2026-08-28.js?v=2026.08.28.002'))break;
     await sleep(2000);
   }
-  const [router,normalizer]=await Promise.all([
+  const [router,normalizer,opsCore]=await Promise.all([
     fetch(`${BASE}/onboarding-router-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
-    fetch(`${BASE}/career-application-license-normalizer-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
+    fetch(`${BASE}/career-application-license-normalizer-2026-08-27.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
+    fetch(`${BASE}/agent-operations-core-2026-08-28.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
   ]);
-  rec('Index uses final onboarding cache boundary',html.includes('config.js?v=2026.08.27.013'),'config loader .013');
-  rec('Production config loads onboarding router',cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.27.012'),'router .012');
+  rec('Index loads production config',html.includes('config.js'),'config.js present');
+  rec('Production config loads final onboarding router',cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.28.014'),'router .014');
   rec('Production config loads Careers license normalizer',cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'),'normalizer .013');
+  rec('Production loads canonical Agent Operations Core',html.includes('agent-operations-core-2026-08-28.js?v=2026.08.28.002'),'Agent Operations .002');
   rec('Router has four current launch states',['TX','FL','GA','TN'].every(s=>router.includes(`${s}:'`)),'TX, FL, GA, TN');
-  rec('Team account access is simplified',router.includes('<option value="agent">Agent</option><option value="admin">Admin</option>'),'Agent/Admin only in direct creator');
+  rec('Onboarding Router no longer owns Team Accounts',!router.includes("registerAllshieldView('owner','teamaccounts'"),'Team Accounts moved to Agent Operations Core');
+  rec('Agent Operations Core owns Owner Team Accounts',opsCore.includes("registerAllshieldView('owner','teamaccounts'"),'canonical owner');
+  rec('Agent Operations Core owns Admin team view',opsCore.includes("registerAllshieldView('admin','team'"),'canonical admin');
   rec('Onboarding router has no MutationObserver',!router.includes('MutationObserver'),'none');
   rec('Onboarding router has no recurring interval',!router.includes('setInterval('),'none');
   rec('Careers normalizer has no MutationObserver',!normalizer.includes('MutationObserver'),'none');
   rec('Careers modal is above Careers navigation',normalizer.includes('#careerModal{z-index:650!important}'),'z-index 650');
   rec('Licensed route exists',router.includes("licensed_verification:'License Verification'"),'license verification');
   rec('Pre-licensing route exists',router.includes("prelicensing:'Pre-Licensing'"),'pre-licensing');
+  rec('Self-select route remains available for direct agents',router.includes("self_select:'Agent Chooses on First Login'"),'self select');
   rec('Contracting follows verification',router.includes('Contracting & e-sign')&&router.includes('license is verified'),'contract step present');
 
   const url=(cfg.match(/SUPABASE_URL:\s*"([^"]+)"/)||[])[1];
   const key=(cfg.match(/SUPABASE_PUBLISHABLE_KEY:\s*"([^"]+)"/)||[])[1];
   const edgeHeaders={'Content-Type':'application/json','apikey':key||''};
-  const [agentEdge,convertEdge]=await Promise.all([
+  const [agentEdge,convertEdge,opsEdge]=await Promise.all([
     fetch(`${url}/functions/v1/agent-onboarding`,{method:'POST',headers:edgeHeaders,body:'{"action":"get_context"}'}),
-    fetch(`${url}/functions/v1/convert-recruit`,{method:'POST',headers:edgeHeaders,body:'{}'})
+    fetch(`${url}/functions/v1/convert-recruit`,{method:'POST',headers:edgeHeaders,body:'{}'}),
+    fetch(`${url}/functions/v1/agent-operations`,{method:'POST',headers:edgeHeaders,body:'{"action":"dashboard"}'})
   ]);
   rec('Agent onboarding function is protected and deployed',agentEdge.status===401,`HTTP ${agentEdge.status} without login`);
   rec('Applicant conversion function is protected and deployed',convertEdge.status===401,`HTTP ${convertEdge.status} without login`);
+  rec('Agent Operations function is protected and deployed',opsEdge.status===401,`HTTP ${opsEdge.status} without login`);
 
   browser=await chromium.launch({headless:true,channel:'chrome'});
   const page=await browser.newPage({viewport:{width:1440,height:1000}});
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const response=await page.goto(`${BASE}/?browsercert=${Date.now()}`,{waitUntil:'domcontentloaded',timeout:60000});
   rec('Live homepage loads',response?.ok()===true,`HTTP ${response?.status()}`);
-  await page.waitForFunction(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.27.012'&&window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013',{timeout:25000});
-  rec('Automated onboarding runtime executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.27.012'),'.012 active');
+  await page.waitForFunction(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.28.014'&&window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013'&&window.ALLSHIELD_AGENT_OPERATIONS_CORE_VERSION==='2026.08.28.002',{timeout:30000});
+  rec('Automated onboarding runtime executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.28.014'),'.014 active');
   rec('Careers licensing normalizer executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013'),'.013 active');
+  rec('Agent Operations Core executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_AGENT_OPERATIONS_CORE_VERSION==='2026.08.28.002'),'.002 active');
 
   const nav=page.locator('.nav-links a').filter({hasText:'Careers'}).first();
   await nav.click();

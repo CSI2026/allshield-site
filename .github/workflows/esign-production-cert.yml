@@ -6,6 +6,8 @@ on:
     paths:
       - 'index.html'
       - 'tests/esign-production-cert.mjs'
+      - 'tests/document-esign-cors-cert.mjs'
+      - 'supabase/functions/document-esign/index.ts'
       - 'esign-agreements-2026-08-28.js'
       - 'onboarding-esign-bridge-2026-08-28.js'
       - 'config.js'
@@ -27,5 +29,7 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
+      - name: Certify document E-Sign browser CORS
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/document-esign-cors-cert.mjs
       - name: Certify production E-Sign and public navigation
         run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/esign-production-cert.mjs

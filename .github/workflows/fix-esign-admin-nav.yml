@@ -1,0 +1,44 @@
+name: Fix Admin E-Sign Navigation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/fix-esign-admin-nav.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add Admin Documents and E-Sign label
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old="<div class=\"side-link\" onclick=\"showAdminView('documents',this)\">▤ Documents</div>"
+          new="<div class=\"side-link\" onclick=\"showAdminView('documents',this)\">▤ Documents & E-Sign</div>"
+          if new in s:
+              print('Admin E-Sign navigation already correct.')
+          elif old in s:
+              s=s.replace(old,new,1)
+              p.write_text(s)
+              print('Admin E-Sign navigation patched.')
+          else:
+              raise SystemExit('Admin documents navigation marker not found')
+          PY
+      - name: Commit Admin E-Sign navigation fix
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix Admin Documents and E-Sign navigation"
+          git push

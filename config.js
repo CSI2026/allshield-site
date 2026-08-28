@@ -7,7 +7,7 @@ window.ALLSHIELD_CONFIG = {
 
 (()=>{
   const scripts=[
-    ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.022'],
+    ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.023'],
     ['allshieldBackofficeBuildRegistryLoader','./backoffice-build-registry-2026-08-28.js?v=2026.08.28.002'],
     ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011'],
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
@@ -21,7 +21,8 @@ window.ALLSHIELD_CONFIG = {
     ['allshieldOnboardingRouterLoader','./onboarding-router-2026-08-27.js?v=2026.08.27.012'],
     ['allshieldEsignAgreementsLoader','./esign-agreements-2026-08-28.js?v=2026.08.28.004'],
     ['allshieldOnboardingEsignBridgeLoader','./onboarding-esign-bridge-2026-08-28.js?v=2026.08.28.004'],
-    ['allshieldCareerLicenseNormalizerLoader','./career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013']
+    ['allshieldCareerLicenseNormalizerLoader','./career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'],
+    ['allshieldCareerApplicationDetailLoader','./career-application-detail-2026-08-28.js?v=2026.08.28.001']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

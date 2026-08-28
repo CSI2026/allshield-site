@@ -7,8 +7,9 @@ window.ALLSHIELD_BUILD_INFO={
   channel:'production',
   released_at:'2026-08-28',
   certification:{
-    ai_workforce_organization:'PENDING FINAL LIVE CERT',
+    ai_workforce_organization:'31/31 PASS',
     ai_workforce_learning:'PASS',
+    ai_workforce_database:'PASS',
     document_esign_cors:'14/14 PASS',
     dashboard_tile_routing:'31/31 PASS',
     dashboard_count_integrity:'PASS',
@@ -29,7 +30,9 @@ window.ALLSHIELD_BUILD_INFO={
     'Added Owner/Admin Assign Work, Scorecard & Learning, Rate & Teach Employee and named workforce views',
     'Preserved agent AI help by routing agent Live AI questions to the authorized Training Coach context',
     'Promoted ai-command-center Edge Function to version 3 with tracked work, role context, feedback and learning behavior',
-    'Added version-controlled AI workforce schema and roster migrations plus a permanent production workforce certification',
+    'Added version-controlled AI workforce schema, roster, backend Edge Function source and foreign-key indexes plus permanent production certification',
+    'Cleared all new AI-workforce unindexed foreign-key advisor findings; remaining database advisor items predate B033 and are outside this release',
+    'B033 named measurable learning AI workforce certification passed 31/31 on the live production domain',
     'Retained B032 E-Sign CORS recovery and prior dashboard, onboarding, Agent Operations and production behavior unchanged'
   ]
 };

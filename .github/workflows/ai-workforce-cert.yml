@@ -1,0 +1,28 @@
+name: Certify Named AI Workforce
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'phase16-ai-command-production.js'
+      - 'index.html'
+      - 'tests/owner-portal-contract.mjs'
+      - 'tests/ai-workforce-organization-cert.mjs'
+      - 'supabase/migrations/20260828222801_ai_workforce_learning_and_measurement.sql'
+      - 'supabase/migrations/20260828223234_ai_workforce_roster_seed.sql'
+      - '.github/workflows/ai-workforce-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Certify named measurable learning AI workforce
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/ai-workforce-organization-cert.mjs

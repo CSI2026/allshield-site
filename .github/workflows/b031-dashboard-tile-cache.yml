@@ -1,0 +1,35 @@
+name: Apply B031 Dashboard Tile Cache Versions
+on:
+  push:
+    paths:
+      - '.github/workflows/b031-dashboard-tile-cache.yml'
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update canonical dashboard script cache versions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old_owner='<script defer src="./phase16-owner-live-dashboard.js"></script>'
+          new_owner='<script defer src="./phase16-owner-live-dashboard.js?v=2026.08.28.003"></script>'
+          old_agent='<script defer src="./phase16-agent-live-essentials.js?v=B2026.08.22.012"></script>'
+          new_agent='<script defer src="./phase16-agent-live-essentials.js?v=2026.08.28.002"></script>'
+          if old_owner not in s and new_owner not in s: raise SystemExit('Owner dashboard loader not found')
+          if old_agent not in s and new_agent not in s: raise SystemExit('Agent dashboard loader not found')
+          s=s.replace(old_owner,new_owner).replace(old_agent,new_agent)
+          p.write_text(s)
+          PY
+      - name: Commit canonical cache boundary
+        run: |
+          git config user.name "CSI2026"
+          git config user.email "circlesolutionstx@gmail.com"
+          git add index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish B031 dashboard tile cache boundary"
+          git push

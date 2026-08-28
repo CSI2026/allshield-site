@@ -12,11 +12,12 @@ try{
   const homeText=await home.text();
   rec('Homepage HTTP',home.ok,`HTTP ${home.status}`);
   rec('Current Careers experience runtime deployed',cfgText.includes('careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010'),'Careers experience .010 loader present');
-  rec('Professional Careers video runtime deployed',cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'),'Professional video .011 loader present');
+  rec('Professional Careers video runtime deployed',cfgText.includes('careers-professional-video-live-2026-08-27.js?v=2026.08.27.012'),'Professional video .012 loader present');
   rec('Homepage has customer coverage CTA',/Explore Coverage/i.test(homeText),'Explore Coverage present in production HTML');
   rec('Careers remains in navigation',/Careers/i.test(homeText),'Careers text present in production HTML');
   rec('Home Join Our Team suppression is deployed',professionalText.includes('removeHomeRecruitingCTA')&&professionalText.includes('join our team|join the team'),'current recruiting CTA removal logic present');
   rec('Professional Careers video is forced to top',professionalText.includes('ensureVideo')&&professionalText.includes('canvas.insertBefore(sizzle,canvas.firstElementChild)'),'current top placement logic present');
+  rec('Public professional video badge is removed',!professionalText.includes("badge.textContent='Professional opportunity video'")&&professionalText.includes("copy.querySelectorAll('.career-live-badge').forEach(el=>el.remove())"),'public badge creation removed and cleanup retained');
   rec('Robot browser narration is disabled',experienceText.includes('speechSynthesis.cancel')&&experienceText.includes('[data-asz-voice]'),'browser TTS removal logic present');
   rec('Professional video route uses native player',routeText.includes('if(cfg.video_url)')&&routeText.includes('<video controls playsinline'),'native HTML5 video route present');
   rec('Professional runtime installs native video element',professionalText.includes("document.createElement('video')")&&professionalText.includes("video.setAttribute('src',VIDEO_URL)"),'first-party HTML5 player installed');

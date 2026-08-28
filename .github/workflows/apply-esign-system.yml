@@ -24,6 +24,7 @@ jobs:
           from pathlib import Path
           import re
 
+          # Production E-Sign release 2026.08.28.004
           # index.html: cache-bust Owner Signature and load production E-Sign runtime.
           p=Path('index.html'); s=p.read_text()
           s=s.replace('./owner-signature-management-2026-08-28.js?v=2026.08.28.003','./owner-signature-management-2026-08-28.js?v=2026.08.28.004')

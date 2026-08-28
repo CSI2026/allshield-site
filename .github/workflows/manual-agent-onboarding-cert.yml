@@ -1,0 +1,30 @@
+name: Certify Manual Agent Onboarding
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'manual-agent-onboarding-2026-08-28.js'
+      - 'supabase/functions/manage-team-user/index.ts'
+      - 'tests/manual-agent-onboarding-cert.mjs'
+      - '.github/workflows/manual-agent-onboarding-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify manual onboarding
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/manual-agent-onboarding-cert.mjs

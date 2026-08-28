@@ -8,12 +8,12 @@
 
   ownerViews.teamaccounts = `
   <div class="dashboard-head"><div><div class="kicker">REAL USER MANAGEMENT</div><h2>Create and onboard ALLSHIELD accounts.</h2><p>Manual onboarding captures the information needed when an agent comes from a referral, recruiter, event or another channel outside the Careers application.</p></div><button class="btn btn-primary" onclick="refreshTeamAccounts()">Refresh Team</button></div>
-  <div class="real-data-banner">LIVE SUPABASE DATA • Internal ALLSHIELD identity + real contact email + automated licensing route.</div>
+  <div class="real-data-banner">LIVE SUPABASE DATA • Internal ALLSHIELD identity + real invite email + automated licensing route.</div>
   <div class="bo-grid">
     <div class="bo-card"><h3>Create Team Account</h3><div class="team-form-grid">
       <div><label>First Name</label><input id="teamFirst" class="mini-input" autocomplete="off" oninput="syncManualCredentials()"></div>
       <div><label>Last Name</label><input id="teamLast" class="mini-input" autocomplete="off" oninput="syncManualCredentials()"></div>
-      <div><label>Personal / Contact Email</label><input id="teamEmail" type="email" class="mini-input" placeholder="agent@example.com"></div>
+      <div><label>Agent Email / Invite Email (Required)</label><input id="teamEmail" type="email" class="mini-input" placeholder="agent@example.com"><small style="display:block;margin-top:5px;color:#91a5ba">The onboarding invite and temporary login credentials are sent to this address.</small></div>
       <div><label>Phone</label><input id="teamPhone" type="tel" class="mini-input" placeholder="Optional"></div>
       <div><label>Username</label><input id="teamUsername" class="mini-input" readonly placeholder="First.Last"></div>
       <div><label>Temporary Password</label><input id="teamPassword" class="mini-input" readonly placeholder="Initials + year + AS"></div>
@@ -25,19 +25,19 @@
       <div><label>Department</label><select id="teamDepartment" class="mini-input"><option value="">None / Agent</option></select></div>
       <div><label>Resident State</label><input id="teamState" class="mini-input" maxlength="2" placeholder="TX"></div>
     </div>
-    <div class="row-actions"><button class="btn btn-primary" onclick="createRealTeamUser()">Create & Send Welcome</button></div>
+    <div class="row-actions"><button class="btn btn-primary" onclick="createRealTeamUser()">Create Account & Send Invite</button></div>
     <div id="teamCreateResult" class="publish-result"></div></div>
     <div class="bo-card"><h3>Manual Agent Rules</h3>
       <div class="requirement"><span>Username</span><span class="pill">First.Last</span></div>
       <div class="requirement"><span>Temporary password</span><span class="pill">Initials + Year + AS</span></div>
       <div class="requirement"><span>Internal identity</span><span class="reqgood">Created automatically</span></div>
-      <div class="requirement"><span>Real email</span><span class="reqgood">Used for welcome/contact</span></div>
+      <div class="requirement"><span>Invite email</span><span class="reqgood">Required for onboarding delivery</span></div>
       <div class="requirement"><span>Licensed agent</span><span class="reqgood">License verification route</span></div>
       <div class="requirement"><span>Not licensed</span><span class="reqgood">Pre-licensing route</span></div>
-      <div class="requirement"><span>Welcome sender</span><span class="reqgood">onboarding@allshieldinsurancegroup.com</span></div>
+      <div class="requirement"><span>Invite sender</span><span class="reqgood">onboarding@allshieldinsurancegroup.com</span></div>
     </div>
   </div>
-  <div class="bo-card" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:14px"><h3 style="margin:0">Team Accounts</h3><input id="teamSearch" class="mini-input" style="max-width:260px" placeholder="Search team..." oninput="filterTeamRows()"></div><div class="team-table-wrap"><table class="team-live-table"><thead><tr><th>Name</th><th>Username</th><th>Contact Email</th><th>Role</th><th>Status</th><th>State</th><th>Department</th><th>Actions</th></tr></thead><tbody id="teamAccountRows"><tr><td colspan="8">Loading live users…</td></tr></tbody></table></div></div>`;
+  <div class="bo-card" style="margin-top:18px"><div style="display:flex;justify-content:space-between;gap:15px;align-items:center;margin-bottom:14px"><h3 style="margin:0">Team Accounts</h3><input id="teamSearch" class="mini-input" style="max-width:260px" placeholder="Search team..." oninput="filterTeamRows()"></div><div class="team-table-wrap"><table class="team-live-table"><thead><tr><th>Name</th><th>Username</th><th>Invite Email</th><th>Role</th><th>Status</th><th>State</th><th>Department</th><th>Actions</th></tr></thead><tbody id="teamAccountRows"><tr><td colspan="8">Loading live users…</td></tr></tbody></table></div></div>`;
 
   window.syncManualCredentials = function(){
     const first = niceNamePart(document.getElementById('teamFirst')?.value);
@@ -71,7 +71,7 @@
       const licensing = document.getElementById('teamLicensing')?.value || '';
       const source = document.getElementById('teamSource')?.value.trim() || '';
       if (!first || !last) throw new Error('First name and last name are required.');
-      if (role === 'agent' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('A valid contact email is required for manual agent onboarding.');
+      if (role === 'agent' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('A valid Agent Email / Invite Email is required for manual agent onboarding.');
       if (role === 'agent' && !licensing) throw new Error('Select Licensed or Not Licensed.');
       if (role === 'agent' && !source) throw new Error('Enter the recruiting source for this manual onboarding.');
       const payload = {
@@ -91,12 +91,12 @@
       };
       const d = await allshieldManageTeamUser(payload);
       if (r) {
-        const emailLine = role === 'agent' ? `<br>Welcome email: <strong>${d.notification_sent ? 'SENT' : 'NOT SENT'}</strong>${d.notification_error ? ` — ${escManual(d.notification_error)}` : ''}` : '';
-        r.innerHTML = `<strong>Account created.</strong><br>Username: ${escManual(d.username)}<br>Temporary password: ${escManual(d.temp_password || payload.password)}<br>Internal login: ${escManual(d.internal_email || '')}${email ? `<br>Contact email: ${escManual(email)}` : ''}${d.onboarding_pathway ? `<br>Route: ${escManual(d.onboarding_pathway)}` : ''}${emailLine}`;
+        const emailLine = role === 'agent' ? `<br>Invite email: <strong>${d.notification_sent ? 'SENT' : 'NOT SENT'}</strong>${d.notification_error ? ` — ${escManual(d.notification_error)}` : ''}` : '';
+        r.innerHTML = `<strong>Account created.</strong><br>Username: ${escManual(d.username)}<br>Temporary password: ${escManual(d.temp_password || payload.password)}<br>Internal login: ${escManual(d.internal_email || '')}${email ? `<br>Invite email: ${escManual(email)}` : ''}${d.onboarding_pathway ? `<br>Route: ${escManual(d.onboarding_pathway)}` : ''}${emailLine}`;
         r.classList.add('show');
       }
       await refreshTeamAccounts();
-      toast(role === 'agent' && d.notification_sent ? 'Agent created and welcome email sent.' : 'ALLSHIELD account created.');
+      toast(role === 'agent' && d.notification_sent ? 'Agent created and onboarding invite sent.' : 'ALLSHIELD account created.');
     } catch(e) {
       if (r) { r.textContent = 'Error: ' + (e.message || e); r.classList.add('show'); }
     }

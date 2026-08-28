@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.27.007';
+const VERSION='2026.08.27.010';
 
 function injectStyles(){
   if(document.getElementById('allshieldCareersVideoExperience007')) return;
@@ -30,7 +30,7 @@ function injectStyles(){
   document.head.appendChild(s);
 }
 
-function removeHomeRecruitingCTA(){
+function removeLegacyHomeJoinCTA(){
   document.querySelectorAll('.shell .hero .mobile-join-team').forEach(el=>el.remove());
   document.querySelectorAll('.shell .hero .actions button,.shell .hero .actions a').forEach(el=>{
     const t=(el.textContent||'').trim().toLowerCase();
@@ -38,44 +38,12 @@ function removeHomeRecruitingCTA(){
   });
 }
 
-function ensureSizzleExists(){
-  const careers=document.getElementById('careersPage');
-  const canvas=careers?.querySelector('.career-canvas');
-  if(!careers||!canvas) return null;
-  let sizzle=careers.querySelector('.career-sizzle-placeholder');
-  if(sizzle) return sizzle;
-  sizzle=document.createElement('section');
-  sizzle.className='career-sizzle-placeholder';
-  sizzle.innerHTML=`<div class="wrap career-sizzle-card"><div><span class="career-eyebrow">START HERE • THE ALLSHIELD OPPORTUNITY</span><h2>See why ALLSHIELD is being built differently — in 3 minutes.</h2><p>Before you read the rest of the Careers page, watch the opportunity first. This section is linked directly to the ALLSHIELD Video Studio project and is reserved for the finished studio-produced recruiting video.</p></div><div class="career-sizzle-frame"><div><div class="career-sizzle-play">▶</div><strong>Why Join Our Team</strong><span>Professional video experience</span></div></div></div>`;
-  canvas.insertBefore(sizzle,canvas.firstElementChild);
-  return sizzle;
-}
-
-function moveSizzleToTop(){
-  const careers=document.getElementById('careersPage');
-  const canvas=careers?.querySelector('.career-canvas');
-  const sizzle=ensureSizzleExists();
-  if(!canvas||!sizzle) return;
-  sizzle.classList.add('career-sizzle-top');
-  if(canvas.firstElementChild!==sizzle) canvas.insertBefore(sizzle,canvas.firstElementChild);
-  const card=sizzle.querySelector('.career-sizzle-card');
-  const left=card?.firstElementChild;
-  if(left){
-    const eyebrow=left.querySelector('.career-eyebrow');const h=left.querySelector('h2');const p=left.querySelector('p');
-    if(eyebrow) eyebrow.textContent='START HERE • THE ALLSHIELD OPPORTUNITY';
-    if(h) h.textContent='See why ALLSHIELD is being built differently — in 3 minutes.';
-    if(p) p.textContent='Before you read the rest of the Careers page, watch the opportunity first. This section is linked directly to the ALLSHIELD Video Studio project and is reserved for the finished studio-produced recruiting video.';
-  }
-}
-
-function removeRobotNarrationLabels(){
-  const btn=document.querySelector('#careersPage .career-sizzle-final-button');
-  if(btn){btn.querySelectorAll('span').forEach(el=>{const t=(el.textContent||'').trim();if(/Narrated/i.test(t)) el.textContent=t.replace(/\s*•?\s*Narrated\s*•?/i,' • Cinematic visual preview • ');});}
-  document.querySelector('#careerSizzlePlayer [data-asz-voice]')?.remove();
+function passiveInit(){
+  injectStyles();
+  removeLegacyHomeJoinCTA();
   try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch{}
+  window.ALLSHIELD_CAREERS_VIDEO_EXPERIENCE_VERSION=VERSION;
 }
 
-function clean(){injectStyles();removeHomeRecruitingCTA();ensureSizzleExists();moveSizzleToTop();removeRobotNarrationLabels();window.ALLSHIELD_CAREERS_VIDEO_EXPERIENCE_VERSION=VERSION;}
-function install(){clean();const obs=new MutationObserver(()=>clean());obs.observe(document.documentElement,{subtree:true,childList:true});setInterval(()=>{if(document.visibilityState==='visible')clean();},2500);}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',passiveInit,{once:true});else passiveInit();
 })();

@@ -1,0 +1,29 @@
+name: Certify Owner Signature Branding Regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'owner-signature-management-2026-08-28.js'
+      - 'tests/owner-signature-branding-regression-cert.mjs'
+      - '.github/workflows/owner-signature-branding-regression-cert.yml'
+      - '.github/workflows/apply-owner-signature-branding.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chrome support
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify owner signature branding and tab regression
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/owner-signature-branding-regression-cert.mjs

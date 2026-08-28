@@ -1,12 +1,16 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.28.033',
-  label:'Production B033 — Named Measurable Learning AI Workforce',
-  completion_release:'2026.08.28.016',
+  current_build:'B2026.08.28.034',
+  label:'Production B034 — Avery AI Chief of Staff Live Execution',
+  completion_release:'2026.08.28.017',
   channel:'production',
   released_at:'2026-08-28',
   certification:{
+    avery_chief_of_staff:'LIVE WORK PASS',
+    avery_capabilities:'8/8 PASS',
+    avery_runtime_contract:'PENDING FINAL CI',
+    avery_execution_engine:'FALLBACK ACTIVE',
     ai_workforce_organization:'31/31 PASS',
     ai_workforce_learning:'PASS',
     ai_workforce_database:'PASS',
@@ -22,17 +26,17 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
-    'Named all ten active AI employees and assigned each a permanent job title, department, reporting line and measurable job charter',
-    'Established Avery as AI Chief of Staff and Lexi as Academy leadership over Taylor, Tessa and Claire',
-    'Added KPI charters, tracked AI jobs, run histories, completion rates, ratings, acceptance rates, lesson usage and overall performance scoring',
-    'Added supervised learning from human-approved feedback so AI employees can reuse approved lessons on later relevant work',
-    'Kept permission changes, regulated actions, compensation changes, signatures, destructive actions and external publishing behind human controls',
-    'Added Owner/Admin Assign Work, Scorecard & Learning, Rate & Teach Employee and named workforce views',
-    'Preserved agent AI help by routing agent Live AI questions to the authorized Training Coach context',
-    'Promoted ai-command-center Edge Function to version 3 with tracked work, role context, feedback and learning behavior',
-    'Added version-controlled AI workforce schema, roster, backend Edge Function source and foreign-key indexes plus permanent production certification',
-    'Cleared all new AI-workforce unindexed foreign-key advisor findings; remaining database advisor items predate B033 and are outside this release',
-    'B033 named measurable learning AI workforce certification passed 31/31 on the live production domain',
-    'Retained B032 E-Sign CORS recovery and prior dashboard, onboarding, Agent Operations and production behavior unchanged'
+    'Certified Avery as the first AI employee for actual production work rather than role-definition only',
+    'Added eight explicit Avery capabilities covering live cross-department reading, company scanning, priority triage, AI delegation, unresolved-work tracking, executive briefing, supervised learning and authorization boundaries',
+    'Added capability and certification registries so each AI employee can be proven one-by-one before being considered fully operational',
+    'Added parent/child AI jobs, AI-assigned work, priorities, due dates, sources and resolution notes for measurable delegation and follow-up',
+    'Deployed the dedicated JWT-protected ai-avery-chief-of-staff execution engine and routed Owner/Admin Avery actions to it',
+    'Avery completed a real live production Chief of Staff run and created tracked follow-up assignments for Olivia, Maya and Victor',
+    'Avery identified nine incomplete onboarding steps, twelve disconnected social connections and a disconnected YouTube channel from live production data during certification',
+    'Added duplicate suppression so repeated Avery scans do not create duplicate open assignments for the same issue',
+    'The production OPENAI_API_KEY is currently not configured; Avery therefore uses the grounded ALLSHIELD deterministic Chief of Staff engine so core work remains operational now',
+    'OpenAI model enrichment is optional and will enhance freeform language when configured, but it is no longer a single point of failure for Avery',
+    'Preserved human approval boundaries for account changes, compensation, signatures, regulated content, destructive actions and external publishing',
+    'Retained B033 named workforce, B032 E-Sign CORS recovery and prior dashboard, onboarding, Agent Operations and production behavior unchanged'
   ]
 };

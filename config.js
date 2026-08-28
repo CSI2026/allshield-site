@@ -7,6 +7,8 @@ window.ALLSHIELD_CONFIG = {
 
 (()=>{
   const scripts=[
+    ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.022'],
+    ['allshieldBackofficeBuildRegistryLoader','./backoffice-build-registry-2026-08-28.js?v=2026.08.28.001'],
     ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011'],
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
     ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011'],

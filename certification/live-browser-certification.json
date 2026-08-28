@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-26T19:52:11.294Z",
+  "completed_at": "2026-08-28T18:48:10.300Z",
   "status": "PASS",
   "passed": 46,
   "total": 46,
@@ -24,7 +24,7 @@
     {
       "name": "23 Owner handlers registered",
       "ok": true,
-      "detail": "registered=23"
+      "detail": "registered=29"
     },
     {
       "name": "Owner dashboard",
@@ -49,7 +49,7 @@
     {
       "name": "Owner teamaccounts",
       "ok": true,
-      "detail": "TEAM ACCOUNTS | People, roles and reporting lines. |  | Create and manage live Allshield user accounts, departments and manager assignments. |  | LIVE SUPABASE "
+      "detail": "TEAM ACCOUNTS | Agent accounts and master files. |  | Create an agent with only the information you know. ALLSHIELD generates the secure account identity be"
     },
     {
       "name": "Owner departments",
@@ -209,22 +209,22 @@
     {
       "name": "Responsive desktop",
       "ok": true,
-      "detail": "viewport=1440x1000; scrollWidth=1440; menu=false; nav=true"
+      "detail": "viewport=1440x1000; scrollWidth=1440; drawer=false; appbar=false; mode=desktop; nav=true"
     },
     {
       "name": "Responsive tablet",
       "ok": true,
-      "detail": "viewport=1024x900; scrollWidth=1024; menu=true; nav=true"
+      "detail": "viewport=1024x900; scrollWidth=1024; drawer=true; appbar=false; mode=tablet drawer; nav=true"
     },
     {
       "name": "Responsive tablet-portrait",
       "ok": true,
-      "detail": "viewport=768x1024; scrollWidth=768; menu=true; nav=true"
+      "detail": "viewport=768x1024; scrollWidth=768; drawer=false; appbar=true; mode=mobile app bar; nav=true"
     },
     {
       "name": "Responsive mobile",
       "ok": true,
-      "detail": "viewport=390x844; scrollWidth=390; menu=true; nav=true"
+      "detail": "viewport=390x844; scrollWidth=390; drawer=false; appbar=true; mode=mobile app bar; nav=true"
     },
     {
       "name": "Browser page errors",

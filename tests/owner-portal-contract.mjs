@@ -25,7 +25,7 @@ const featureMarkers={
   agentOps:['TEAM ACCOUNTS','Create Agent Account','Generate','Create Account & Send Invite','MASTER AGENT PROFILE','Admin-Only Agent Communications','AGENT EMAIL COMMUNICATIONS','ONE AGENT • ONE MASTER FILE','registerAllshieldView(\'owner\',\'teamaccounts\'','registerAllshieldView(\'owner\',\'agentprofile\'','registerAllshieldView(\'owner\',\'agentcommunications\''],
   back:['Add / Update Permission Override','Organization and promotion ladder.','Record Promotion'],
   academy:['STATE LICENSING MATRIX','All 50 states.','US_STATES'],
-  ai:['Run Company Scan','Ask Live AI','Recent AI Activity','Video Editor AI','Marketing AI','Operations AI','Performance AI','Compliance AI','ai-command-center','allshieldAICompanyScan','allshieldAIOpenWorkspace']
+  ai:['AI WORKFORCE COMMAND CENTER','Run Company Scan','Ask Live AI','Recent AI Work','Assign Work','Scorecard & Learning','Rate & Teach Employee','AI Chief of Staff','ai-command-center','allshieldAICompanyScan','allshieldAIOpenWorkspace','allshieldAIReviewLastWork','allshieldAIEmployeeDetail']
 };
 for(const m of featureMarkers.core) if(!core.includes(m)) fail(`Owner production feature missing: ${m}`);
 for(const m of featureMarkers.agentOps) if(!agentOps.includes(m)) fail(`Agent Operations feature missing: ${m}`);

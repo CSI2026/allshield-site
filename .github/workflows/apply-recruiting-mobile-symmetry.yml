@@ -1,0 +1,44 @@
+name: Apply Recruiting And Mobile Symmetry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'mobile-symmetry-fix-2026-08-28.js'
+      - '.github/workflows/apply-recruiting-mobile-symmetry.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Add recruiting and symmetry runtime before mobile navigation
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          marker='<script defer src="./responsive-ui.js?v=2026.08.27.011"></script>'
+          block='''<script defer src="./recruiting-platform.js?v=2026.08.28.001"></script>\n<script defer src="./mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001"></script>\n'''
+          if 'recruiting-platform.js?v=2026.08.28.001' not in s:
+              if marker not in s:
+                  raise SystemExit('responsive-ui marker not found')
+              s=s.replace(marker,block+marker)
+          elif 'mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001' not in s:
+              s=s.replace(marker,'<script defer src="./mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001"></script>\n'+marker)
+          p.write_text(s)
+          PY
+      - name: Commit production wiring
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add index.html
+          git commit -m "Wire Recruiting & Leads and centered mobile layout"
+          git push

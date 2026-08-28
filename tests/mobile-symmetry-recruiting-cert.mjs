@@ -7,10 +7,10 @@ try{
   let html='';
   for(let i=0;i<50;i++){
     html=await fetch(`${BASE}/?mobilefix=${Date.now()}`,{cache:'no-store'}).then(r=>r.text());
-    if(html.includes('recruiting-platform.js?v=2026.08.28.001')&&html.includes('mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001'))break;
+    if(html.includes('recruiting-platform.js?v=2026.08.28.002')&&html.includes('mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001'))break;
     await sleep(2000);
   }
-  rec('Production index loads Recruiting & Leads module',html.includes('recruiting-platform.js?v=2026.08.28.001'),'recruiting-platform wired before responsive UI');
+  rec('Production index loads Recruiting & Leads module',html.includes('recruiting-platform.js?v=2026.08.28.002'),'recruiting-platform .002 wired before responsive UI');
   rec('Production index loads mobile symmetry release',html.includes('mobile-symmetry-fix-2026-08-28.js?v=2026.08.28.001'),'mobile symmetry .001');
 
   browser=await chromium.launch({headless:true,channel:'chrome'});

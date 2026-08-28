@@ -1,0 +1,32 @@
+name: Certify Dashboard Tile Routing
+on:
+  push:
+    paths:
+      - 'phase16-owner-live-dashboard.js'
+      - 'phase16-agent-live-essentials.js'
+      - 'agent-operations-core-2026-08-28.js'
+      - 'supabase/functions/owner-dashboard/index.ts'
+      - 'supabase/functions/agent-operations/index.ts'
+      - 'index.html'
+      - 'tests/dashboard-tile-routing-cert.mjs'
+      - '.github/workflows/dashboard-tile-routing-cert.yml'
+      - 'build-info.js'
+      - 'config.js'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Certify Owner Admin Agent dashboard tiles
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/dashboard-tile-routing-cert.mjs

@@ -1,4 +1,4 @@
-name: Certify Manual Agent Onboarding
+name: Certify Agent Operations Core
 
 on:
   push:
@@ -6,10 +6,12 @@ on:
     paths:
       - 'index.html'
       - 'config.js'
+      - 'agent-operations-core-2026-08-28.js'
+      - 'phase16-live-backoffice.js'
       - 'onboarding-router-2026-08-27.js'
-      - 'team-accounts-invite-override-2026-08-28.js'
-      - 'manual-agent-onboarding-2026-08-28.js'
       - 'supabase/functions/manage-team-user/index.ts'
+      - 'supabase/functions/agent-operations/index.ts'
+      - 'supabase/functions/ionos-mail/index.ts'
       - 'tests/manual-agent-onboarding-cert.mjs'
       - '.github/workflows/manual-agent-onboarding-cert.yml'
   workflow_dispatch:
@@ -20,6 +22,7 @@ permissions:
 jobs:
   certify:
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +32,5 @@ jobs:
         run: |
           npm install --no-save playwright@1.55.0
           npx playwright install --with-deps chromium
-      - name: Certify manual onboarding
+      - name: Certify Agent Operations Core
         run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/manual-agent-onboarding-cert.mjs

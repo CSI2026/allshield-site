@@ -301,8 +301,6 @@ async function enhance(main,role){
   main.dataset.liveBackofficeBusy='1';
   try{
     if(role==='admin'){
-      if(k==='ALLSHIELD OPERATIONS') return await renderAdminDashboard(main);
-      if(k==='TEAM & ROLES') return await renderTeam(main);
       if(k==='ONBOARDING CONTROL') return await renderOnboarding(main);
       if(k==='COURSE BUILDER') return await renderCourses(main);
       if(k==='TESTS & SCORING') return await renderTests(main);
@@ -313,7 +311,6 @@ async function enhance(main,role){
 
     if(role==='owner'){
       if(k==='ROLES & PERMISSIONS') return await renderPermissions(main);
-      if(k==='TEAM & ROLES' || k==='TEAM ACCOUNTS') return await renderTeam(main);
       if(/ONBOARDING/.test(k)) return await renderOnboarding(main);
       if(/TEST|SCORING/.test(k)) return await renderTests(main);
       if(/LICENSING/.test(k)) return await renderLicensing(main);
@@ -337,13 +334,10 @@ function start(){
   const adminMain=()=>document.getElementById('adminMain');
   const ownerMain=()=>document.getElementById('ownerMain');
 
-  window.registerAllshieldView('admin','dashboard',()=>renderAdminDashboard(adminMain()));
-  window.registerAllshieldView('admin','team',()=>renderTeam(adminMain()));
   window.registerAllshieldView('admin','hierarchy',()=>renderPromotions(adminMain()));
   window.registerAllshieldView('admin','documents',()=>renderDocuments(adminMain()));
 
   window.registerAllshieldView('owner','permissions',()=>renderPermissions(ownerMain()));
-  window.registerAllshieldView('owner','teamaccounts',()=>renderTeam(ownerMain()));
   window.registerAllshieldView('owner','hierarchy',()=>renderPromotions(ownerMain()));
 
   console.log('ALLSHIELD live backoffice canonical views registered');

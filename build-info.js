@@ -7,12 +7,12 @@ window.ALLSHIELD_BUILD_INFO={
   channel:'production',
   released_at:'2026-08-28',
   certification:{
-    document_esign_cors:'PENDING FINAL B032 GATE',
+    document_esign_cors:'14/14 PASS',
     dashboard_tile_routing:'31/31 PASS',
     dashboard_count_integrity:'PASS',
     agent_operations:'61/61 PASS',
     onboarding:'31/31 PASS',
-    esign:'PENDING FINAL B032 GATE',
+    esign:'28/28 PASS',
     careers_professional_video:'PASS',
     pages:'PASS',
     owner_portal:'PASS',
@@ -25,6 +25,7 @@ window.ALLSHIELD_BUILD_INFO={
     'Promoted document-esign Edge Function to version 2 and added no-store response handling',
     'Added the canonical document-esign Edge Function source to the repository so production backend behavior is version controlled',
     'Added a permanent browser CORS certification covering preflight, required headers, POST/OPTIONS methods, endpoint reachability and CORS on error responses',
+    'B032 browser CORS certification passed 14/14 and existing production E-Sign certification passed 28/28',
     'Retained B031 cross-portal dashboard tile routing and B030 count-integrity behavior unchanged'
   ]
 };

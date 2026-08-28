@@ -1,18 +1,16 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.27.011';
+const VERSION='2026.08.27.012';
 const VIDEO_URL='https://allshieldinsurancegroup.com/assets/video/allshield-careers-built-around-the-customer.mp4';
 
 function injectStyles(){
-  if(document.getElementById('allshieldProfessionalCareersVideo011'))return;
+  if(document.getElementById('allshieldProfessionalCareersVideo012'))return;
   const s=document.createElement('style');
-  s.id='allshieldProfessionalCareersVideo011';
+  s.id='allshieldProfessionalCareersVideo012';
   s.textContent=`
     #careersPage .career-sizzle-frame{padding:0!important;background:#000!important;border-color:rgba(112,195,251,.22)!important;overflow:hidden!important;box-shadow:0 24px 60px rgba(0,0,0,.34)!important}
     #careersPage .career-sizzle-frame video{display:block!important;width:100%!important;height:100%!important;aspect-ratio:16/9!important;object-fit:contain!important;background:#000!important;border-radius:inherit!important}
     #careersPage .career-sizzle-top .career-sizzle-card{align-items:center!important}
-    #careersPage .career-live-badge{display:inline-flex;align-items:center;gap:7px;margin-top:14px;padding:7px 11px;border-radius:999px;background:rgba(55,170,111,.10);border:1px solid rgba(86,218,151,.22);color:#9fe3bf;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
-    #careersPage .career-live-badge:before{content:'';width:7px;height:7px;border-radius:50%;background:#66dda0;box-shadow:0 0 12px rgba(102,221,160,.65)}
     @media(max-width:820px){#careersPage .career-sizzle-frame{min-height:0!important;aspect-ratio:16/9!important}#careersPage .career-sizzle-frame video{min-height:0!important}}
   `;
   document.head.appendChild(s);
@@ -36,7 +34,7 @@ function ensureVideo(){
     setText(copy.querySelector('.career-eyebrow'),'WATCH FIRST • THE ALLSHIELD OPPORTUNITY');
     setText(copy.querySelector('h2'),'See why ALLSHIELD is built differently.');
     setText(copy.querySelector('p'),'Before you explore the rest of the Careers page, watch how ALLSHIELD is building a customer-first system for licensed agents and people preparing to become licensed.');
-    if(!copy.querySelector('.career-live-badge')){const badge=document.createElement('div');badge.className='career-live-badge';badge.textContent='Professional opportunity video';copy.appendChild(badge)}
+    copy.querySelectorAll('.career-live-badge').forEach(el=>el.remove());
   }
   const frame=sizzle.querySelector('.career-sizzle-frame');
   if(!frame)return false;
@@ -66,9 +64,9 @@ function install(){
   injectStyles();removeHomeRecruitingCTA();ensureVideo();polishOwnerStudio();
   window.ALLSHIELD_CAREERS_PRO_VIDEO_VERSION=VERSION;
   const original=window.openCareersPage;
-  if(typeof original==='function'&&!original.__allshield011){
+  if(typeof original==='function'&&!original.__allshield012){
     const wrapped=function(...args){const out=original.apply(this,args);ensureVideo();return out};
-    wrapped.__allshield011=true;window.openCareersPage=wrapped;
+    wrapped.__allshield012=true;window.openCareersPage=wrapped;
   }
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();

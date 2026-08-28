@@ -1,5 +1,5 @@
 (() => {
-  if (!window.ownerViews) return;
+  if (typeof ownerViews === 'undefined') return;
 
   const year = () => new Date().getFullYear();
   const cleanNamePart = (v) => String(v || '').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '').slice(0, 20);

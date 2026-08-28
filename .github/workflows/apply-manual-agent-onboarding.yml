@@ -1,0 +1,42 @@
+name: Apply Manual Agent Onboarding
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-manual-agent-onboarding.yml'
+      - 'manual-agent-onboarding-2026-08-28.js'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Load manual onboarding module
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          tag='<script defer src="./manual-agent-onboarding-2026-08-28.js?v=2026.08.28.008"></script>'
+          if tag not in s:
+              anchor='<script defer src="./responsive-ui.js?v=2026.08.27.011"></script>'
+              if anchor not in s:
+                  raise SystemExit('responsive-ui loader anchor not found')
+              s=s.replace(anchor,tag+'\n'+anchor,1)
+              p.write_text(s)
+          PY
+      - name: Commit loader
+        run: |
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name "allshield-build-bot"
+          git config user.email "allshield-build-bot@users.noreply.github.com"
+          git add index.html
+          git commit -m "Load complete manual agent onboarding"
+          git push

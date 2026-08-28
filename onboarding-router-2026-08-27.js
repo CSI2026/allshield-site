@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.27.012';
+const VERSION='2026.08.28.013';
 const STATE_LABELS={
   TX:'Texas · General Lines Life, Accident & Health / HMO',
   FL:'Florida · Health & Life',
@@ -205,7 +205,20 @@ function registerViews(){
   window.registerAllshieldView('admin','licensing',main=>renderAdminOnboarding(main));
   window.registerAllshieldView('owner','onboarding',main=>renderAdminOnboarding(main));
   window.registerAllshieldView('owner','licensing',main=>renderAdminOnboarding(main));
-  window.registerAllshieldView('owner','teamaccounts',main=>renderSimpleTeam(main));
+  window.registerAllshieldView('owner','teamaccounts',main=>{
+    const current=(typeof ownerViews!=='undefined' && ownerViews.teamaccounts)||'';
+    if(current && current.includes('Agent Email / Invite Email (Required)')){
+      main.innerHTML=current;
+      setTimeout(()=>{
+        try{ if(typeof loadTeamDepartments==='function') loadTeamDepartments(); }catch{}
+        try{ window.syncManualCredentials?.(); }catch{}
+        try{ window.syncManualRoleFields?.(); }catch{}
+        try{ window.refreshTeamAccounts?.(); }catch{}
+      },0);
+      return;
+    }
+    main.innerHTML='<div class=\"bo-card\"><h3>Team Accounts is updating</h3><p>The current invite-email onboarding form has not loaded yet. Reload the portal once.</p></div>';
+  });
   window.ALLSHIELD_ONBOARDING_ROUTER_VERSION=VERSION;
   return true;
 }

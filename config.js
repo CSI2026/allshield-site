@@ -15,7 +15,8 @@ window.ALLSHIELD_CONFIG = {
     ['allshieldVideoStudioStabilityLoader','./video-studio-stability-2026-08-27.js?v=2026.08.27.003'],
     ['allshieldMobileCareerDomainFixLoader','./mobile-career-domain-fix-2026-08-27.js?v=2026.08.27.006'],
     ['allshieldCareersVideoExperienceLoader','./careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010'],
-    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.011']
+    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.011'],
+    ['allshieldOnboardingRouterLoader','./onboarding-router-2026-08-27.js?v=2026.08.27.012']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

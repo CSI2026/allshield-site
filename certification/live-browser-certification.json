@@ -1,9 +1,9 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-28T18:48:10.300Z",
-  "status": "PASS",
-  "passed": 46,
+  "completed_at": "2026-08-28T22:32:49.589Z",
+  "status": "FAIL",
+  "passed": 43,
   "total": 46,
   "checks": [
     {
@@ -24,7 +24,7 @@
     {
       "name": "23 Owner handlers registered",
       "ok": true,
-      "detail": "registered=29"
+      "detail": "registered=30"
     },
     {
       "name": "Owner dashboard",
@@ -33,12 +33,12 @@
     },
     {
       "name": "Owner ai",
-      "ok": true,
-      "detail": "AI COMMAND CENTER | Live AI across Allshield. |  | Authenticated specialists read current authorized Allshield records, analyze what is happening now, and r"
+      "ok": false,
+      "detail": "AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a"
     },
     {
       "name": "Owner ai revisit",
-      "ok": true,
+      "ok": false,
       "detail": "tab rebuilds after route change"
     },
     {
@@ -193,8 +193,8 @@
     },
     {
       "name": "Live AI Command Center controls",
-      "ok": true,
-      "detail": "all live AI controls present"
+      "ok": false,
+      "detail": "Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity"
     },
     {
       "name": "AI Company Scan interaction",
@@ -237,5 +237,9 @@
       "detail": "none"
     }
   ],
-  "failures": []
+  "failures": [
+    "Owner ai: AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a",
+    "Owner ai revisit: tab rebuilds after route change",
+    "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity"
+  ]
 }

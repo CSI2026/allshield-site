@@ -7,15 +7,15 @@ window.ALLSHIELD_CONFIG = {
 
 (()=>{
   const scripts=[
+    ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.08.27.011'],
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
     ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011'],
     ['allshieldSocialOAuthPopupLoader','./social-oauth-popup-return-2026-08-26.js?v=2026.08.26.012'],
     ['allshieldSocialConnectGuardLoader','./social-connect-guard-2026-08-26.js?v=2026.08.26.013'],
-    ['allshieldVideoSizzleRoutingLoader','./video-sizzle-routing-2026-08-27.js?v=2026.08.27.005'],
     ['allshieldVideoStudioStabilityLoader','./video-studio-stability-2026-08-27.js?v=2026.08.27.003'],
     ['allshieldMobileCareerDomainFixLoader','./mobile-career-domain-fix-2026-08-27.js?v=2026.08.27.006'],
     ['allshieldCareersVideoExperienceLoader','./careers-video-experience-fix-2026-08-27.js?v=2026.08.27.010'],
-    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.010']
+    ['allshieldCareersProfessionalVideoLiveLoader','./careers-professional-video-live-2026-08-27.js?v=2026.08.27.011']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

@@ -22,9 +22,9 @@ const expected=[
  ['content_manager','Claire','AI Content Quality Manager']
 ];
 async function text(path){const r=await fetch(`${BASE}${path}${path.includes('?')?'&':'?'}aicert=${Date.now()}`,{cache:'no-store',redirect:'follow'});if(!r.ok)throw new Error(`${path} HTTP ${r.status}`);return r.text();}
-async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.004')&&liveUi.includes("VERSION='2026.08.28.004'"))return;}catch{}await sleep(5000)}throw new Error('B033 AI workforce runtime .004 did not become live in time');}
+async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.005')&&liveUi.includes("VERSION='2026.08.28.005'"))return;}catch{}await sleep(5000)}throw new Error('Current AI workforce runtime .005 did not become live in time');}
 try{
-  rec('AI workforce UI source is version .004',ui.includes("VERSION='2026.08.28.004'"));
+  rec('AI workforce UI source is version .005',ui.includes("VERSION='2026.08.28.005'"));
   rec('Owner command center uses named workforce',ui.includes('AI WORKFORCE COMMAND CENTER')&&ui.includes('Your measurable AI workforce.'));
   rec('Specific work assignment UI exists',ui.includes('Assign Work')&&ui.includes('allshieldAISubmitAssignment'));
   rec('Scorecard UI exists',ui.includes('Scorecard & Learning')&&ui.includes('allshieldAIEmployeeDetail'));
@@ -32,6 +32,7 @@ try{
   rec('Supervised learning explanation exists',ui.includes('How the AI workforce improves')&&ui.includes('Employees cannot change their own permissions'));
   rec('Backward-compatible Live AI entry remains',ui.includes('Ask Live AI — Avery'));
   rec('Agent questions route to authorized Training Coach',ui.includes("role==='agent'?{action:'run',kind:'training_coach',assignment:q}"));
+  rec('Avery Owner/Admin calls route to dedicated Chief of Staff engine',ui.includes("target='ai-avery-chief-of-staff'"));
   rec('Owner contract tests new AI workforce markers',ownerContract.includes('AI WORKFORCE COMMAND CENTER')&&ownerContract.includes('Rate & Teach Employee'));
   rec('AI employee schema has job assignments and KPIs',schema.includes('job_assignment text')&&schema.includes('kpis jsonb')&&schema.includes('manager_employee_id'));
   rec('AI feedback table exists',schema.includes('create table if not exists public.ai_employee_feedback'));
@@ -44,7 +45,7 @@ try{
   rec('Academy team reports through Lexi',seed.includes("manager.code='licensing_curriculum_manager'")&&seed.includes("'training_coach','testing_analyst','content_manager'"));
   rec('Other department leads report through Avery',seed.includes("manager.code='command_center'")&&seed.includes("'operations_manager','performance_analyst','marketing_manager','video_editor','regulatory_monitor','licensing_curriculum_manager'"));
   await waitLive();
-  rec('B033 AI workforce runtime is live',true,'.004 loader and runtime live');
+  rec('Current AI workforce runtime is live',true,'.005 loader and runtime live');
   const pre=await fetch(FUNCTION,{method:'OPTIONS',headers:{Origin:BASE,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,x-client-info,apikey,content-type'}});
   const allow=(pre.headers.get('access-control-allow-headers')||'').toLowerCase();
   rec('AI command center CORS preflight succeeds',pre.ok,`HTTP ${pre.status}`);

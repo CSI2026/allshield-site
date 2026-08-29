@@ -2,5 +2,5 @@
   "name":"allshield-site",
   "private":true,
   "version":"1.0.0",
-  "scripts":{"test":"node tests/owner-portal-contract.mjs && node tests/youtube-studio-contract.mjs"}
+  "scripts":{"test":"node tests/owner-portal-contract.mjs && node tests/youtube-studio-contract.mjs && node tests/olivia-operations-manager-contract.mjs"}
 }

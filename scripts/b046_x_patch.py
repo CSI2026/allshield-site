@@ -1,0 +1,21 @@
+from pathlib import Path
+p=Path('supabase/functions/social-connection-admin/index.ts')
+s=p.read_text()
+def rep(old,new,label):
+    global s
+    if old not in s: raise SystemExit(f'missing patch target: {label}')
+    s=s.replace(old,new,1)
+rep("const BUILD='B2026.08.29.045';","const BUILD='B2026.08.29.046';",'build')
+rep("x:{label:'X',platforms:['x'],credential_names:['X_CLIENT_ID','X_CLIENT_SECRET'],fields:[['X_CLIENT_ID','X Client ID','text'],['X_CLIENT_SECRET','X Client Secret','password']],oauth:true,guide:['Create/select an X developer application.','Enable OAuth 2.0 authorization code with PKCE.','Add this callback URL.','Grant tweet.read, users.read, tweet.write and offline.access.','Save credentials and connect.']},",
+    "x:{label:'X',platforms:['x'],credential_names:['X_CLIENT_ID','X_CLIENT_SECRET'],fields:[['X_CLIENT_ID','X Client ID','text'],['X_CLIENT_SECRET','X Client Secret','password']],oauth:true,guide:['Create/select an X developer application with the API access needed for authored Posts and mentions.','Enable OAuth 2.0 authorization code with PKCE.','Add this callback URL.','Grant tweet.read, users.read, tweet.write and offline.access.','Save credentials and connect. Allshield will verify account identity, authored-post metrics and the mentions timeline before X is engagement/community-ready. Replies remain limited by X reply eligibility and Allshield low-risk community rules.']},",'x guide')
+old="else if(platform==='x'){const r=await fetch('https://api.x.com/2/users/me?user.fields=id,name,username',{headers:{Authorization:`Bearer ${t.access_token}`}});api=await r.json();identity_ok=r.ok&&Boolean(api?.data?.id)}"
+new="else if(platform==='x'){const r=await fetch('https://api.x.com/2/users/me?user.fields=id,name,username',{headers:{Authorization:`Bearer ${t.access_token}`}});api=await r.json();const xId=api?.data?.id;identity_ok=r.ok&&Boolean(xId);if(identity_ok){const headers={Authorization:`Bearer ${t.access_token}`};const pr=await fetch(`https://api.x.com/2/users/${xId}/tweets?max_results=5&tweet.fields=created_at,public_metrics,conversation_id,referenced_tweets`,{headers});extra.engagement_status=pr.status;extra.engagement_probe_ok=pr.ok;const mr=await fetch(`https://api.x.com/2/users/${xId}/mentions?max_results=5&tweet.fields=created_at,public_metrics,conversation_id,referenced_tweets,author_id`,{headers});extra.mentions_status=mr.status;extra.mentions_probe_ok=mr.ok}}"
+rep(old,new,'x probes')
+rep("if(platform==='linkedin'&&cap.engagement_metrics_supported)engagement_ok=engagement_ok&&extra.engagement_probe_ok===true;",
+    "if(platform==='linkedin'&&cap.engagement_metrics_supported)engagement_ok=engagement_ok&&extra.engagement_probe_ok===true;if(platform==='x'&&cap.engagement_metrics_supported)engagement_ok=engagement_ok&&extra.engagement_probe_ok===true;",'x engagement gate')
+rep("const comments_read_ok=!cap.comment_read_supported||(cap.required_comment_scopes||[]).every((s:string)=>granted.includes(s));\n const comments_reply_ok=!cap.comment_reply_supported||(cap.required_comment_scopes||[]).every((s:string)=>granted.includes(s));",
+    "let comments_read_ok=!cap.comment_read_supported||(cap.required_comment_scopes||[]).every((s:string)=>granted.includes(s));\n if(platform==='x'&&cap.comment_read_supported)comments_read_ok=comments_read_ok&&extra.mentions_probe_ok===true;\n let comments_reply_ok=!cap.comment_reply_supported||(cap.required_comment_scopes||[]).every((s:string)=>granted.includes(s));\n if(platform==='x'&&cap.comment_reply_supported)comments_reply_ok=comments_reply_ok&&extra.mentions_probe_ok===true;",'x comment gates')
+p.write_text(s)
+ui=Path('social-connection-center.js');u=ui.read_text();u=u.replace("const VERSION='B2026.08.29.045';","const VERSION='B2026.08.29.046';",1);ui.write_text(u)
+idx=Path('index.html');x=idx.read_text().replace('social-connection-center.js?v=B2026.08.29.045','social-connection-center.js?v=B2026.08.29.046');idx.write_text(x)
+bi=Path('build-info.js');b=bi.read_text();b=b.replace("current_build:'B2026.08.29.045'","current_build:'B2026.08.29.046'",1).replace("label:'Production B045 — Professional Social Provider Verification — Certified'","label:'B046 Candidate — X Professional Engagement Verification'",1);bi.write_text(b)

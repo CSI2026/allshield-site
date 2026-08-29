@@ -1,10 +1,10 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-28T22:32:49.589Z",
+  "completed_at": "2026-08-29T07:23:58.012Z",
   "status": "FAIL",
-  "passed": 43,
-  "total": 46,
+  "passed": 35,
+  "total": 39,
   "checks": [
     {
       "name": "Live AI responsive source deployed",
@@ -197,49 +197,15 @@
       "detail": "Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity"
     },
     {
-      "name": "AI Company Scan interaction",
-      "ok": true,
-      "detail": "company scan invokes secured AI command path and renders output"
-    },
-    {
-      "name": "AI Ask interaction",
-      "ok": true,
-      "detail": "live question invokes secured AI command path and renders output"
-    },
-    {
-      "name": "Responsive desktop",
-      "ok": true,
-      "detail": "viewport=1440x1000; scrollWidth=1440; drawer=false; appbar=false; mode=desktop; nav=true"
-    },
-    {
-      "name": "Responsive tablet",
-      "ok": true,
-      "detail": "viewport=1024x900; scrollWidth=1024; drawer=true; appbar=false; mode=tablet drawer; nav=true"
-    },
-    {
-      "name": "Responsive tablet-portrait",
-      "ok": true,
-      "detail": "viewport=768x1024; scrollWidth=768; drawer=false; appbar=true; mode=mobile app bar; nav=true"
-    },
-    {
-      "name": "Responsive mobile",
-      "ok": true,
-      "detail": "viewport=390x844; scrollWidth=390; drawer=false; appbar=true; mode=mobile app bar; nav=true"
-    },
-    {
-      "name": "Browser page errors",
-      "ok": true,
-      "detail": "none"
-    },
-    {
-      "name": "Required JS/CSS resource failures",
-      "ok": true,
-      "detail": "none"
+      "name": "Certification execution",
+      "ok": false,
+      "detail": "page.waitForFunction: Timeout 30000ms exceeded.\n    at /home/runner/work/allshield-site/allshield-site/tests/live-browser-cert.mjs:19:567"
     }
   ],
   "failures": [
     "Owner ai: AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a",
     "Owner ai revisit: tab rebuilds after route change",
-    "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity"
+    "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity",
+    "Certification execution: page.waitForFunction: Timeout 30000ms exceeded.\n    at /home/runner/work/allshield-site/allshield-site/tests/live-browser-cert.mjs:19:567"
   ]
 }

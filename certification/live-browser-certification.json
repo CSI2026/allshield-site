@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-29T14:02:51.475Z",
+  "completed_at": "2026-08-29T14:36:30.320Z",
   "status": "FAIL",
   "passed": 35,
   "total": 39,

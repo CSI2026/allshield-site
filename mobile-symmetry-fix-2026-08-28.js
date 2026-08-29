@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.29.002';
+const VERSION='2026.08.28.001';
 function install(){
   if(document.getElementById('allshieldMobileSymmetry001'))return;
   const s=document.createElement('style');
@@ -139,15 +139,5 @@ function install(){
   document.head.appendChild(s);
   window.ALLSHIELD_MOBILE_SYMMETRY_VERSION=VERSION;
 }
-function loadUniversalCompensation(){
-  if(document.querySelector('script[data-allshield-universal-comp]'))return;
-  const s=document.createElement('script');
-  s.src='./universal-compensation-platform.js?v=B2026.08.29.040';
-  s.defer=true;
-  s.dataset.allshieldUniversalComp='true';
-  s.onerror=()=>console.error('Universal compensation platform failed to load.');
-  document.body.appendChild(s);
-}
-function start(){install();loadUniversalCompensation();}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();

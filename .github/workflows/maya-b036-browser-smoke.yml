@@ -24,7 +24,7 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Verify live Maya runtime and browser health
         run: |
-          cat > /tmp/maya-browser.mjs <<'JS'
+          cat > maya-browser-smoke.mjs <<'JS'
           import { chromium } from 'playwright';
           const BASE='https://allshieldinsurancegroup.com';
           async function txt(path){const r=await fetch(BASE+path+(path.includes('?')?'&':'?')+'maya='+Date.now(),{cache:'no-store',redirect:'follow'});if(!r.ok)throw new Error(path+' HTTP '+r.status);return r.text()}
@@ -48,4 +48,4 @@ jobs:
           } finally { await browser.close(); }
           console.log('MAYA_B036_BROWSER_SMOKE=PASS');
           JS
-          node /tmp/maya-browser.mjs
+          node maya-browser-smoke.mjs

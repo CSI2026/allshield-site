@@ -1,0 +1,33 @@
+name: B045 Engagement Verification Gate
+on:
+  push:
+    branches: [social-professional-b045]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-professional-b045
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Apply engagement patch
+        run: python3 scripts/b045_engagement_patch.py
+      - name: Run exact B045 and platform regressions
+        run: |
+          node --check social-connection-center.js
+          node tests/social-professional-b045-contract.mjs
+          deno check --node-modules-dir=auto supabase/functions/social-connection-admin/index.ts
+          npm test
+      - name: Commit clean B045 engagement candidate
+        run: |
+          rm -f .github/workflows/b045-engagement-gate.yml scripts/b045_engagement_patch.py
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Harden B045 professional engagement verification'
+          git push origin social-professional-b045

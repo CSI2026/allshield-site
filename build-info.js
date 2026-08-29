@@ -2,13 +2,16 @@ window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
   current_build:'B2026.08.29.046',
-  label:'B046 Candidate — X Professional Engagement Verification',
+  label:'Production B046 — X Professional Engagement Verification — Certified',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
     social_connection_center:'PASS',
     social_professional_provider_verification:'PASS',
+    x_professional_engagement_verification:'PASS',
+    x_mentions_readiness_gate:'PASS',
+    x_reply_permission_gate:'PASS',
     social_engagement_scope_model:'PASS',
     linkedin_company_page_verification:'PASS',
     linkedin_engagement_api_probe:'PASS',
@@ -81,6 +84,7 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Added X professional readiness checks for authenticated identity, authored-post public metrics, mentions access and reply permissions; X remains fail-closed until a real connected account passes those provider API probes',
     'Hardened professional social readiness so LinkedIn requires a verified Company Page plus organization engagement API access, and YouTube requires a verified channel plus a successful YouTube Analytics API probe before engagement readiness can pass',
     'Separated engagement OAuth requirements from publishing and comment scopes so each capability is verified independently and fails closed when provider access is incomplete',
     'Added a dedicated Owner/Admin Social Connection Center with secure provider credential entry, OAuth launch, account identity verification, token-health verification and professional capability checks before Maya or Victor can treat an account as operational',

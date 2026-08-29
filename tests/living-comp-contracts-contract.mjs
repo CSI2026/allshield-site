@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 const migration=fs.readFileSync('supabase/migrations/20260829_living_compensation_contracts_b041.sql','utf8');
+const immutability=fs.readFileSync('supabase/migrations/20260829_living_compensation_contract_immutability_b041.sql','utf8');
 const admin=fs.readFileSync('supabase/functions/comp-admin/index.ts','utf8');
 const calc=fs.readFileSync('supabase/functions/comp-calculations/index.ts','utf8');
 const ui=fs.readFileSync('living-comp-contracts.js','utf8');
@@ -21,6 +22,9 @@ ok('residual changes refresh agreement',migration.includes('comp_residual_living
 ok('new assignments require current agreement',migration.includes('comp_contract_assignment_requirement'));
 ok('acceptance stores immutable hash',migration.includes('contract_body_hash')&&migration.includes('accepted_version_immutable'));
 ok('acceptance updates requirement',migration.includes('comp_contract_acceptance_requirement_update'));
+ok('published contract body protected',immutability.includes('guard_published_contract_body')&&immutability.includes('Published compensation agreement content is immutable'));
+ok('published plan terms protected',immutability.includes('guard_published_comp_plan_terms')&&immutability.includes('Published compensation terms are immutable'));
+ok('published bonus/tier/residual rows protected',immutability.includes('guard_published_comp_child')&&immutability.includes('guard_published_comp_bonus')&&immutability.includes('guard_published_comp_tier')&&immutability.includes('guard_published_comp_residual'));
 ok('comp admin edits residual enabled state',admin.includes('"residuals_enabled"'));
 ok('new draft clones residual enabled state',admin.includes('residuals_enabled: last.residuals_enabled'));
 ok('publish uses living generated contract',admin.includes('livingContract')&&admin.includes('comp_plan_version_id',admin.indexOf('if (action === "publish")')));

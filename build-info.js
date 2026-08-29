@@ -1,12 +1,18 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.29.039',
-  label:'Production B039 — Marcus AI Performance & Compensation Analyst Live Execution — Certified',
+  current_build:'B2026.08.29.040',
+  label:'Production B040 — Universal Editable Compensation + Qualification Tracking — Certified',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
+    universal_compensation:'LIVE CONFIGURATION PASS',
+    editable_commission_structure:'PASS',
+    editable_bonus_structure:'PASS',
+    editable_agent_tiers:'PASS',
+    product_program_reuse:'PASS',
+    automatic_bonus_qualification_tracking:'PASS',
     marcus_performance_analyst:'LIVE WORK PASS',
     marcus_capabilities:'34/34 PASS',
     marcus_runtime_contract:'STAGING + PRODUCTION PASS',
@@ -50,6 +56,7 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Added universal versioned compensation configuration for ACA and future products/programs, including editable base commission, bonus structures, agent tiers and automatic qualification snapshots',
     'Certified Marcus as the AI Performance & Compensation Analyst after real staging and production execution against current ALLSHIELD configuration and data',
     'Registered 34 Marcus capabilities for verified production, enrollment, compensation, payroll and promotion analysis with recommendation-only protected boundaries',
     'Marcus correctly detected the active ACA campaign compensation plan remains draft and the stored manager coaching 50/$50 rule conflicts with the approved 200/$50 framework without modifying either record',

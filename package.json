@@ -1,6 +1,8 @@
 {
-  "name":"allshield-site",
-  "private":true,
-  "version":"1.0.0",
-  "scripts":{"test":"node tests/owner-portal-contract.mjs && node tests/youtube-studio-contract.mjs && node tests/olivia-operations-manager-contract.mjs && node tests/maya-marketing-manager-contract.mjs && node tests/marcus-performance-analyst-contract.mjs"}
+  "name": "allshield-site",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "node tests/owner-portal-contract.mjs && node tests/youtube-studio-contract.mjs && node tests/olivia-operations-manager-contract.mjs && node tests/maya-marketing-manager-contract.mjs && node tests/marcus-performance-analyst-contract.mjs && node tests/universal-compensation-contract.mjs && node tests/universal-compensation-live-contract.mjs"
+  }
 }

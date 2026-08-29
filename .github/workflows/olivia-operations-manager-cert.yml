@@ -1,0 +1,29 @@
+name: Certify Olivia Operations Manager
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'phase16-ai-command-production.js'
+      - 'index.html'
+      - 'build-info.js'
+      - 'config.js'
+      - 'tests/olivia-operations-manager-cert.mjs'
+      - 'supabase/functions/ai-olivia-operations-manager/index.ts'
+      - 'supabase/migrations/20260829001644_seed_olivia_operations_capabilities_b035.sql'
+      - '.github/workflows/olivia-operations-manager-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Certify Olivia Operations Manager execution contract
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/olivia-operations-manager-cert.mjs

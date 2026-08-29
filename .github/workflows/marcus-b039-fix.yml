@@ -1,0 +1,42 @@
+name: Marcus B039 Compile Fix
+on:
+  push:
+    branches: [marcus-b039]
+    paths: ['.github/workflows/marcus-b039-fix.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.event.head_commit.message == 'Add Marcus B039 compile fix workflow'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: marcus-b039
+          fetch-depth: 0
+      - name: Repair source quote mismatch
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('supabase/functions/ai-marcus-performance-analyst/index.ts')
+          s=p.read_text()
+          old='add("high",`marcus:plan:${plan.id}:not_published","Active campaign compensation plan is not published",`ACA campaign is active'
+          new='add("high",`marcus:plan:${plan.id}:not_published`,"Active campaign compensation plan is not published",`ACA campaign is active'
+          if old not in s:
+              raise SystemExit('quote mismatch marker not found')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Deno compile check
+        run: deno check supabase/functions/ai-marcus-performance-analyst/index.ts
+      - name: Run ALLSHIELD contract suite
+        run: npm test
+      - name: Commit repair
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add supabase/functions/ai-marcus-performance-analyst/index.ts
+          git commit -m 'Fix Marcus B039 runtime syntax' || true
+          git push origin HEAD:marcus-b039

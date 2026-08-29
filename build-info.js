@@ -2,12 +2,17 @@ window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
   current_build:'B2026.08.29.045',
-  label:'B045 Candidate — Professional Social Provider Verification',
+  label:'Production B045 — Professional Social Provider Verification — Certified',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
     social_connection_center:'PASS',
+    social_professional_provider_verification:'PASS',
+    social_engagement_scope_model:'PASS',
+    linkedin_company_page_verification:'PASS',
+    linkedin_engagement_api_probe:'PASS',
+    youtube_analytics_api_probe:'PASS',
     social_provider_vault:'PASS',
     social_professional_verification:'PASS',
     social_identity_verification:'PASS',
@@ -76,6 +81,8 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Hardened professional social readiness so LinkedIn requires a verified Company Page plus organization engagement API access, and YouTube requires a verified channel plus a successful YouTube Analytics API probe before engagement readiness can pass',
+    'Separated engagement OAuth requirements from publishing and comment scopes so each capability is verified independently and fails closed when provider access is incomplete',
     'Added a dedicated Owner/Admin Social Connection Center with secure provider credential entry, OAuth launch, account identity verification, token-health verification and professional capability checks before Maya or Victor can treat an account as operational',
     'Provider developer credentials entered in the back office are encrypted in Supabase Vault through service-role-only database functions; decrypted secret values are never returned to browser clients',
     'Added live verification evidence for publishing, engagement-read, comment-read and comment-reply permissions where Allshield has certified platform support, including missing-scope reporting and a Maya core social readiness gate',

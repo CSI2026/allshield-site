@@ -22,9 +22,9 @@ const expected=[
  ['content_manager','Claire','AI Content Quality Manager']
 ];
 async function text(path){const r=await fetch(`${BASE}${path}${path.includes('?')?'&':'?'}aicert=${Date.now()}`,{cache:'no-store',redirect:'follow'});if(!r.ok)throw new Error(`${path} HTTP ${r.status}`);return r.text();}
-async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.006')&&liveUi.includes("VERSION='2026.08.28.006'"))return;}catch{}await sleep(5000)}throw new Error('Current AI workforce runtime .006 did not become live in time');}
+async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.007')&&liveUi.includes("VERSION='2026.08.28.007'"))return;}catch{}await sleep(5000)}throw new Error('Current AI workforce runtime .006 did not become live in time');}
 try{
-  rec('AI workforce UI source is version .006',ui.includes("VERSION='2026.08.28.006'"));
+  rec('AI workforce UI source is version .006',ui.includes("VERSION='2026.08.28.007'"));
   rec('Owner command center uses named workforce',ui.includes('AI WORKFORCE COMMAND CENTER')&&ui.includes('Your measurable AI workforce.'));
   rec('Specific work assignment UI exists',ui.includes('Assign Work')&&ui.includes('allshieldAISubmitAssignment'));
   rec('Scorecard UI exists',ui.includes('Scorecard & Learning')&&ui.includes('allshieldAIEmployeeDetail'));

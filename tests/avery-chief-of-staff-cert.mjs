@@ -22,10 +22,10 @@ check('Avery tracks unresolved AI work',fn.includes('queued')&&fn.includes('runn
 check('Avery applies approved learning',fn.includes('ai_employee_learning')&&fn.includes('lesson_text'));
 check('Avery preserves protected-action boundaries',fn.includes('Do not change protected account records')&&fn.includes('Do not publish externally without approval'));
 check('No temporary certification bypass remains',!fn.includes('certify_once')&&!fn.includes('CERT_NONCE')&&!fn.includes('x-allshield-cert-nonce'));
-check('Owner UI runtime is current version .006',ui.includes("const VERSION='2026.08.28.006'"));
+check('Owner UI runtime is current version .006',ui.includes("const VERSION='2026.08.28.007'"));
 check('Owner UI routes Avery to dedicated engine',ui.includes("target='ai-avery-chief-of-staff'"));
 check('Company scan routes to Avery scan action',ui.includes("payload={action:'scan',assignment:body.assignment||''}"));
-check('Index loads current Avery-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.006'));
+check('Index loads current Avery-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
 check('Current B035 metadata preserves Avery certification',build.includes("current_build:'B2026.08.28.035'")&&build.includes("avery_chief_of_staff:'LIVE WORK PASS'")&&build.includes("avery_capabilities:'8/8 PASS'")&&build.includes("avery_runtime_contract:'22/22 PASS'"));
 
 const base=process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com';

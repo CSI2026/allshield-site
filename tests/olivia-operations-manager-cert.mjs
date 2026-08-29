@@ -36,8 +36,8 @@ check('Olivia uses supervised learning',fn.includes('ai_employee_learning')&&fn.
 check('Olivia preserves protected-action boundaries',fn.includes('change compensation/production credit')&&fn.includes('regulated licensing facts')&&fn.includes('change banking/security roles/permissions')&&fn.includes('publish externally'));
 check('Olivia source declares all 27 certified capabilities',requiredCapabilities.every(x=>fn.includes(`"${x}"`)),`${requiredCapabilities.length}/27 expected`);
 check('Olivia capability endpoint is dedicated',fn.includes('CODE="operations_manager"')&&ui.includes("target='ai-olivia-operations-manager'"));
-check('Canonical AI runtime is version .006',ui.includes("const VERSION='2026.08.28.006'"));
-check('Index loads Olivia-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.006'));
+check('Canonical AI runtime is version .006',ui.includes("const VERSION='2026.08.28.007'"));
+check('Index loads Olivia-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
 check('B035 build metadata is current',build.includes("current_build:'B2026.08.28.035'")&&build.includes('Olivia AI Operations Manager'));
 check('B035 metadata records live work certification',build.includes("olivia_operations_manager:'LIVE WORK PASS'")&&build.includes("olivia_capabilities:'27/27 PASS'")&&build.includes("olivia_duplicate_suppression:'LIVE TWO-RUN PASS'"));
 

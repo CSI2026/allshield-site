@@ -1,0 +1,40 @@
+name: B041 Final Release Gate
+on:
+  push:
+    branches: [living-contract-b041]
+    paths: ['.github/workflows/b041-final-release-gate.yml']
+permissions:
+  contents: write
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: living-contract-b041
+          fetch-depth: 0
+      - name: Browser JavaScript syntax
+        run: node --check living-comp-contracts.js && node --check universal-compensation-platform.js
+      - name: Living contract permanent contract
+        run: node tests/living-comp-contracts-contract.mjs
+      - name: Full ALLSHIELD regression
+        run: npm test
+      - name: AI workforce organization regression
+        run: node tests/ai-workforce-organization-cert.mjs
+      - name: Exact release markers
+        run: |
+          grep -q 'guard_published_contract_body' supabase/migrations/20260829_living_compensation_contract_immutability_b041.sql
+          grep -q 'comp_plan_living_contract_sync' supabase/migrations/20260829_living_compensation_contracts_b041.sql
+          grep -q 'Residuals are disabled for this compensation version' supabase/functions/comp-calculations/index.ts
+          grep -q 'living-comp-contracts.js?v=B2026.08.29.041' index.html
+          grep -q "current_build:'B2026.08.29.041'" build-info.js
+      - name: Remove one-time final gate
+        run: rm -f .github/workflows/b041-final-release-gate.yml
+      - name: Commit exact B041 release
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Certify B041 living compensation contracts'
+          git push origin HEAD:living-contract-b041

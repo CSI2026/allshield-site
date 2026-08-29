@@ -1,0 +1,59 @@
+name: Victor B042 Integration Gate
+on:
+  push:
+    branches: [victor-b042]
+    paths: ['.github/workflows/victor-b042-gate.yml']
+permissions:
+  contents: write
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: victor-b042
+          fetch-depth: 0
+      - name: Wire Victor into production source
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('phase16-ai-command-production.js');s=p.read_text()
+          s=s.replace("const VERSION='2026.08.29.008'","const VERSION='2026.08.29.009'",1)
+          old="else if(kind==='marketing_manager'||kind==='marketing'||code==='marketing_manager'){target='ai-maya-marketing-manager';if(a==='run')payload={action:'scan',assignment:body.assignment||''};else if(a==='work')payload={action:'work',assignment:body.assignment||'',job_id:body.job_id||null};}"
+          new=old+"else if(kind==='video_editor'||kind==='video'||code==='video_editor'){target='ai-victor-video-editor';if(a==='run')payload={action:'scan',assignment:body.assignment||''};else if(a==='work')payload={action:'work',assignment:body.assignment||'',job_id:body.job_id||null};}"
+          assert old in s;s=s.replace(old,new,1);p.write_text(s)
+          p=Path('index.html');s=p.read_text();old='phase16-ai-command-production.js?v=2026.08.29.008';assert old in s;s=s.replace(old,'phase16-ai-command-production.js?v=2026.08.29.009',1);p.write_text(s)
+          p=Path('tests/ai-workforce-organization-cert.mjs');s=p.read_text();s=s.replace("const SOURCE_VERSION='2026.08.29.008'","const SOURCE_VERSION='2026.08.29.009'",1);needle="rec('Olivia Owner/Admin operations calls route to dedicated Operations Manager engine',ui.includes(\"target='ai-olivia-operations-manager'\"));";assert needle in s;s=s.replace(needle,needle+"\n  rec('Victor Owner/Admin video calls route to dedicated Media & Video Producer engine',ui.includes(\"target='ai-victor-video-editor'\"));",1);p.write_text(s)
+          p=Path('package.json');s=p.read_text();old='node tests/living-comp-contracts-contract.mjs';assert old in s;s=s.replace(old,old+' && node tests/victor-video-editor-contract.mjs && node tests/video-studio-b042-contract.mjs',1);p.write_text(s)
+          p=Path('build-info.js');s=p.read_text();s=s.replace("current_build:'B2026.08.29.041'","current_build:'B2026.08.29.042'",1);s=s.replace("label:'Production B041 — Living Compensation Contracts + Versioned Re-Acceptance — Certified'","label:'Production B042 — Victor Core Media Engine + Modern Video Provider Gateway — External Providers Pending'",1);needle="    living_compensation_contracts:'PASS',";assert needle in s;insert="    victor_video_editor:'CORE LIVE WORK PASS — PROFESSIONAL COMPLETION BLOCKED',\n    victor_core_capabilities:'39/39 PASS',\n    victor_provider_capabilities:'6 PLANNED — PROVIDERS REQUIRED',\n    victor_real_work:'AVERY MEDIA READINESS JOB PASS',\n    victor_protected_boundaries:'403 PASS',\n    victor_external_provider_readiness:'INCOMPLETE',\n    video_studio_provider_gateway:'PASS',\n    video_studio_legacy_sora_removed:'PASS',\n";s=s.replace(needle,insert+needle,1);needle='  changes:[\n';assert needle in s;add="  changes:[\n    'Added Victor dedicated AI Media & Video Producer execution with 39 enabled core capabilities, 6 provider-dependent capabilities held planned, real-media-only evidence, tracked work, repurposing packages and protected publish/OAuth/delete boundaries',\n    'Victor completed Avery’s real media delivery readiness assignment against the existing Careers video, detected YouTube and provider blockers, generated a real production/repurpose package from stored script/storyboard data, and created three tracked Avery escalations',\n    'Modernized Video Studio to GPT-5.6 Sol, GPT-Image-2, GPT-4o-mini-TTS and a provider-independent durable video gateway; removed direct use of the deprecated Sora video endpoint',\n";s=s.replace(needle,add,1);p.write_text(s)
+          PY
+      - name: JavaScript syntax
+        run: node --check phase16-ai-command-production.js
+      - name: Victor source contract
+        run: node tests/victor-video-editor-contract.mjs
+      - name: Video Studio provider contract
+        run: node tests/video-studio-b042-contract.mjs
+      - name: Full ALLSHIELD contract suite
+        run: npm test
+      - name: AI organization source regression
+        env:
+          ALLSHIELD_EXPECTED_LIVE_RUNTIME: 2026.08.29.008
+        run: node tests/ai-workforce-organization-cert.mjs
+      - name: Verify B042 markers
+        run: |
+          grep -q "target='ai-victor-video-editor'" phase16-ai-command-production.js
+          grep -q "VERSION='2026.08.29.009'" phase16-ai-command-production.js
+          grep -q 'phase16-ai-command-production.js?v=2026.08.29.009' index.html
+          grep -q "current_build:'B2026.08.29.042'" build-info.js
+          ! grep -q 'api.openai.com/v1/videos' supabase/functions/ai-victor-video-editor/index.ts
+          ! grep -q 'api.openai.com/v1/videos' supabase/functions/video-studio-ai/index.ts
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/victor-b042-gate.yml
+      - name: Commit clean B042 release candidate
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Stage B042 Victor core media engine'
+          git push origin HEAD:victor-b042

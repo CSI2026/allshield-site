@@ -13,7 +13,7 @@ const requiredCapabilities=[
 ];
 
 check('Olivia execution source is version controlled',fn.includes('ai_employee_runs')&&fn.includes('ai_jobs'));
-check('Olivia execution build is B035',fn.includes('B2026.08.28.035'));
+check('Olivia execution build remains B035-certified',fn.includes('B2026.08.28.035'));
 check('Olivia source requires authenticated Owner/Admin actor',fn.includes('Authorization')&&fn.includes('auth.getUser')&&fn.includes('["owner","admin"]'));
 check('Certification access is not hardcoded',!fn.includes('B035-OLIVIA-CERT-ONCE')&&!fn.includes('CERT_NONCE'));
 check('Olivia reads live Master Agent Profiles',fn.includes('profiles')&&fn.includes('master_agent_profile_source')&&fn.includes('agent_population'));
@@ -36,10 +36,9 @@ check('Olivia uses supervised learning',fn.includes('ai_employee_learning')&&fn.
 check('Olivia preserves protected-action boundaries',fn.includes('change compensation/production credit')&&fn.includes('regulated licensing facts')&&fn.includes('change banking/security roles/permissions')&&fn.includes('publish externally'));
 check('Olivia source declares all 27 certified capabilities',requiredCapabilities.every(x=>fn.includes(`"${x}"`)),`${requiredCapabilities.length}/27 expected`);
 check('Olivia capability endpoint is dedicated',fn.includes('CODE="operations_manager"')&&ui.includes("target='ai-olivia-operations-manager'"));
-check('Canonical AI runtime is version .006',ui.includes("const VERSION='2026.08.28.007'"));
-check('Index loads Olivia-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
-check('B035 build metadata is current',build.includes("current_build:'B2026.08.28.035'")&&build.includes('Olivia AI Operations Manager'));
-check('B035 metadata records live work certification',build.includes("olivia_operations_manager:'LIVE WORK PASS'")&&build.includes("olivia_capabilities:'27/27 PASS'")&&build.includes("olivia_duplicate_suppression:'LIVE TWO-RUN PASS'"));
+check('Canonical AI runtime is version .007',ui.includes("const VERSION='2026.08.28.007'"));
+check('Index loads Olivia-aware runtime .007',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
+check('Current B036 build metadata preserves Olivia certification',build.includes("current_build:'B2026.08.28.036'")&&build.includes("olivia_operations_manager:'LIVE WORK PASS'")&&build.includes("olivia_capabilities:'27/27 PASS'")&&build.includes("olivia_duplicate_suppression:'LIVE TWO-RUN PASS'"));
 
 const base=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
 const endpoint='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-olivia-operations-manager';
@@ -51,11 +50,11 @@ async function waitForLiveBuild(){
       const r=await fetch(`${base}/build-info.js?oliviacert=${Date.now()}`,{cache:'no-store',redirect:'follow'});
       last=`HTTP ${r.status}`;
       const t=await r.text();
-      if(r.ok&&t.includes("current_build:'B2026.08.28.035'")&&t.includes("olivia_capabilities:'27/27 PASS'"))return {ok:true,detail:last};
+      if(r.ok&&t.includes("current_build:'B2026.08.28.036'")&&t.includes("olivia_capabilities:'27/27 PASS'"))return {ok:true,detail:last};
     }catch(e){last=e?.message||String(e)}
     await sleep(5000);
   }
-  return {ok:false,detail:last||'B035 live build metadata not observed'};
+  return {ok:false,detail:last||'B036 live build metadata not observed'};
 }
 try{
   const r=await fetch(base,{redirect:'follow'});
@@ -63,8 +62,8 @@ try{
 }catch(e){check('Live ALLSHIELD homepage responds',false,e.message)}
 try{
   const live=await waitForLiveBuild();
-  check('Live production build-info serves certified B035',live.ok,live.detail);
-}catch(e){check('Live production build-info serves certified B035',false,e.message)}
+  check('Live production build-info serves certified B036',live.ok,live.detail);
+}catch(e){check('Live production build-info serves certified B036',false,e.message)}
 try{
   const r=await fetch(endpoint,{method:'OPTIONS',headers:{Origin:base,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,content-type,apikey,x-client-info'}});
   check('Olivia production endpoint CORS preflight succeeds',r.ok,`HTTP ${r.status}`);
@@ -76,6 +75,6 @@ try{
 }catch(e){check('Olivia production endpoint rejects unauthenticated access',false,e.message)}
 
 const failed=checks.filter(x=>!x.ok);
-const report={certification:'ALLSHIELD Olivia AI Operations Manager — Live Execution Contract v3',base_url:base,completed_at:new Date().toISOString(),status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,checks,failures:failed};
+const report={certification:'ALLSHIELD Olivia AI Operations Manager — Preserved Regression Contract under B036',base_url:base,completed_at:new Date().toISOString(),status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,checks,failures:failed};
 console.log(JSON.stringify(report,null,2));
 if(failed.length)process.exit(1);

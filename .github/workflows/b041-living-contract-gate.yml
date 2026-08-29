@@ -89,3 +89,4 @@ jobs:
           git diff --cached --quiet && exit 0
           git commit -m 'Stage B041 living compensation contracts'
           git push origin HEAD:living-contract-b041
+# rerun after renderer syntax repair

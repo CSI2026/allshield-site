@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-08-29T15:28:42.693Z",
+  "completed_at": "2026-08-29T16:04:47.813Z",
   "status": "FAIL",
   "passed": 35,
   "total": 39,
@@ -24,7 +24,7 @@
     {
       "name": "23 Owner handlers registered",
       "ok": true,
-      "detail": "registered=31"
+      "detail": "registered=32"
     },
     {
       "name": "Owner dashboard",

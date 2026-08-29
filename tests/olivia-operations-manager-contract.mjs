@@ -2,6 +2,7 @@ import fs from 'node:fs';
 const read=f=>fs.readFileSync(f,'utf8');
 const src=read('supabase/functions/ai-olivia-operations-manager/index.ts');
 const ai=read('phase16-ai-command-production.js');
+const aiServer=read('supabase/functions/ai-command-center/index.ts');
 const build=read('build-info.js');
 const fail=m=>{throw new Error(m)};
 const capabilities=[
@@ -24,13 +25,15 @@ const markers=[
   'change compensation/production credit',
   'regulated licensing facts',
   'change banking/security roles/permissions',
-  'teach_employee',
   'lessons_used'
 ];
-for(const marker of markers)if(!src.includes(marker)&&!ai.includes(marker))fail(`Olivia runtime contract marker missing: ${marker}`);
+for(const marker of markers)if(!src.includes(marker)&&!ai.includes(marker)&&!aiServer.includes(marker))fail(`Olivia runtime contract marker missing: ${marker}`);
 if(src.includes('requested_by:null'))fail('Olivia may not create tracked AI jobs without a real requester');
 if(!src.includes('errText')||!src.includes('JSON.stringify(e)'))fail('Olivia structured runtime error reporting is missing');
-if(!ai.includes("getEmployeeByCode('command_center')")||!ai.includes('workforceStatus()')||!ai.includes('employeeDetail(code:string)'))fail('Owner AI Workforce live employee/detail path is missing');
-if(!ai.includes("rows('ai_employee_runs'")||!ai.includes("rows('ai_jobs'")||!ai.includes("rows('ai_employee_feedback'")||!ai.includes("rows('ai_employee_learning'"))fail('Owner AI Workforce scorecard/learning sources are incomplete');
+const uiPath=ai.includes("code==='operations_manager'")&&ai.includes("target='ai-olivia-operations-manager'")&&ai.includes('allshieldAIEmployeeDetail')&&ai.includes('Scorecard & Learning');
+const serverPath=aiServer.includes('async function workforceStatus()')&&aiServer.includes('async function employeeDetail(code:string)')&&aiServer.includes("admin.from('ai_employees')")&&aiServer.includes("action==='employee_detail'");
+if(!uiPath||!serverPath)fail('Owner AI Workforce live Olivia employee/detail path is missing');
+if(!aiServer.includes("rows('ai_employee_runs'")||!aiServer.includes("rows('ai_jobs'")||!aiServer.includes("rows('ai_employee_feedback'")||!aiServer.includes("rows('ai_employee_learning'"))fail('Owner AI Workforce scorecard/learning sources are incomplete');
+if(!aiServer.includes('teach_employee')||!aiServer.includes('learning_enabled')||!aiServer.includes("status:'active'"))fail('Owner-supervised learning path is incomplete');
 if(!build.includes("build_number:'B2026.08.23.021'"))fail('Approved B021 baseline was lost');
-console.log(`Olivia Operations Manager source contract: PASS (${capabilities.length}/${capabilities.length} capabilities; canonical Master Agent Profile; routing/follow-up/learning/boundaries present; B021 preserved)`);
+console.log(`Olivia Operations Manager source contract: PASS (${capabilities.length}/${capabilities.length} capabilities; canonical Master Agent Profile; live Owner Workforce path; routing/follow-up/learning/boundaries present; B021 preserved)`);

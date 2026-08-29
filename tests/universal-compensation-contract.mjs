@@ -4,7 +4,7 @@ const migration=fs.readFileSync('supabase/migrations/20260829_universal_compensa
 const admin=fs.readFileSync('supabase/functions/comp-admin/index.ts','utf8');
 const calc=fs.readFileSync('supabase/functions/comp-calculations/index.ts','utf8');
 const ui=fs.readFileSync('universal-compensation-platform.js','utf8');
-const bootstrap=fs.readFileSync('mobile-symmetry-fix-2026-08-28.js','utf8');
+const index=fs.readFileSync('index.html','utf8');
 
 const checks=[];
 const ok=(name,condition)=>checks.push({name,ok:!!condition});
@@ -52,7 +52,7 @@ ok('UI edits tier ladder', /AGENT EARNING TIERS/.test(ui)&&/Add Tier/.test(ui));
 ok('UI tier choices include rate increase and bonus', /Higher Rate/.test(ui)&&/Tier Bonus/.test(ui)&&/Use Bonus Rule/.test(ui));
 ok('UI agent shows next-tier progress', /Next Tier/.test(ui)&&/uc-progress/.test(ui));
 ok('UI does not hard-code ACA as the selected product', !/ACA_DIALER/.test(ui));
-ok('bootstrap loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.08\.29\.040/.test(bootstrap));
+ok('production index loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.08\.29\.040/.test(index));
 
 const failed=checks.filter(x=>!x.ok);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}: ${c.name}`);

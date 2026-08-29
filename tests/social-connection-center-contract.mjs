@@ -16,6 +16,7 @@ ok('Vault service role only',mig.includes('grant execute on function public.soci
 ok('edge reads Vault fallback',edge.includes("db.rpc('social_vault_get'"));
 ok('edge writes encrypted credentials',edge.includes("db.rpc('social_vault_upsert'"));
 ok('credentials never returned',!edge.includes('secret_value:')&&!ui.includes('decrypted_secret'));
+ok('controlled internal service auth',edge.includes('apiSecretMatches')&&edge.includes('internal_service:true')&&edge.includes("req.headers.get('apikey')"));
 ok('Meta professional scopes',edge.includes('pages_manage_engagement')&&edge.includes('pages_read_user_content')&&edge.includes('instagram_manage_comments'));
 ok('TikTok posting scopes',edge.includes('user.info.basic,video.publish,video.upload'));
 ok('TikTok creator verification',edge.includes('/v2/post/publish/creator_info/query/'));

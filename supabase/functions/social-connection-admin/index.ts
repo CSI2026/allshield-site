@@ -5,7 +5,8 @@ const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"au
 const json=(d:any,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const URL=Deno.env.get('SUPABASE_URL')!;
 const PUB=JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')||'{}').default||Deno.env.get('SUPABASE_ANON_KEY')!;
-const SEC=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+const SECRET_KEYS=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');
+const SEC=SECRET_KEYS.default||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const db=createClient(URL,SEC,{auth:{persistSession:false,autoRefreshToken:false}});
 const fnBase=`${URL}/functions/v1/social-connection-admin`;
 const now=()=>new Date().toISOString();
@@ -32,7 +33,8 @@ const PROVIDERS:any={
  messenger:{label:'Messenger',platforms:['messenger'],credential_names:['META_APP_ID','META_APP_SECRET'],fields:[],oauth:false,manual:true,managed_via:'Meta Business',guide:['Messenger is managed through Meta Business/Page permissions.','It is not treated as a standalone organic social publishing channel in Maya’s current readiness gate.']}
 };
 
-async function actor(req:Request){const h=req.headers.get('Authorization')||'';if(!h.startsWith('Bearer '))throw new Error('AUTH');const token=h.slice(7);const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});const u=await uc.auth.getUser(token);if(u.error||!u.data.user)throw new Error('AUTH');const p=await db.from('profiles').select('id,role,status').eq('id',u.data.user.id).single();if(p.error||!p.data||p.data.status!=='active'||!['owner','admin'].includes(String(p.data.role)))throw new Error('FORBIDDEN');return p.data}
+function apiSecretMatches(req:Request){const key=String(req.headers.get('apikey')||'').trim();if(!key)return false;return Object.values(SECRET_KEYS).some(v=>typeof v==='string'&&v===key)||(typeof SEC==='string'&&SEC===key)}
+async function actor(req:Request){if(apiSecretMatches(req)){const p=await db.from('profiles').select('id,role,status').in('role',['owner','admin']).eq('status','active').order('created_at',{ascending:true}).limit(1).maybeSingle();if(p.error||!p.data?.id)throw new Error('FORBIDDEN');return {...p.data,internal_service:true}}const h=req.headers.get('Authorization')||'';if(!h.startsWith('Bearer '))throw new Error('AUTH');const token=h.slice(7);const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});const u=await uc.auth.getUser(token);if(u.error||!u.data.user)throw new Error('AUTH');const p=await db.from('profiles').select('id,role,status').eq('id',u.data.user.id).single();if(p.error||!p.data||p.data.status!=='active'||!['owner','admin'].includes(String(p.data.role)))throw new Error('FORBIDDEN');return p.data}
 async function vaultMap(names:string[]){const map=new Map<string,string>();if(!names.length)return map;const r=await db.rpc('social_vault_get',{p_names:uniq(names)});if(!r.error)for(const x of r.data||[])if(x.secret_name&&x.secret_value)map.set(String(x.secret_name),String(x.secret_value));return map}
 async function credsFor(provider:string){const d=PROVIDERS[provider];if(!d)return new Map<string,string>();const m=await vaultMap(d.credential_names);for(const n of d.credential_names){const e=Deno.env.get(n);if(e)m.set(n,e)}return m}
 async function configured(provider:string){const d=PROVIDERS[provider];if(!d)return false;const m=await credsFor(provider);return d.credential_names.every((n:string)=>Boolean(m.get(n)))}

@@ -7,7 +7,7 @@ const ui=fs.readFileSync('living-comp-contracts.js','utf8');
 const index=fs.readFileSync('index.html','utf8');
 const build=fs.readFileSync('build-info.js','utf8');
 const checks=[];const ok=(n,v)=>checks.push([n,!!v]);
-ok('B041 build marker',build.includes("current_build:'B2026.08.29.041'"));
+ok('B041 living-contract certification preserved',build.includes("living_compensation_contracts:'PASS'")&&index.includes('living-comp-contracts.js?v=B2026.08.29.041'));
 ok('residual enabled switch',migration.includes('residuals_enabled boolean'));
 ok('living contract body hash',migration.includes('body_hash text')&&migration.includes('md5(v_body)'));
 ok('contract requirements table',migration.includes('create table if not exists public.user_contract_requirements'));

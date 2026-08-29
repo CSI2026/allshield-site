@@ -1,0 +1,34 @@
+name: Olivia B035 Live Certification
+on:
+  push:
+    paths:
+      - '.github/workflows/olivia-b035-live-cert.yml'
+  workflow_dispatch:
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Olivia live production scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-olivia-cert-runner?proof=B035-live-ecca4b40a2aed7def079'
+          curl -fsS "$URL" -o run1.json
+          jq -e '.ok == true and .build == "B2026.08.28.035"' run1.json >/dev/null
+          jq -e '(.contract_checks | length) >= 19 and (.contract_checks | all(.pass == true))' run1.json >/dev/null
+          jq -e '(.capabilities_exercised | index("master_agent_profile_linkage")) != null and (.capabilities_exercised | index("career_conversion_monitoring")) != null and (.capabilities_exercised | index("prelicensing_academy_monitoring")) != null and (.capabilities_exercised | index("esign_document_monitoring")) != null and (.capabilities_exercised | index("followup_resolution_tracking")) != null and (.capabilities_exercised | index("duplicate_job_suppression")) != null' run1.json >/dev/null
+          jq -e '.snapshot.agent_population >= 1 and (.issues | length) >= 1 and (.routing.created | length) >= 1' run1.json >/dev/null
+          echo 'RUN 1 PASS'
+          jq '{build,job_id,run_id,engine,issues:(.issues|length),critical:(.issues|map(select(.priority=="critical"))|length),high:(.issues|map(select(.priority=="high"))|length),new_escalations:(.routing.created|length),duplicate_suppressed:.routing.duplicate_suppressed,agent_population:.snapshot.agent_population,approved_unconverted:(.snapshot.careers.approved_unconverted|length),overdue_tasks:.snapshot.tasks.overdue,unread_agent_messages:.snapshot.communications.unread_messages,contract_checks:(.contract_checks|length)}' run1.json
+
+      - name: Re-run to prove duplicate suppression
+        shell: bash
+        run: |
+          set -euo pipefail
+          URL='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-olivia-cert-runner?proof=B035-live-ecca4b40a2aed7def079'
+          curl -fsS "$URL" -o run2.json
+          jq -e '.ok == true and .build == "B2026.08.28.035"' run2.json >/dev/null
+          jq -e '(.routing.created | length) == 0 and .routing.duplicate_suppressed >= 1' run2.json >/dev/null
+          echo 'RUN 2 PASS'
+          jq '{job_id,run_id,issues:(.issues|length),new_escalations:(.routing.created|length),duplicate_suppressed:.routing.duplicate_suppressed,resolved:(.routing.resolved|length)}' run2.json

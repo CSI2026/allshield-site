@@ -42,7 +42,7 @@ jobs:
           node --check social-connection-center.js
           node --check tests/social-professional-b045-contract.mjs
           node tests/social-professional-b045-contract.mjs
-          deno check supabase/functions/social-connection-admin/index.ts
+          deno check --node-modules-dir=auto supabase/functions/social-connection-admin/index.ts
           npm test
       - name: Commit clean candidate
         run: |

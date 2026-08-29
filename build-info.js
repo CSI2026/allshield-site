@@ -1,15 +1,12 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.28.035',
-  label:'Production B035 — Olivia AI Operations Manager Live Execution — Certified',
-  completion_release:'2026.08.28.019',
+  current_build:'B2026.08.28.034',
+  label:'Production B034 — Avery AI Chief of Staff Live Execution — Certified',
+  completion_release:'2026.08.28.018',
   channel:'production',
   released_at:'2026-08-28',
   certification:{
-    olivia_operations_manager:'LIVE WORK PASS',
-    olivia_capabilities:'11/11 PASS',
-    olivia_execution_engine:'PRODUCTION ACTIVE — PROVIDER-INDEPENDENT',
     avery_chief_of_staff:'LIVE WORK PASS',
     avery_capabilities:'8/8 PASS',
     avery_runtime_contract:'22/22 PASS',
@@ -29,17 +26,18 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
-    'Certified Olivia as the second AI employee for actual production work rather than role-definition only',
-    'Added eleven explicit Olivia capabilities covering live operations reading, valid-agent population control, onboarding audit, account lifecycle monitoring, licensing workflow monitoring, meetings/tasks, aging exceptions, priority planning, follow-up tracking, supervised learning and authorization boundaries',
-    'Deployed the dedicated ai-olivia-operations-manager production execution engine and routed Owner/Admin Olivia actions to it',
-    'Olivia completed Avery’s real queued onboarding backlog assignment and closed the tracked AI job successfully',
-    'Olivia correctly restricted the operational population to one valid current agent and avoided stale/non-agent records that previously inflated dashboard counts',
-    'Olivia identified four live operational exceptions: aging onboarding, five incomplete onboarding steps, licensing not ready, and pending background/financial/coding/dialer/marketplace setup',
-    'Olivia’s live certification run used the grounded ALLSHIELD deterministic operations engine because OPENAI_API_KEY is not configured',
-    'Olivia can continue core operations work without an external model; model enrichment remains optional instead of a single point of failure',
-    'Added tracked Olivia job completion, run history, resolution notes, approved-learning reuse and measurable scorecard inputs',
-    'Removed the temporary B035 certification token after the live production run; normal Owner/Admin authentication remains the operational access path',
-    'Preserved human approval boundaries for account status, licensing status, compensation, signatures, permissions, regulated content, destructive changes and external publishing',
-    'Retained Avery B034, B033 named workforce, B032 E-Sign CORS recovery and all prior dashboard, onboarding, Agent Operations and production behavior unchanged'
+    'Certified Avery as the first AI employee for actual production work rather than role-definition only',
+    'Added eight explicit Avery capabilities covering live cross-department reading, company scanning, priority triage, AI delegation, unresolved-work tracking, executive briefing, supervised learning and authorization boundaries',
+    'Added capability and certification registries so each AI employee can be proven one-by-one before being considered fully operational',
+    'Added parent/child AI jobs, AI-assigned work, priorities, due dates, sources and resolution notes for measurable delegation and follow-up',
+    'Deployed the dedicated JWT-protected ai-avery-chief-of-staff execution engine and routed Owner/Admin Avery actions to it',
+    'Avery completed a real live production Chief of Staff run and created tracked follow-up assignments for Olivia, Maya and Victor',
+    'Avery identified nine incomplete onboarding steps, twelve disconnected social connections and a disconnected YouTube channel from live production data during certification',
+    'Added duplicate suppression so repeated Avery scans do not create duplicate open assignments for the same issue',
+    'The production OPENAI_API_KEY is currently not configured; Avery therefore uses the grounded ALLSHIELD deterministic Chief of Staff engine so core work remains operational now',
+    'OpenAI model enrichment is optional and will enhance freeform language when configured, but it is no longer a single point of failure for Avery',
+    'Preserved human approval boundaries for account changes, compensation, signatures, regulated content, destructive actions and external publishing',
+    'Final Avery production execution contract certified 22/22 against the live ALLSHIELD site and protected production endpoint',
+    'Retained B033 named workforce, B032 E-Sign CORS recovery and prior dashboard, onboarding, Agent Operations and production behavior unchanged'
   ]
 };

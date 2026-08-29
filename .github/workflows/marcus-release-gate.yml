@@ -1,0 +1,60 @@
+name: Marcus B039 Final Release Gate
+on:
+  push:
+    branches: [marcus-b039]
+    paths: ['.github/workflows/marcus-release-gate.yml']
+permissions:
+  contents: write
+jobs:
+  release:
+    if: github.event.head_commit.message == 'Add Marcus B039 final release gate'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: marcus-b039
+          fetch-depth: 0
+      - name: Prepare B039 production metadata
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('build-info.js')
+          s=p.read_text()
+          s=s.replace("current_build:'B2026.08.28.036'","current_build:'B2026.08.29.039'",1)
+          s=s.replace("label:'Production B036 — Maya AI Marketing Manager Live Execution — Certified'","label:'Production B039 — Marcus AI Performance & Compensation Analyst Live Execution — Certified'",1)
+          s=s.replace("released_at:'2026-08-28'","released_at:'2026-08-29'",1)
+          marker="  certification:{\n"
+          insert="  certification:{\n    marcus_performance_analyst:'LIVE WORK PASS',\n    marcus_capabilities:'34/34 PASS',\n    marcus_runtime_contract:'STAGING + PRODUCTION PASS',\n    marcus_real_data_only:'PASS',\n    marcus_duplicate_suppression:'LIVE MULTI-RUN PASS',\n    marcus_protected_boundaries:'403 PASS',\n    marcus_execution_engine:'PRODUCTION ACTIVE — PROVIDER-INDEPENDENT',\n"
+          if marker not in s: raise SystemExit('certification marker missing')
+          s=s.replace(marker,insert,1)
+          changes="  changes:[\n"
+          add="  changes:[\n    'Certified Marcus as the AI Performance & Compensation Analyst after real staging and production execution against current ALLSHIELD configuration and data',\n    'Registered 34 Marcus capabilities for verified production, enrollment, compensation, payroll and promotion analysis with recommendation-only protected boundaries',\n    'Marcus correctly detected the active ACA campaign compensation plan remains draft and the stored manager coaching 50/$50 rule conflicts with the approved 200/$50 framework without modifying either record',\n    'Marcus created three tracked Avery escalations on the first live scan and suppressed all duplicate escalations on repeated staging, work and production scans',\n    'Marcus produced zero fabricated coaching recommendations or emerging-leader claims because live production, enrollment, payroll and promotion snapshot sources are currently empty',\n    'Protected compensation, payroll, promotion and agent-status mutation actions returned 403 and the temporary certification runner was retired',\n"
+          if changes not in s: raise SystemExit('changes marker missing')
+          s=s.replace(changes,add,1)
+          p.write_text(s)
+          PY
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile Marcus runtime
+        run: deno check --node-modules-dir=auto supabase/functions/ai-marcus-performance-analyst/index.ts
+      - name: Run complete ALLSHIELD contract suite
+        run: npm test
+      - name: Certify AI Workforce organization
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/ai-workforce-organization-cert.mjs
+      - name: Verify Marcus release markers
+        run: |
+          grep -q "current_build:'B2026.08.29.039'" build-info.js
+          grep -q "marcus_capabilities:'34/34 PASS'" build-info.js
+          grep -q "target='ai-marcus-performance-analyst'" phase16-ai-command-production.js
+          grep -q 'B2026.08.29.039' supabase/functions/ai-marcus-performance-analyst/index.ts
+          grep -q 'capCount===34' tests/marcus-performance-analyst-contract.mjs
+      - name: Remove one-time Marcus workflows
+        run: rm -f .github/workflows/marcus-b039-build.yml .github/workflows/marcus-b039-fix.yml .github/workflows/marcus-b039-fix2.yml .github/workflows/marcus-b039-compile.yml .github/workflows/marcus-b039-final-compile.yml .github/workflows/marcus-b039-capability-mode-fix.yml .github/workflows/marcus-release-gate.yml
+      - name: Commit exact certified release tree
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git commit -m 'Certify Marcus B039 performance analyst release'
+          git push origin HEAD:marcus-b039

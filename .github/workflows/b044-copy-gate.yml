@@ -1,0 +1,44 @@
+name: B044 Setup Assistant Copy Gate
+on:
+  push:
+    branches: [social-connection-b044-copy]
+    paths: ['.github/workflows/b044-copy-gate.yml']
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-connection-b044-copy
+          fetch-depth: 0
+      - name: Clarify guided vs model AI
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('social-connection-center.js');s=p.read_text()
+          old='<div class="scc-assistant"><div class="kicker">AI-ASSISTED SETUP</div><h3 style="margin:5px 0">Connection coach</h3>'
+          new='<div class="scc-assistant"><div class="kicker">GUIDED SETUP ASSISTANT</div><h3 style="margin:5px 0">Connection coach</h3>'
+          assert old in s
+          s=s.replace(old,new,1)
+          old="window.allshieldSCCAssistant=async key=>{try{const r=await edge({action:'assistant',provider:key});ASSIST=(r.next_actions||[]).join(' ');render()}catch(e){alert(e.message||e)}};"
+          new="window.allshieldSCCAssistant=async key=>{try{const r=await edge({action:'assistant',provider:key});ASSIST=(r.next_actions||[]).join(' ')+(r.mode==='ai_available'?' AI provider is available for enhanced assistance.':' Guidance is using live verified setup rules until the AI provider is connected.');render()}catch(e){alert(e.message||e)}};"
+          assert old in s
+          s=s.replace(old,new,1)
+          p.write_text(s)
+          PY
+      - name: Syntax and contracts
+        run: |
+          node --check social-connection-center.js
+          npm test
+          grep -q 'GUIDED SETUP ASSISTANT' social-connection-center.js
+          ! grep -q 'AI-ASSISTED SETUP' social-connection-center.js
+      - name: Clean and commit
+        run: |
+          rm -f .github/workflows/b044-copy-gate.yml
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git commit -m 'Clarify B044 guided setup assistant state'
+          git push origin HEAD:social-connection-b044-copy

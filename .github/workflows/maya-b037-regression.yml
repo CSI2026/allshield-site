@@ -16,12 +16,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: maya-creative-b037
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          cache: npm
-      - run: npm ci
-      - run: npm test
+      - name: Run full ALLSHIELD contract suite
+        run: npm test
       - name: Verify B037 safety markers
         run: |
           set -euo pipefail

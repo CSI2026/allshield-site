@@ -10,6 +10,7 @@ const qUi=read('comp-qualification-ui.js');
 const tierMig=read('supabase/migrations/20260829_universal_compensation_tiers.sql');
 const qualMig=read('supabase/migrations/20260829_universal_compensation_qualification_tracking.sql');
 const publishMig=read('supabase/migrations/20260829_universal_compensation_publish_refresh.sql');
+const overrideMig=read('supabase/migrations/20260829_aca_configurable_override_rules.sql');
 const index=read('index.html');
 check('B040 build',admin.includes('B2026.08.29.040')&&calc.includes('B2026.08.29.040'));
 check('editable base commission',admin.includes('base_rate')&&ui.includes('ucBaseRate')&&ui.includes('Save Draft Compensation'));
@@ -25,6 +26,8 @@ check('ACA enrollments auto refresh',qualMig.includes('campaign_enrollment_quali
 check('plan publish rebuilds qualification',publishMig.includes('comp_plan_publish_qualification_refresh'));
 check('bonus progress stored',qualMig.includes('bonus_progress')&&qualMig.includes("'units_needed'"));
 check('agent bonus progress visible',qUi.includes('BONUS QUALIFICATION TRACKING')&&qUi.includes('QUALIFIED')&&qUi.includes('TO GO'));
+check('direct manager override configurable',overrideMig.includes("'manager_direct_override'")&&overrideMig.includes("0,0.25")&&overrideMig.includes("'per_unit_bonus'"));
+check('promoted market sub-1000 override configurable',overrideMig.includes("'promoting_manager_market'")&&overrideMig.includes("0,0.25")&&calc.includes('promoted_market'));
 check('published plan versioning',admin.includes('status: "published"')&&admin.includes('status: "retired"'));
 check('universal UI loaded',index.includes('universal-compensation-platform.js'));
 check('qualification UI loaded',index.includes('comp-qualification-ui.js'));

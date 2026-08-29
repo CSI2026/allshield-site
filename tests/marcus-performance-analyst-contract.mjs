@@ -1,0 +1,57 @@
+import fs from 'node:fs';
+
+const source=fs.readFileSync('supabase/functions/ai-marcus-performance-analyst/index.ts','utf8');
+const seed=fs.readFileSync('supabase/seeds/marcus-performance-capabilities-b039.sql','utf8');
+
+const checks=[];
+const ok=(name,pass)=>{if(!pass)throw new Error(`FAIL: ${name}`);checks.push(name)};
+const has=(s,x)=>s.includes(x);
+
+ok('build marker',has(source,'B2026.08.29.039'));
+ok('employee code',has(source,'performance_analyst'));
+ok('title contract',has(seed,'AI Performance & Compensation Analyst'));
+ok('real data only',has(source,'REAL DATA ONLY')&&has(seed,"'real_data_only'"));
+ok('approved base amount',has(source,'base_enrollment_amount:15'));
+ok('agent 250 bonus',has(source,'{threshold:250,amount:250}'));
+ok('agent 300 bonus',has(source,'{threshold:300,amount:500}'));
+ok('manager coaching 200',has(source,'{threshold:200,amount:50}'));
+ok('manager coaching 250',has(source,'{threshold:250,amount:100}'));
+ok('manager coaching 300',has(source,'{threshold:300,amount:200}'));
+ok('market 1000',has(source,'{threshold:1000,amount:1000}'));
+ok('market 2000',has(source,'{threshold:2000,amount:2500}'));
+ok('market 3000',has(source,'{threshold:3000,amount:4000}'));
+ok('promotion direct agents',has(source,'direct_agents_required:2'));
+ok('promotion team enrollments',has(source,'team_enrollments_required:500'));
+ok('promotion development bonus',has(source,'promoter_one_time_bonus:2500'));
+ok('promoted market 1000',has(source,'{threshold:1000,amount:500}'));
+ok('promoted market 2000',has(source,'{threshold:2000,amount:1250}'));
+ok('promoted market 3000',has(source,'{threshold:3000,amount:2000}'));
+ok('live production read',has(source,'production_entries'));
+ok('live enrollments read',has(source,'campaign_enrollments'));
+ok('comp plan read',has(source,'comp_plan_versions'));
+ok('bonus rule read',has(source,'comp_bonus_rules'));
+ok('ledger read',has(source,'comp_ledger'));
+ok('payroll read',has(source,'payroll_runs')&&has(source,'payroll_run_items'));
+ok('promotion read',has(source,'promotion_qualification_snapshots'));
+ok('ledger math validation',has(source,'units × rate'));
+ok('payroll gross validation',has(source,'Payroll gross does not match items'));
+ok('promotion control validation',has(source,'qualifies despite failed controls'));
+ok('coaching recommendations',has(source,'coaching_opportunity_detection')&&has(source,'near_bonus_threshold'));
+ok('emerging leader detection',has(source,'emerging_leader_detection'));
+ok('duplicate escalation suppression',has(source,'duplicate_suppressed'));
+ok('Avery escalation',has(source,'marcus_performance_analysis')&&has(source,'command_center'));
+ok('tracked work',has(source,'ai_employee_runs')&&has(source,'ai_jobs'));
+ok('supervised learning',has(source,'ai_employee_learning'));
+ok('compensation hard boundary',has(source,'change_compensation')&&has(source,'no_compensation_mutation'));
+ok('promotion hard boundary',has(source,'approve_promotion')&&has(source,'no_promotion_mutation'));
+ok('payroll hard boundary',has(source,'approve_payroll')&&has(source,'no_payroll_mutation'));
+ok('status hard boundary',has(source,'change_agent_status')&&has(source,'no_status_mutation'));
+ok('no model dependency',!has(source,'api.openai.com')&&!has(source,'OPENAI_API_KEY'));
+ok('service auth',has(source,'apiSecretMatches'));
+ok('owner admin auth',has(source,'["owner","admin"]'));
+ok('34 capabilities',/const CAPABILITIES=\[([\s\S]*?)\];/.test(source));
+const capMatch=source.match(/const CAPABILITIES=\[([\s\S]*?)\];/);
+const capCount=(capMatch?.[1].match(/"[a-z0-9_]+"/g)||[]).length;
+ok('capability count exact',capCount===34);
+
+console.log(`Marcus B039 contract PASS ${checks.length}/${checks.length}; capabilities=${capCount}`);

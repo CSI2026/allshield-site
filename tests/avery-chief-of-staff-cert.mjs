@@ -22,11 +22,11 @@ check('Avery tracks unresolved AI work',fn.includes('queued')&&fn.includes('runn
 check('Avery applies approved learning',fn.includes('ai_employee_learning')&&fn.includes('lesson_text'));
 check('Avery preserves protected-action boundaries',fn.includes('Do not change protected account records')&&fn.includes('Do not publish externally without approval'));
 check('No temporary certification bypass remains',!fn.includes('certify_once')&&!fn.includes('CERT_NONCE')&&!fn.includes('x-allshield-cert-nonce'));
-check('Owner UI runtime is current version .006',ui.includes("const VERSION='2026.08.28.007'"));
+check('Owner UI runtime is current version .007',ui.includes("const VERSION='2026.08.28.007'"));
 check('Owner UI routes Avery to dedicated engine',ui.includes("target='ai-avery-chief-of-staff'"));
 check('Company scan routes to Avery scan action',ui.includes("payload={action:'scan',assignment:body.assignment||''}"));
-check('Index loads current Avery-aware runtime .006',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
-check('Current B035 metadata preserves Avery certification',build.includes("current_build:'B2026.08.28.035'")&&build.includes("avery_chief_of_staff:'LIVE WORK PASS'")&&build.includes("avery_capabilities:'8/8 PASS'")&&build.includes("avery_runtime_contract:'22/22 PASS'"));
+check('Index loads current Avery-aware runtime .007',index.includes('./phase16-ai-command-production.js?v=2026.08.28.007'));
+check('Current B036 metadata preserves Avery certification',build.includes("current_build:'B2026.08.28.036'")&&build.includes("avery_chief_of_staff:'LIVE WORK PASS'")&&build.includes("avery_capabilities:'8/8 PASS'")&&build.includes("avery_runtime_contract:'22/22 PASS'"));
 
 const base=process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com';
 const endpoint='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-avery-chief-of-staff';
@@ -45,6 +45,6 @@ try{
 }catch(e){check('Avery production endpoint remains JWT protected',false,e.message)}
 
 const failed=checks.filter(x=>!x.ok);
-const report={certification:'ALLSHIELD Avery AI Chief of Staff — Preserved Regression Contract under B035',base_url:base,completed_at:new Date().toISOString(),status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,checks,failures:failed};
+const report={certification:'ALLSHIELD Avery AI Chief of Staff — Preserved Regression Contract under B036',base_url:base,completed_at:new Date().toISOString(),status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,checks,failures:failed};
 console.log(JSON.stringify(report,null,2));
 if(failed.length)process.exit(1);

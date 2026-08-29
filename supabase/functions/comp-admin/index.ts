@@ -181,15 +181,17 @@ function contractBody(campaign: any, plan: any, rules: any[], tiers: any[], spli
       : `$${num(plan.base_rate, num(plan.base_enrollment_amount)).toFixed(2)} per ${label}`;
   const tierLines = tiers.filter((t: any) => t.active !== false && t.applies_to_role === "agent").sort((a: any, b: any) => num(a.tier_order) - num(b.tier_order)).map((t: any) => {
     if (t.benefit_type === "rate_override") {
-      const suffix = plan.rate_basis === "percent_of_value" ? "% rate" : plan.rate_basis === "flat" ? " flat rate" : ` per ${label}`;
-      return `- ${t.tier_name}: ${t.min_units}+ ${plural(label)} → ${num(t.benefit_value).toFixed(plan.rate_basis === "percent_of_value" ? 2 : 2)}${plan.rate_basis === "percent_of_value" ? "%" : `$${""}`}`;
+      const benefit = plan.rate_basis === "percent_of_value"
+        ? `${num(t.benefit_value).toFixed(2)}% rate`
+        : plan.rate_basis === "flat"
+          ? `$${num(t.benefit_value).toFixed(2)} flat rate`
+          : `$${num(t.benefit_value).toFixed(2)} per ${label}`;
+      return `- ${t.tier_name}: ${t.min_units}+ ${plural(label)} → ${benefit}`;
     }
     if (t.benefit_type === "flat_bonus") return `- ${t.tier_name}: ${t.min_units}+ ${plural(label)} → $${num(t.benefit_value).toFixed(2)} tier bonus`;
     const linked = rules.filter((r: any) => r.rule_type === t.bonus_rule_type && num(r.threshold) === num(t.bonus_threshold)).sort((a: any, b: any) => num(b.amount) - num(a.amount))[0];
     return `- ${t.tier_name}: ${t.min_units}+ ${plural(label)} → ${linked ? `$${num(linked.amount).toFixed(2)} ${linked.rule_name || "bonus"}` : `linked bonus rule ${t.bonus_rule_type} at ${t.bonus_threshold}`}`;
   });
-  // Correct rate-format line separately so dollars precede the amount for non-percent plans.
-  const normalizedTierLines = tierLines.map((line: string) => line.replace(/→ ([0-9.]+)\$ per /, "→ $$$1 per ").replace(/→ ([0-9.]+)\$ flat rate/, "→ $$$1 flat rate"));
   const bonusLines = rules.filter((r: any) => r.active !== false).sort((a: any, b: any) => String(a.applies_to_role).localeCompare(String(b.applies_to_role)) || num(a.threshold) - num(b.threshold)).map((r: any) => {
     const payout = r.payout_type === "percent_of_value" ? `${num(r.amount)}% of qualifying value` : r.payout_type === "per_unit_bonus" ? `$${num(r.amount).toFixed(2)} per qualifying ${label}` : `$${num(r.amount).toFixed(2)} bonus`;
     return `- ${r.rule_name || r.rule_type}: ${r.threshold}+ ${plural(label)} • ${r.aggregation_scope} → ${payout}`;
@@ -200,7 +202,7 @@ function contractBody(campaign: any, plan: any, rules: any[], tiers: any[], spli
   const enrollment = plan.open_enrollment_start_mmdd || plan.open_enrollment_end_mmdd || plan.reconciliation_end_mmdd
     ? `\n## Program Window / Reconciliation\nConfigured program window: ${plan.open_enrollment_start_mmdd || "—"} through ${plan.open_enrollment_end_mmdd || "—"}; reconciliation through ${plan.reconciliation_end_mmdd || "—"}. Dates are version-controlled.\n`
     : "";
-  return `# ${campaign.name} Compensation Addendum — Version ${plan.version}\n\nEffective ${plan.effective_from}.\n\n## Base Compensation\nPrimary metric: ${plan.metric_key}. Base compensation: ${basis}.\n\n## Agent Earning Tiers\n${normalizedTierLines.length ? normalizedTierLines.join("\n") : "No tier rules are configured for this version."}\n\n## Bonus Structure\n${bonusLines.length ? bonusLines.join("\n") : "No bonus rules are configured for this version."}\n\n## Payment Schedule\nPayments are issued on the program's configured payroll schedule. Current arrears setting: ${plan.weekly_arrears_days} days.\n${enrollment}${residual}\n## Version Control\nThis addendum is tied to compensation plan version ${plan.version}. Changes to rates, bonuses, tiers, or program rules require a new effective-dated version once a plan has been published. Earnings already accrued under a prior published version are not retroactively rewritten.`;
+  return `# ${campaign.name} Compensation Addendum — Version ${plan.version}\n\nEffective ${plan.effective_from}.\n\n## Base Compensation\nPrimary metric: ${plan.metric_key}. Base compensation: ${basis}.\n\n## Agent Earning Tiers\n${tierLines.length ? tierLines.join("\n") : "No tier rules are configured for this version."}\n\n## Bonus Structure\n${bonusLines.length ? bonusLines.join("\n") : "No bonus rules are configured for this version."}\n\n## Payment Schedule\nPayments are issued on the program's configured payroll schedule. Current arrears setting: ${plan.weekly_arrears_days} days.\n${enrollment}${residual}\n## Version Control\nThis addendum is tied to compensation plan version ${plan.version}. Changes to rates, bonuses, tiers, or program rules require a new effective-dated version once a plan has been published. Earnings already accrued under a prior published version are not retroactively rewritten.`;
 }
 
 Deno.serve(async (req: Request) => {

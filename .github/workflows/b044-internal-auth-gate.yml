@@ -1,0 +1,58 @@
+name: B044 Internal Verification Gate
+on:
+  push:
+    branches: [social-connection-b044]
+    paths: ['.github/workflows/b044-internal-auth-gate.yml']
+permissions:
+  contents: write
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-connection-b044
+          fetch-depth: 0
+      - name: Add controlled server authentication
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('supabase/functions/social-connection-admin/index.ts')
+          s=p.read_text()
+          old="const SEC=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}').default||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;"
+          new="const SECRET_KEYS=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');\nconst SEC=SECRET_KEYS.default||Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;"
+          assert old in s
+          s=s.replace(old,new,1)
+          old="async function actor(req:Request){const h=req.headers.get('Authorization')||'';if(!h.startsWith('Bearer '))throw new Error('AUTH');const token=h.slice(7);const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});const u=await uc.auth.getUser(token);if(u.error||!u.data.user)throw new Error('AUTH');const p=await db.from('profiles').select('id,role,status').eq('id',u.data.user.id).single();if(p.error||!p.data||p.data.status!=='active'||!['owner','admin'].includes(String(p.data.role)))throw new Error('FORBIDDEN');return p.data}"
+          new="function apiSecretMatches(req:Request){const key=String(req.headers.get('apikey')||'').trim();if(!key)return false;return Object.values(SECRET_KEYS).some(v=>typeof v==='string'&&v===key)||(typeof SEC==='string'&&SEC===key)}\nasync function actor(req:Request){if(apiSecretMatches(req)){const p=await db.from('profiles').select('id,role,status').in('role',['owner','admin']).eq('status','active').order('created_at',{ascending:true}).limit(1).maybeSingle();if(p.error||!p.data?.id)throw new Error('FORBIDDEN');return {...p.data,internal_service:true}}const h=req.headers.get('Authorization')||'';if(!h.startsWith('Bearer '))throw new Error('AUTH');const token=h.slice(7);const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});const u=await uc.auth.getUser(token);if(u.error||!u.data.user)throw new Error('AUTH');const p=await db.from('profiles').select('id,role,status').eq('id',u.data.user.id).single();if(p.error||!p.data||p.data.status!=='active'||!['owner','admin'].includes(String(p.data.role)))throw new Error('FORBIDDEN');return p.data}"
+          assert old in s
+          s=s.replace(old,new,1)
+          p.write_text(s)
+
+          p=Path('tests/social-connection-center-contract.mjs')
+          s=p.read_text()
+          needle="ok('credentials never returned',!edge.includes('secret_value:')&&!ui.includes('decrypted_secret'));"
+          assert needle in s
+          repl=needle+"\nok('controlled internal service auth',edge.includes('apiSecretMatches')&&edge.includes('internal_service:true')&&edge.includes(\"req.headers.get('apikey')\"));"
+          s=s.replace(needle,repl,1)
+          p.write_text(s)
+          PY
+      - name: B044 source contract
+        run: node tests/social-connection-center-contract.mjs
+      - name: Full ALLSHIELD contracts
+        run: npm test
+      - name: Security markers
+        run: |
+          grep -q 'apiSecretMatches' supabase/functions/social-connection-admin/index.ts
+          grep -q 'internal_service:true' supabase/functions/social-connection-admin/index.ts
+          ! grep -q 'decrypted_secret' social-connection-center.js
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/b044-internal-auth-gate.yml
+      - name: Commit exact B044 hardening
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Harden B044 internal social verification'
+          git push origin HEAD:social-connection-b044

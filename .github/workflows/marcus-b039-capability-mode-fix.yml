@@ -1,0 +1,40 @@
+name: Marcus B039 Capability Mode Fix
+on:
+  push:
+    branches: [marcus-b039]
+    paths: ['.github/workflows/marcus-b039-capability-mode-fix.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.event.head_commit.message == 'Fix Marcus B039 capability execution modes'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: marcus-b039
+          fetch-depth: 0
+      - name: Map modes to canonical ALLSHIELD capability schema
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('supabase/seeds/marcus-performance-capabilities-b039.sql')
+          s=p.read_text()
+          s=s.replace("'knowledge_work'","'analyze'")
+          s=s.replace("'execution'","'track'")
+          s=s.replace("'control'","'write_protected'")
+          s=s.replace("'learning'","'track'")
+          s=s.replace("('live_performance_read','Live performance read','Read current production, enrollment, compensation, payroll and promotion records.','analyze',false)","('live_performance_read','Live performance read','Read current production, enrollment, compensation, payroll and promotion records.','read',false)")
+          s=s.replace("('compensation_plan_read','Compensation plan read','Read compensation plan versions and contract configuration.','analyze',false)","('compensation_plan_read','Compensation plan read','Read compensation plan versions and contract configuration.','read',false)")
+          s=s.replace("('escalation_path','Escalation path','Route material anomalies to Avery/Owner instead of changing protected records.','track',false)","('escalation_path','Escalation path','Route material anomalies to Avery/Owner instead of changing protected records.','delegate',false)")
+          p.write_text(s)
+          PY
+      - name: Run ALLSHIELD contract suite
+        run: npm test
+      - name: Commit corrected seed
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add supabase/seeds/marcus-performance-capabilities-b039.sql
+          git commit -m 'Align Marcus B039 capability modes with workforce schema'
+          git push origin HEAD:marcus-b039

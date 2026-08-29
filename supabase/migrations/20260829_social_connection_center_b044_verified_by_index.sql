@@ -1,0 +1,2 @@
+create index if not exists social_connection_verifications_verified_by_idx
+on public.social_connection_verifications(verified_by);

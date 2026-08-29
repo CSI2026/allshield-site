@@ -35,7 +35,7 @@ jobs:
             ['TikTok account stats probe',src.includes('follower_count,following_count,likes_count,video_count')&&src.includes('stats_probe_ok')],
             ['TikTok video metrics probe',src.includes('/v2/video/list/?fields=id,create_time,title,like_count,comment_count,share_count,view_count')&&src.includes('video_metrics_probe_ok')],
             ['TikTok creator eligibility probe',src.includes('/v2/post/publish/creator_info/query/')&&src.includes('creator_info_ok')],
-            ['TikTok token auto refresh',src.includes('refreshTikTokTokenIfNeeded')&&src.includes("grant_type:'refresh_token'"))],
+            ['TikTok token auto refresh',src.includes('refreshTikTokTokenIfNeeded')&&src.includes("grant_type:'refresh_token'")],
             ['TikTok posting audit gate',src.includes("posting_audit_status==='approved'")&&src.includes('public_post_ready')],
             ['TikTok app review tracker',mig.includes('social_provider_approval_status')&&ui.includes('sccTikTokAppReview')],
             ['TikTok engagement capability',mig.includes("required_engagement_scopes = array['user.info.stats','video.list']")],

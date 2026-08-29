@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='B2026.08.29.045';
+const VERSION='B2026.08.29.046';
 const PROVIDER_ORDER=['meta','tiktok','linkedin','youtube','x','threads','pinterest','reddit','snapchat','whatsapp','messenger'];
 const ICON={meta:'◎',tiktok:'♪',linkedin:'in',youtube:'▶',x:'𝕏',threads:'@',pinterest:'P',reddit:'r/',snapchat:'◌',whatsapp:'◉',messenger:'✦'};
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

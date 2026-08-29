@@ -1,0 +1,54 @@
+name: B044 Runtime URL Fix
+on:
+  push:
+    branches: [social-connection-b044]
+    paths: ['.github/workflows/b044-runtime-fix.yml']
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-connection-b044
+          fetch-depth: 0
+      - name: Repair URL namespace collision
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('supabase/functions/social-connection-admin/index.ts');s=p.read_text()
+          replacements={
+            "const URL=Deno.env.get('SUPABASE_URL')!;":"const SUPABASE_URL=Deno.env.get('SUPABASE_URL')!;",
+            "const db=createClient(URL,SEC,{auth:{persistSession:false,autoRefreshToken:false}});":"const db=createClient(SUPABASE_URL,SEC,{auth:{persistSession:false,autoRefreshToken:false}});",
+            "const fnBase=`${URL}/functions/v1/social-connection-admin`;":"const fnBase=`${SUPABASE_URL}/functions/v1/social-connection-admin`;",
+            "const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});":"const uc=createClient(SUPABASE_URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});"
+          }
+          for old,new in replacements.items():
+            assert old in s, old
+            s=s.replace(old,new)
+          assert "const URL=" not in s
+          assert "new URL(req.url)" in s
+          p.write_text(s)
+          p=Path('tests/social-connection-center-contract.mjs');s=p.read_text()
+          needle="ok('controlled internal service auth',edge.includes('apiSecretMatches')&&edge.includes('internal_service:true')&&edge.includes(\"req.headers.get('apikey')\"));"
+          assert needle in s
+          s=s.replace(needle,needle+"\nok('URL constructor not shadowed',!edge.includes('const URL=')&&edge.includes('const SUPABASE_URL=')&&edge.includes('new URL(req.url)'));",1)
+          p.write_text(s)
+          PY
+      - name: Contract regression
+        run: npm test
+      - name: Verify namespace
+        run: |
+          ! grep -q 'const URL=' supabase/functions/social-connection-admin/index.ts
+          grep -q 'const SUPABASE_URL=' supabase/functions/social-connection-admin/index.ts
+          grep -q 'new URL(req.url)' supabase/functions/social-connection-admin/index.ts
+      - name: Remove workflow
+        run: rm -f .github/workflows/b044-runtime-fix.yml
+      - name: Commit repair
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git commit -m 'Fix B044 social connection runtime URL handling'
+          git push origin HEAD:social-connection-b044

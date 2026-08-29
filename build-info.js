@@ -1,12 +1,20 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.29.042',
-  label:'Production B042 — Victor Core Media Engine + Modern Video Provider Gateway — External Providers Pending',
+  current_build:'B2026.08.29.044',
+  label:'Production B044 — Secure Social Connection Center + Professional Verification — Certified',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
+    social_connection_center:'PASS',
+    social_provider_vault:'PASS',
+    social_professional_verification:'PASS',
+    social_identity_verification:'PASS',
+    social_permission_matrix:'PASS',
+    social_comment_permission_gate:'PASS',
+    social_browser_secret_exposure:'0 SECRETS RETURNED',
+    maya_core_social_readiness:'LIVE VERIFIED STATE',
     victor_video_editor:'CORE LIVE WORK PASS — PROFESSIONAL COMPLETION BLOCKED',
     victor_core_capabilities:'39/39 PASS',
     victor_provider_capabilities:'6 PLANNED — PROVIDERS REQUIRED',
@@ -68,6 +76,10 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Added a dedicated Owner/Admin Social Connection Center with secure provider credential entry, OAuth launch, account identity verification, token-health verification and professional capability checks before Maya or Victor can treat an account as operational',
+    'Provider developer credentials entered in the back office are encrypted in Supabase Vault through service-role-only database functions; decrypted secret values are never returned to browser clients',
+    'Added live verification evidence for publishing, engagement-read, comment-read and comment-reply permissions where Allshield has certified platform support, including missing-scope reporting and a Maya core social readiness gate',
+    'Expanded Meta connection requirements to include Facebook Page community permissions and Instagram professional comment management permissions; added TikTok creator-info verification and YouTube upload/comment scope verification',
     'Added Victor dedicated AI Media & Video Producer execution with 39 enabled core capabilities, 6 provider-dependent capabilities held planned, real-media-only evidence, tracked work, repurposing packages and protected publish/OAuth/delete boundaries',
     'Victor completed Avery’s real media delivery readiness assignment against the existing Careers video, detected YouTube and provider blockers, generated a real production/repurpose package from stored script/storyboard data, and created three tracked Avery escalations',
     'Modernized Video Studio to GPT-5.6 Sol, GPT-Image-2, GPT-4o-mini-TTS and a provider-independent durable video gateway; removed direct use of the deprecated Sora video endpoint',
@@ -94,7 +106,6 @@ window.ALLSHIELD_BUILD_INFO={
     'Maya permanent source contract passed 24/24 and live production contract passed 12/12, including CORS, unauthorized-access rejection and live runtime routing',
     'Independent desktop and mobile browser smoke passed on the live site with the Maya-aware .007 runtime loaded and no detected ReferenceError, TypeError or SyntaxError',
     'Retired the temporary Maya certification runner and removed the one-time routing and browser-smoke workflows after permanent evidence was recorded',
-    'Final B036 cross-employee release gate requires Maya, Olivia and Avery certifications to remain valid together under the current 2026.08.28.007 AI Workforce runtime and B036 production metadata',
     'Retained the approved B2026.08.23.021 baseline and all prior certified Avery, Olivia, dashboard, onboarding, Agent Operations, E-Sign, Careers, communications, Academy, Video Studio, mobile and desktop behavior'
   ]
 };

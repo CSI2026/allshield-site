@@ -1,0 +1,42 @@
+name: Marcus B039 Build
+on:
+  push:
+    branches: [marcus-b039]
+    paths: ['.github/workflows/marcus-b039-build.yml']
+permissions:
+  contents: write
+jobs:
+  build:
+    if: github.event.head_commit.message == 'Add Marcus B039 build workflow'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: marcus-b039
+          fetch-depth: 0
+      - name: Patch AI Workforce routing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('phase16-ai-command-production.js')
+          s=p.read_text()
+          old="""}else if(kind==='marketing_manager'||kind==='marketing'||code==='marketing_manager'){target='ai-maya-marketing-manager';if(a==='run')payload={action:'scan',assignment:body.assignment||''};else if(a==='work')payload={action:'work',assignment:body.assignment||'',job_id:body.job_id||null};}}const {data,error}=await c.functions.invoke(target,{body:payload});"""
+          new="""}else if(kind==='performance_analyst'||kind==='performance'||code==='performance_analyst'){target='ai-marcus-performance-analyst';if(a==='run')payload={action:'scan',assignment:body.assignment||''};else if(a==='work')payload={action:'work',assignment:body.assignment||'',job_id:body.job_id||null};}else if(kind==='marketing_manager'||kind==='marketing'||code==='marketing_manager'){target='ai-maya-marketing-manager';if(a==='run')payload={action:'scan',assignment:body.assignment||''};else if(a==='work')payload={action:'work',assignment:body.assignment||'',job_id:body.job_id||null};}}const {data,error}=await c.functions.invoke(target,{body:payload});"""
+          if old not in s:
+              raise SystemExit('expected routing marker not found')
+          s=s.replace(old,new,1).replace("const VERSION='2026.08.28.007';","const VERSION='2026.08.29.008';",1)
+          p.write_text(s)
+          PY
+      - name: Run ALLSHIELD contract suite
+        run: npm test
+      - name: Verify Marcus route
+        run: |
+          grep -q "target='ai-marcus-performance-analyst'" phase16-ai-command-production.js
+          grep -q "B2026.08.29.039" supabase/functions/ai-marcus-performance-analyst/index.ts
+      - name: Commit routed build
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add phase16-ai-command-production.js
+          git commit -m 'Route Marcus B039 through AI Workforce' || true
+          git push origin HEAD:marcus-b039

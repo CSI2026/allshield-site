@@ -1,4 +1,5 @@
 name: B040 Exact Release Gate
+# rerun after direct production bootstrap contract correction
 on:
   push:
     branches: [universal-comp-b040]

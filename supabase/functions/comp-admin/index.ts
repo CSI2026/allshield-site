@@ -312,7 +312,7 @@ Deno.serve(async (req: Request) => {
       if (plan.status !== "draft") return json({ error: "Only draft versions can be edited. Create a new version before changing a published plan." }, 409);
       const before = plan;
       const patch: any = {};
-      for (const k of ["effective_from", "effective_to", "weekly_arrears_days", "payday_dow", "open_enrollment_start_mmdd", "open_enrollment_end_mmdd", "reconciliation_end_mmdd", "residual_pool_per_member", "config", "contract_terms", "rate_basis", "metric_key", "unit_label"]) if (body[k] !== undefined) patch[k] = body[k];
+      for (const k of ["effective_from", "effective_to", "weekly_arrears_days", "payday_dow", "open_enrollment_start_mmdd", "open_enrollment_end_mmdd", "reconciliation_end_mmdd", "residual_pool_per_member", "residuals_enabled", "config", "contract_terms", "rate_basis", "metric_key", "unit_label"]) if (body[k] !== undefined) patch[k] = body[k];
       if (body.metric_key !== undefined) patch.metric_key = cleanKey(body.metric_key, plan.metric_key || campaign.primary_metric_key || "units");
       if (body.unit_label !== undefined) patch.unit_label = String(body.unit_label).trim().slice(0, 80) || plan.unit_label;
       if (body.base_rate !== undefined || body.base_enrollment_amount !== undefined) {
@@ -364,7 +364,7 @@ Deno.serve(async (req: Request) => {
         base_enrollment_amount: last.base_enrollment_amount, base_rate: last.base_rate, rate_basis: last.rate_basis, metric_key: last.metric_key, unit_label: last.unit_label,
         weekly_arrears_days: last.weekly_arrears_days, payday_dow: last.payday_dow,
         open_enrollment_start_mmdd: last.open_enrollment_start_mmdd, open_enrollment_end_mmdd: last.open_enrollment_end_mmdd, reconciliation_end_mmdd: last.reconciliation_end_mmdd,
-        residual_pool_per_member: last.residual_pool_per_member, config: last.config, contract_terms: last.contract_terms, created_by: actor.id,
+        residual_pool_per_member: last.residual_pool_per_member, residuals_enabled: last.residuals_enabled !== false, config: last.config, contract_terms: last.contract_terms, created_by: actor.id,
       }).select().single();
       if (error) return json({ error: error.message }, 400);
       const [{ data: rules }, { data: tiers }, { data: splits }] = await Promise.all([
@@ -398,15 +398,13 @@ Deno.serve(async (req: Request) => {
       }
       const { data: pubPlan, error } = await admin.from("comp_plan_versions").update({ status: "published", published_by: actor.id, published_at: new Date().toISOString() }).eq("id", planId).select().single();
       if (error) return json({ error: error.message }, 400);
-      const bodyText = contractBody(campaign, pubPlan, rules || [], tiers || [], splits || []);
-      const { error: contractError } = await admin.from("contract_plan_versions").upsert({
-        campaign_id: campaign.id, comp_plan_version_id: planId, version: plan.version, status: "published",
-        title: `${campaign.name} Compensation Addendum v${plan.version}`, body_markdown: bodyText,
-        effective_from: plan.effective_from, effective_to: plan.effective_to, published_by: actor.id, published_at: new Date().toISOString(), created_by: actor.id,
-      }, { onConflict: "campaign_id,version" });
+      const { data: livingContract, error: contractError } = await admin.from("contract_plan_versions")
+        .select("id,version,status,title,body_markdown,body_hash,effective_from,effective_to,published_at,generated_at")
+        .eq("comp_plan_version_id", planId).eq("status", "published").maybeSingle();
       if (contractError) return json({ error: contractError.message }, 400);
-      await admin.from("comp_plan_change_log").insert({ plan_version_id: planId, actor_id: actor.id, action: "published", after_state: { plan: pubPlan, campaign_code: campaign.code } });
-      return json({ ok: true, plan: pubPlan, contract_body: bodyText });
+      if (!livingContract) return json({ error: "Living contract generation failed" }, 500);
+      await admin.from("comp_plan_change_log").insert({ plan_version_id: planId, actor_id: actor.id, action: "published", after_state: { plan: pubPlan, campaign_code: campaign.code, contract_version_id: livingContract.id, contract_body_hash: livingContract.body_hash } });
+      return json({ ok: true, plan: pubPlan, contract_body: livingContract.body_markdown, contract: livingContract });
     }
 
     if (action === "record_production_event") {

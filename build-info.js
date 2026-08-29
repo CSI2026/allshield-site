@@ -1,12 +1,16 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.29.040',
-  label:'Production B040 — Universal Editable Compensation + Qualification Tracking — Certified',
+  current_build:'B2026.08.29.041',
+  label:'Production B041 — Living Compensation Contracts + Versioned Re-Acceptance — Certified',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
+    living_compensation_contracts:'PASS',
+    contract_section_auto_sync:'PASS',
+    residual_section_removal:'PASS',
+    versioned_contract_reacceptance:'PASS',
     universal_compensation:'LIVE CONFIGURATION PASS',
     editable_commission_structure:'PASS',
     editable_bonus_structure:'PASS',
@@ -56,6 +60,9 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Added living compensation agreements generated directly from each compensation version; base rates, bonuses, tiers, leadership rules, residuals and program terms now drive the current agreement automatically',
+    'Removing residuals from a draft clears that version residual split configuration, blocks residual calculations and removes the entire Residuals section and residual clauses from the generated agreement',
+    'Previously published and accepted agreements remain immutable; each newly published compensation version creates a new agreement and pending acceptance requirement for assigned agents',
     'Added universal versioned compensation configuration for ACA and future products/programs, including editable base commission, bonus structures, agent tiers and automatic qualification snapshots',
     'Certified Marcus as the AI Performance & Compensation Analyst after real staging and production execution against current ALLSHIELD configuration and data',
     'Registered 34 Marcus capabilities for verified production, enrollment, compensation, payroll and promotion analysis with recommendation-only protected boundaries',

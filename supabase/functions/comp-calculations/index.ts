@@ -235,6 +235,7 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "calculate_residuals") {
+      if (plan.residuals_enabled === false) return json({ error: "Residuals are disabled for this compensation version." }, 409);
       if (campaign.production_source !== "campaign_enrollments") return json({ error: "Residual calculation is not configured for this product/program. Configure a residual adapter before running residuals." }, 409);
       const policyYear = num(body.policy_year, 1);
       if (policyYear < 1) return json({ error: "Invalid policy year" }, 400);

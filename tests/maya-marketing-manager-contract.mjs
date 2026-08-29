@@ -1,41 +1,49 @@
 import fs from 'node:fs';
-
 const root=process.cwd();
 const read=p=>fs.readFileSync(`${root}/${p}`,'utf8');
 const fn=read('supabase/functions/ai-maya-marketing-manager/index.ts');
 const ui=read('phase16-ai-command-production.js');
-const seed=read('supabase/seeds/maya-marketing-capabilities-b036.sql');
+const seed=read('supabase/seeds/maya-marketing-capabilities-b037.sql');
 const checks=[];
 const check=(name,ok)=>checks.push({name,ok:Boolean(ok)});
 const caps=[
-'live_marketing_read','approved_brand_fact_gate','prohibited_claim_guard','brand_profile_status_awareness','platform_profile_awareness','social_connection_health','publish_job_health','marketing_post_queue','media_library_awareness','platform_specific_drafting','campaign_concept_generation','content_calendar_planning','draft_save_only','approval_readiness_check','no_self_approval','external_publish_boundary','oauth_token_boundary','unsupported_claim_detection','blocked_work_explanation','assignment_execution','delivery_health_review','escalation_path','duplicate_draft_prevention','kpi_recording','supervised_learning','owner_feedback_learning'
+'live_marketing_read','approved_brand_fact_gate','prohibited_claim_guard','brand_profile_status_awareness','platform_profile_awareness','social_connection_health','publish_job_health','marketing_post_queue','media_library_awareness','platform_specific_drafting','campaign_concept_generation','content_calendar_planning','draft_save_only','approval_readiness_check','no_self_approval','external_publish_boundary','oauth_token_boundary','unsupported_claim_detection','blocked_work_explanation','assignment_execution','delivery_health_review','escalation_path','duplicate_draft_prevention','kpi_recording','supervised_learning','owner_feedback_learning',
+'ad_copy_short_form','ad_copy_long_form','headline_generation','primary_text_generation','description_cta_generation','platform_ad_variant_generation','creative_brief_generation','image_generation','image_aspect_ratio_variants','thumbnail_generation','video_script_generation','storyboard_generation','short_video_generation','voiceover_generation','captions_generation','video_scene_generation','video_asset_sync','long_video_production_package','creative_asset_draft_storage','provider_readiness_awareness','video_editor_handoff','paid_media_account_readiness','audience_messaging_plan','targeting_brief_generation','conversion_tracking_plan','ab_test_plan_generation','landing_page_copy_generation','campaign_draft_package','utm_tracking_plan','creative_spec_adaptation','no_budget_spend_boundary','no_ad_launch_boundary','no_campaign_activation_boundary'
 ];
-
-check('Maya runtime is B036',fn.includes('B2026.08.28.036'));
-check('Maya identity is Marketing Manager',fn.includes('marketing_manager')&&fn.includes('AI Marketing Manager'));
-check('Maya dedicated endpoint is source controlled',seed.includes("'ai-maya-marketing-manager','1'"));
-check('All 26 Maya capabilities are versioned',caps.every(x=>fn.includes(`"${x}"`)&&seed.includes(`'${x}'`)));
-check('Maya reads approved brand context',fn.includes('social_brand_profiles')&&fn.includes('approved_facts')&&fn.includes('brand_ready'));
-check('Maya reads platform profiles',fn.includes('social_platform_profiles'));
-check('Maya reads social connection health',fn.includes('social_connections')&&fn.includes('connections_not_ready'));
-check('Maya reads marketing queue and publish jobs',fn.includes('marketing_posts')&&fn.includes('social_publish_jobs'));
-check('Maya reads media library',fn.includes('media_library'));
-check('Unapproved brand context fails closed',fn.includes('approved_brand_profile_required')&&fn.includes('approved_brand_facts_required'));
-check('Maya protects prohibited claims',fn.includes('prohibited_claim_detected')&&fn.includes('prohibited_claim_match'));
-check('Maya only saves generated content as draft',fn.includes('status: "draft"')&&!fn.includes('status: "published"'));
-check('Maya suppresses duplicate drafts',fn.includes('duplicate_drafts_suppressed')&&fn.includes('duplicates'));
-check('Maya routes material blockers to Avery',fn.includes('maya_escalation')&&fn.includes('assigned_by_ai_employee_id'));
-check('Maya preserves approval boundary',fn.includes('no_self_approval')&&fn.includes('external_publish_boundary'));
-check('Maya preserves OAuth/token boundary',fn.includes('oauth_token_boundary')&&fn.includes('refresh_token'));
-check('Protected publish actions are rejected',fn.includes('["publish","schedule","approve","connect","refresh_token","retry_publish"]'));
-check('Maya uses supervised owner learning',fn.includes('ai_employee_learning')&&fn.includes('markLessonsUsed'));
-check('Maya records run/job evidence',fn.includes('ai_employee_runs')&&fn.includes('ai_jobs'));
-check('Maya records KPI metrics',fn.includes('drafts_prepared')&&fn.includes('connection_issues')&&fn.includes('failed_publish_jobs'));
-check('Maya supports provider fallback',fn.includes('OPENAI_API_KEY')&&fn.includes('allshield:deterministic-marketing-v1'));
-check('Maya service path never hardcodes a secret',fn.includes('SUPABASE_SECRET_KEYS')&&!fn.includes('sb_secret_'));
-check('Owner AI Workforce routes Maya to dedicated engine',ui.includes("target='ai-maya-marketing-manager'"));
+check('Maya staging runtime is B037 v2',fn.includes('B2026.08.28.037')&&fn.includes('EXECUTION_VERSION="2"'));
+check('Maya identity remains AI Marketing Manager',fn.includes('TITLE="AI Marketing Manager"')&&fn.includes('CODE="marketing_manager"'));
+check('All 59 professional capabilities are source controlled',caps.length===59&&caps.every(x=>fn.includes(`"${x}"`)&&seed.includes(`'${x}'`)));
+check('Existing B036 capabilities remain enabled in staged seed',seed.includes("'live_marketing_read','Live Marketing Read'")&&seed.includes("'enabled'"));
+check('New B037 capabilities remain planned until live prerequisites pass',seed.includes("'image_generation','Image Generation'")&&seed.includes("'planned'"));
+check('Approved brand facts remain mandatory',fn.includes('approved_brand_profile_required')&&fn.includes('approved_brand_facts_required')&&fn.includes('brand_ready'));
+check('Prohibited claim guard remains fail closed',fn.includes('prohibited_claim_detected')&&fn.includes('prohibited_claim_match'));
+check('Current professional text model is GPT-5.6 Sol',fn.includes('text_model:"gpt-5.6-sol"')&&fn.includes('model:"gpt-5.6-sol"'));
+check('Current image model is GPT-Image-2',fn.includes('image_model:"gpt-image-2"')&&fn.includes('model:"gpt-image-2"'));
+check('Image output is draft-only',fn.includes('Maya AI Ad Creative Draft')&&fn.includes('status:"draft"')&&fn.includes('maya_draft:true'));
+check('Voiceover generation uses current TTS and private storage',fn.includes('gpt-4o-mini-tts')&&fn.includes('allshield-private')&&fn.includes('asset_type:"voiceover"'));
+check('Paid ad copy includes short and long primary text',fn.includes('short_primary_text')&&fn.includes('long_primary_text')&&fn.includes('headline')&&fn.includes('description')&&fn.includes('cta'));
+check('Paid ad drafts preserve structured copy metadata',fn.includes('maya_paid_ad_draft:true')&&fn.includes('ad_copy:{headline:a.headline'));
+check('Campaign package covers audience targeting measurement UTM AB and landing copy',fn.includes('generateCampaignPackage')&&fn.includes('targeting_brief')&&fn.includes('conversion_events')&&fn.includes('utm_template')&&fn.includes('ab_test_plan')&&fn.includes('landing_page'));
+check('Campaign package persists as draft with owner budget requirement',fn.includes('maya_paid_campaign_draft:true')&&fn.includes('budget_required_from_owner:true')&&fn.includes('activation_allowed:false'));
+check('Paid media readiness checks major ad platforms',fn.includes('META_ADS_ACCESS_TOKEN')&&fn.includes('GOOGLE_ADS_DEVELOPER_TOKEN')&&fn.includes('TIKTOK_ADS_ACCESS_TOKEN')&&fn.includes('LINKEDIN_ADS_ACCESS_TOKEN'));
+check('Durable video gateway is provider agnostic',fn.includes('MAYA_VIDEO_PROVIDER_URL')&&fn.includes('MAYA_VIDEO_PROVIDER_SECRET')&&fn.includes('generate_marketing_video'));
+check('Deprecated Sora endpoint is not called',!fn.includes('api.openai.com/v1/videos'));
+check('Sora shutdown is explicitly tracked',fn.includes('legacy_sora_api_used:false')&&fn.includes('legacy_sora_shutdown_at:"2026-09-24"'));
+check('Video assets remain approval-required drafts',fn.includes('approval_required:true')&&fn.includes('asset_type:assetType'));
+check('Long-form production can hand off internally to Video Editor',fn.includes('VIDEO_EDITOR="video_editor"')&&fn.includes('maya_video_handoff')&&fn.includes('draft production only; no external publishing or ad activation'));
+check('Budget and spend actions are protected',fn.includes('"set_budget"')&&fn.includes('"change_budget"')&&fn.includes('"spend"')&&fn.includes('"purchase_media"'));
+check('Ad activation actions are protected',fn.includes('"activate_campaign"')&&fn.includes('"launch_ad"')&&fn.includes('"boost_post"'));
+check('OAuth publishing approval boundaries remain protected',fn.includes('"publish"')&&fn.includes('"schedule"')&&fn.includes('"approve"')&&fn.includes('"refresh_token"'));
+check('Maya still saves regular content as draft only',fn.includes('saveDrafts')&&!fn.includes('status:"published"'));
+check('Maya keeps duplicate draft suppression',fn.includes('duplicates')&&fn.includes('duplicate_drafts_suppressed'));
+check('Maya keeps Avery escalation path',fn.includes('maya_escalation')&&fn.includes('assigned_by_ai_employee_id'));
+check('Maya keeps supervised learning',fn.includes('ai_employee_learning')&&fn.includes('markLessonsUsed'));
+check('Maya keeps run and job evidence',fn.includes('ai_employee_runs')&&fn.includes('ai_jobs'));
+check('Provider readiness requires creative plus durable video provider',fn.includes('provider_ready:Boolean(s.provider.openai_configured&&s.provider.video_provider_configured)'));
+check('Professional readiness blocks until brand providers and paid-media account exist',fn.includes('function professionalReadiness')&&fn.includes('approved_brand_facts')&&fn.includes('paid_media_account_connection')&&fn.includes('owner_budget_required:true'));
+check('No provider secret values are hardcoded',fn.includes('SUPABASE_SECRET_KEYS')&&!fn.includes('sb_secret_'));
+check('Owner AI Workforce still routes Maya to dedicated engine',ui.includes("target='ai-maya-marketing-manager'"));
 check('Owner AI Workforce retains Social workspace route',ui.includes("marketing_manager:{icon:'✦',route:'social'"));
-
 const failed=checks.filter(x=>!x.ok);
-console.log(JSON.stringify({contract:'Maya AI Marketing Manager',status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,checks,failures:failed.map(x=>x.name)},null,2));
+console.log(JSON.stringify({contract:'Maya AI Marketing Manager B037 staging',status:failed.length?'FAIL':'PASS',passed:checks.length-failed.length,total:checks.length,capabilities:caps.length,checks,failures:failed.map(x=>x.name)},null,2));
 if(failed.length)process.exit(1);

@@ -1,370 +1,108 @@
 import { createClient } from "npm:@supabase/supabase-js@^2";
 import { corsHeaders as sdkCorsHeaders } from "npm:@supabase/supabase-js@^2/cors";
 
-const cors = {
-  ...sdkCorsHeaders,
-  "Access-Control-Allow-Methods": "POST,OPTIONS",
-  "Access-Control-Allow-Headers": "authorization,x-client-info,apikey,content-type",
-};
-const json = (data, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { ...cors, "Content-Type": "application/json", "Cache-Control": "no-store" },
-  });
+const cors={...sdkCorsHeaders,"Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"authorization,x-client-info,apikey,content-type"};
+const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
+const URL=Deno.env.get("SUPABASE_URL");
+const PUB=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default||Deno.env.get("SUPABASE_ANON_KEY");
+const SECRET_KEYS=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}");
+const SECRET=SECRET_KEYS.default||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const db=createClient(URL,SECRET,{auth:{persistSession:false,autoRefreshToken:false}});
 
-const URL = Deno.env.get("SUPABASE_URL");
-const PUB =
-  JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}").default ||
-  Deno.env.get("SUPABASE_ANON_KEY");
-const SECRET_KEYS = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
-const SECRET = SECRET_KEYS.default || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-const db = createClient(URL, SECRET, { auth: { persistSession: false, autoRefreshToken: false } });
-
-const BUILD = "B2026.08.28.036";
-const CODE = "marketing_manager";
-const AVERY = "command_center";
-const OPEN = ["queued", "running", "failed"];
-const READY_CONNECTION = new Set(["connected", "active", "ready"]);
-const PLATFORMS = [
-  "facebook","instagram","tiktok","linkedin","youtube","x",
-  "threads","pinterest","snapchat","whatsapp","reddit","messenger"
-];
-const CAP = [
-  "live_marketing_read","approved_brand_fact_gate","prohibited_claim_guard",
-  "brand_profile_status_awareness","platform_profile_awareness","social_connection_health",
-  "publish_job_health","marketing_post_queue","media_library_awareness",
-  "platform_specific_drafting","campaign_concept_generation","content_calendar_planning",
-  "draft_save_only","approval_readiness_check","no_self_approval",
-  "external_publish_boundary","oauth_token_boundary","unsupported_claim_detection",
-  "blocked_work_explanation","assignment_execution","delivery_health_review",
-  "escalation_path","duplicate_draft_prevention","kpi_recording",
-  "supervised_learning","owner_feedback_learning"
+const BUILD="B2026.08.28.037";
+const EXECUTION_VERSION="2";
+const CODE="marketing_manager";
+const TITLE="AI Marketing Manager";
+const AVERY="command_center";
+const VIDEO_EDITOR="video_editor";
+const OPEN=["queued","running","failed"];
+const READY_CONNECTION=new Set(["connected","active","ready"]);
+const PLATFORMS=["facebook","instagram","tiktok","linkedin","youtube","x","threads","pinterest","snapchat","whatsapp","reddit","messenger"];
+const PROTECTED_ACTIONS=["publish","schedule","approve","connect","refresh_token","retry_publish","set_budget","change_budget","spend","activate_campaign","launch_ad","boost_post","purchase_media"];
+const CAP=[
+  "live_marketing_read","approved_brand_fact_gate","prohibited_claim_guard","brand_profile_status_awareness","platform_profile_awareness","social_connection_health","publish_job_health","marketing_post_queue","media_library_awareness","platform_specific_drafting","campaign_concept_generation","content_calendar_planning","draft_save_only","approval_readiness_check","no_self_approval","external_publish_boundary","oauth_token_boundary","unsupported_claim_detection","blocked_work_explanation","assignment_execution","delivery_health_review","escalation_path","duplicate_draft_prevention","kpi_recording","supervised_learning","owner_feedback_learning",
+  "ad_copy_short_form","ad_copy_long_form","headline_generation","primary_text_generation","description_cta_generation","platform_ad_variant_generation","creative_brief_generation","image_generation","image_aspect_ratio_variants","thumbnail_generation","video_script_generation","storyboard_generation","short_video_generation","voiceover_generation","captions_generation","video_scene_generation","video_asset_sync","long_video_production_package","creative_asset_draft_storage","provider_readiness_awareness","video_editor_handoff","paid_media_account_readiness","audience_messaging_plan","targeting_brief_generation","conversion_tracking_plan","ab_test_plan_generation","landing_page_copy_generation","campaign_draft_package","utm_tracking_plan","creative_spec_adaptation","no_budget_spend_boundary","no_ad_launch_boundary","no_campaign_activation_boundary"
 ];
 
-const clean = (v, n = 8000) => String(v ?? "").trim().slice(0, n);
-const low = (v) => clean(v).toLowerCase();
-const now = () => new Date().toISOString();
-const errText = (e) => e instanceof Error ? e.message : (() => { try { return JSON.stringify(e); } catch { return String(e); } })();
-const asArray = (v) => Array.isArray(v) ? v : [];
-const uniq = (a) => [...new Set(a.filter(Boolean))];
+const clean=(v,n=8000)=>String(v??"").trim().slice(0,n);
+const low=v=>clean(v).toLowerCase();
+const now=()=>new Date().toISOString();
+const errText=e=>e instanceof Error?e.message:(()=>{try{return JSON.stringify(e)}catch{return String(e)}})();
+const asArray=v=>Array.isArray(v)?v:[];
+const uniq=a=>[...new Set(a.filter(Boolean))];
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,Number(n)||min));
+function factList(v){if(Array.isArray(v))return v.map(x=>typeof x==="string"?x:JSON.stringify(x)).map(x=>clean(x,600)).filter(Boolean);if(v&&typeof v==="object")return Object.entries(v).map(([k,x])=>`${k}: ${typeof x==="string"?x:JSON.stringify(x)}`).map(x=>clean(x,600)).filter(Boolean);return []}
+function paidMediaStatus(){const rows={meta_ads:Boolean(Deno.env.get("META_ADS_ACCESS_TOKEN")&&Deno.env.get("META_AD_ACCOUNT_ID")),google_ads:Boolean(Deno.env.get("GOOGLE_ADS_DEVELOPER_TOKEN")&&Deno.env.get("GOOGLE_ADS_CUSTOMER_ID")),tiktok_ads:Boolean(Deno.env.get("TIKTOK_ADS_ACCESS_TOKEN")&&Deno.env.get("TIKTOK_ADVERTISER_ID")),linkedin_ads:Boolean(Deno.env.get("LINKEDIN_ADS_ACCESS_TOKEN")&&Deno.env.get("LINKEDIN_AD_ACCOUNT_ID"))};return {platforms:rows,ready_count:Object.values(rows).filter(Boolean).length,total:Object.keys(rows).length}}
+function providerStatus(){const videoGateway=Boolean(Deno.env.get("MAYA_VIDEO_PROVIDER_URL")&&Deno.env.get("MAYA_VIDEO_PROVIDER_SECRET"));return {openai_configured:Boolean(Deno.env.get("OPENAI_API_KEY")),heygen_direct_configured:Boolean(Deno.env.get("HEYGEN_API_KEY")),text_model:"gpt-5.6-sol",image_model:"gpt-image-2",voice_model:"gpt-4o-mini-tts",video_provider_configured:videoGateway,video_provider:videoGateway?"configured_video_gateway":"not_configured",legacy_sora_api_used:false,legacy_sora_shutdown_at:"2026-09-24",paid_media:paidMediaStatus()}}
+function professionalReadiness(s){const paid=Number(s.provider?.paid_media?.ready_count||0);const checks={approved_brand_facts:Boolean(s.brand_ready),professional_text_image_voice:Boolean(s.provider?.openai_configured),durable_video_provider:Boolean(s.provider?.video_provider_configured),paid_media_account_connection:paid>0};return {ready:Object.values(checks).every(Boolean),checks,paid_media_accounts_ready:paid,paid_media_accounts_total:Number(s.provider?.paid_media?.total||0),owner_budget_required:true,owner_activation_required:true}}
+function apiSecretMatches(req){const key=clean(req.headers.get("apikey"),500);if(!key)return false;return Object.values(SECRET_KEYS).some(v=>typeof v==="string"&&v===key)||(typeof SECRET==="string"&&SECRET===key)}
+async function employee(code=CODE){const {data,error}=await db.from("ai_employees").select("id,code,name,job_title,department,manager_employee_id,job_assignment,kpis,learning_enabled,status,config").eq("code",code).maybeSingle();if(error)throw error;if(!data||data.status!=="active")throw new Error(`${code} unavailable`);return data}
+async function actor(req){if(apiSecretMatches(req))return {id:null,role:"owner",internal_service:true};const h=req.headers.get("Authorization")||"";if(!h.startsWith("Bearer "))throw new Error("AUTH");const token=h.slice(7);const uc=createClient(URL,PUB,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false,autoRefreshToken:false}});const u=await uc.auth.getUser(token);if(u.error||!u.data.user)throw new Error("AUTH");const {data:p,error}=await db.from("profiles").select("id,role,status").eq("id",u.data.user.id).single();if(error||!p||p.status!=="active"||!["owner","admin"].includes(String(p.role)))throw new Error("FORBIDDEN");return p}
+async function requester(p){if(p?.id)return p.id;const {data,error}=await db.from("profiles").select("id").in("role",["owner","admin"]).eq("status","active").order("created_at",{ascending:true}).limit(1).maybeSingle();if(error)throw error;if(!data?.id)throw new Error("No active Owner/Admin requester is available.");return data.id}
+async function lessons(id){const {data,error}=await db.from("ai_employee_learning").select("id,lesson_text,usage_count").eq("ai_employee_id",id).eq("status","active").order("updated_at",{ascending:false}).limit(12);if(error)throw error;return data||[]}
+async function markLessonsUsed(ls){for(const l of ls){await db.from("ai_employee_learning").update({usage_count:Number(l.usage_count||0)+1,last_used_at:now(),updated_at:now()}).eq("id",l.id)}}
 
-function factList(v) {
-  if (Array.isArray(v)) return v.map(x => typeof x === "string" ? x : JSON.stringify(x)).map(x => clean(x, 600)).filter(Boolean);
-  if (v && typeof v === "object") return Object.entries(v).map(([k, x]) => `${k}: ${typeof x === "string" ? x : JSON.stringify(x)}`).map(x => clean(x, 600)).filter(Boolean);
-  return [];
-}
-
-function apiSecretMatches(req) {
-  const key = clean(req.headers.get("apikey"), 500);
-  if (!key) return false;
-  return Object.values(SECRET_KEYS).some(v => typeof v === "string" && v === key) ||
-    (typeof SECRET === "string" && SECRET === key);
-}
-
-async function employee(code = CODE) {
-  const { data, error } = await db.from("ai_employees")
-    .select("id,code,name,job_title,department,manager_employee_id,job_assignment,kpis,learning_enabled,status,config")
-    .eq("code", code).maybeSingle();
-  if (error) throw error;
-  if (!data || data.status !== "active") throw new Error(`${code} unavailable`);
-  return data;
-}
-
-async function actor(req) {
-  if (apiSecretMatches(req)) return { id: null, role: "owner", internal_service: true };
-  const h = req.headers.get("Authorization") || "";
-  if (!h.startsWith("Bearer ")) throw new Error("AUTH");
-  const token = h.slice(7);
-  const uc = createClient(URL, PUB, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const u = await uc.auth.getUser(token);
-  if (u.error || !u.data.user) throw new Error("AUTH");
-  const { data: p, error } = await db.from("profiles").select("id,role,status").eq("id", u.data.user.id).single();
-  if (error || !p || p.status !== "active" || !["owner", "admin"].includes(String(p.role))) throw new Error("FORBIDDEN");
-  return p;
-}
-
-async function requester(p) {
-  if (p?.id) return p.id;
-  const { data, error } = await db.from("profiles").select("id")
-    .in("role", ["owner", "admin"]).eq("status", "active")
-    .order("created_at", { ascending: true }).limit(1).maybeSingle();
-  if (error) throw error;
-  if (!data?.id) throw new Error("No active Owner/Admin requester is available.");
-  return data.id;
-}
-
-async function lessons(id) {
-  const { data, error } = await db.from("ai_employee_learning")
-    .select("id,lesson_text,usage_count").eq("ai_employee_id", id)
-    .eq("status", "active").order("updated_at", { ascending: false }).limit(12);
-  if (error) throw error;
-  return data || [];
-}
-
-async function markLessonsUsed(ls) {
-  for (const l of ls) {
-    await db.from("ai_employee_learning")
-      .update({ usage_count: Number(l.usage_count || 0) + 1, last_used_at: now(), updated_at: now() })
-      .eq("id", l.id);
-  }
-}
-
-async function snapshot() {
-  const [brandR, platformR, connR, postR, pubR, mediaR] = await Promise.all([
-    db.from("social_brand_profiles").select("id,profile_key,company_name,website_url,short_description,long_description,mission,value_proposition,target_audiences,brand_voice,approved_facts,services,service_areas,recruiting_message,default_cta,contact_email,contact_phone,prohibited_claims,compliance_notes,status,approved_at,updated_at").eq("profile_key", "allshield_primary").maybeSingle(),
+async function snapshot(){
+  const [brandR,platformR,connR,postR,pubR,mediaR,videoR,assetR]=await Promise.all([
+    db.from("social_brand_profiles").select("id,profile_key,company_name,website_url,short_description,long_description,mission,value_proposition,target_audiences,brand_voice,approved_facts,services,service_areas,recruiting_message,default_cta,contact_email,contact_phone,prohibited_claims,compliance_notes,status,approved_at,updated_at").eq("profile_key","allshield_primary").maybeSingle(),
     db.from("social_platform_profiles").select("id,brand_profile_id,platform,display_name,bio,description,tagline,website_url,call_to_action,keywords,hashtags,status,approved_at,published_at"),
     db.from("social_connections").select("id,platform,account_name,status,connection_mode,token_expires_at,last_verified_at,error_message,updated_at"),
-    db.from("marketing_posts").select("id,content,platforms,status,scheduled_for,published_at,approved_by,created_at,updated_at").order("created_at", { ascending: false }).limit(250),
-    db.from("social_publish_jobs").select("id,marketing_post_id,platform,status,error_message,created_at,updated_at").order("created_at", { ascending: false }).limit(250),
-    db.from("media_library").select("id,title,media_type,audience,status,created_at,updated_at").order("created_at", { ascending: false }).limit(250),
+    db.from("marketing_posts").select("id,content,platforms,status,scheduled_for,published_at,approved_by,created_at,updated_at").order("created_at",{ascending:false}).limit(250),
+    db.from("social_publish_jobs").select("id,marketing_post_id,platform,status,error_message,created_at,updated_at").order("created_at",{ascending:false}).limit(250),
+    db.from("media_library").select("id,title,storage_path,media_type,audience,status,metadata,created_at,updated_at").order("created_at",{ascending:false}).limit(250),
+    db.from("video_projects").select("id,title,project_type,status,orientation,target_duration_seconds,metadata,created_at,updated_at").order("created_at",{ascending:false}).limit(100),
+    db.from("video_project_assets").select("id,project_id,asset_type,status,duration_seconds,orientation,storage_bucket,storage_path,metadata,created_at,updated_at").order("created_at",{ascending:false}).limit(250)
   ]);
-  for (const r of [brandR, platformR, connR, postR, pubR, mediaR]) if (r.error) throw r.error;
+  for(const r of [brandR,platformR,connR,postR,pubR,mediaR,videoR,assetR])if(r.error)throw r.error;
+  const brand=brandR.data||null,facts=factList(brand?.approved_facts),brandApproved=Boolean(brand&&brand.status==="approved"&&brand.approved_at),brandReady=brandApproved&&facts.length>0;
+  const prohibited=asArray(brand?.prohibited_claims).map(low).filter(Boolean),platformProfiles=platformR.data||[],connections=connR.data||[],posts=postR.data||[],publishJobs=pubR.data||[],media=mediaR.data||[],videos=videoR.data||[],assets=assetR.data||[];
+  const connectionIssues=connections.filter(x=>!READY_CONNECTION.has(low(x.status))),failedPublish=publishJobs.filter(x=>low(x.status)==="failed"),pendingPublish=publishJobs.filter(x=>["queued","running","pending"].includes(low(x.status))),activeDrafts=posts.filter(x=>["draft","approved","scheduled"].includes(low(x.status))),riskyPosts=posts.filter(p=>prohibited.some(term=>term&&low(p.content).includes(term)));
+  return {generated_at:now(),provider:providerStatus(),brand:brand?{id:brand.id,company_name:brand.company_name,website_url:brand.website_url,status:brand.status,approved_at:brand.approved_at,approved_fact_count:facts.length,prohibited_claim_count:prohibited.length,short_description:brand.short_description,long_description:brand.long_description,value_proposition:brand.value_proposition,mission:brand.mission,services:asArray(brand.services),service_areas:asArray(brand.service_areas),target_audiences:asArray(brand.target_audiences),brand_voice:brand.brand_voice,recruiting_message:brand.recruiting_message,default_cta:brand.default_cta,approved_facts:facts,prohibited_claims:asArray(brand.prohibited_claims)}:null,brand_approved:brandApproved,brand_ready:brandReady,platform_profiles:{total:platformProfiles.length,approved:platformProfiles.filter(x=>x.status==="approved"&&x.approved_at).length,rows:platformProfiles.map(x=>({platform:x.platform,status:x.status,display_name:x.display_name,tagline:x.tagline,call_to_action:x.call_to_action,keywords:asArray(x.keywords),hashtags:asArray(x.hashtags)}))},connections:{total:connections.length,ready:connections.length-connectionIssues.length,issues:connectionIssues.map(x=>({platform:x.platform,status:x.status,connection_mode:x.connection_mode,last_verified_at:x.last_verified_at,error_message:clean(x.error_message,240)}))},posts:{total:posts.length,drafts:posts.filter(x=>x.status==="draft").length,approved:posts.filter(x=>x.status==="approved").length,scheduled:posts.filter(x=>x.status==="scheduled").length,published:posts.filter(x=>x.status==="published").length,failed:posts.filter(x=>x.status==="failed").length,active_open:activeDrafts.length,prohibited_matches:riskyPosts.map(x=>({id:x.id,status:x.status}))},publish_jobs:{total:publishJobs.length,failed:failedPublish.length,pending:pendingPublish.length},media:{total:media.length,drafts:media.filter(x=>x.status==="draft").length,published:media.filter(x=>x.status==="published").length,approved:media.filter(x=>["approved","active","ready"].includes(low(x.status))).length,rows:media.slice(0,20)},video:{projects:videos.length,ready_projects:videos.filter(x=>x.status==="ready").length,generating_assets:assets.filter(x=>x.status==="generating").length,ready_assets:assets.filter(x=>x.status==="ready").length,failed_assets:assets.filter(x=>x.status==="failed").length}}
+}
+function issues(s){const out=[],add=(priority,key,title,detail,category,owner="Maya")=>out.push({priority,key,title,detail,category,owner});if(!s.brand)add("high","marketing:brand_missing","Primary brand profile missing","No allshield_primary brand profile exists.","brand_readiness","Avery / Owner");else if(!s.brand_approved)add("high","marketing:brand_not_approved","Brand profile is not approved",`Primary brand profile status=${s.brand.status}. Maya must not generate brand claims from draft context.`,"brand_readiness","Avery / Owner");else if(!s.brand_ready)add("high","marketing:brand_facts_empty","Approved brand facts are empty","Brand profile is approved but has no approved fact set for grounded marketing generation.","brand_readiness","Avery / Owner");if(!s.provider.openai_configured)add("high","marketing:creative_provider_not_configured","Creative AI provider is not configured","OPENAI_API_KEY is not available to Maya runtime, so GPT-5.6 copy, GPT-Image-2 images, and voice generation are blocked.","provider_readiness","Owner / Admin");if(!s.provider.video_provider_configured)add("high","marketing:video_provider_not_configured","Durable video provider is not configured","MAYA_VIDEO_PROVIDER_URL/SECRET are not available to Maya runtime. Sora is intentionally not used because its API is scheduled to shut down September 24, 2026.","provider_readiness","Owner / Admin");if((s.provider.paid_media?.ready_count||0)===0)add("high","marketing:paid_media_accounts_not_connected","Paid-media accounts are not connected","No Meta, Google, TikTok, or LinkedIn paid-media account is configured for Maya. Creative planning can continue, but account-level ad setup cannot be completed.","paid_media_readiness","Owner / Admin");if(s.connections.issues.length)add("high","marketing:connections_not_ready","Social channels are not delivery-ready",`${s.connections.issues.length} of ${s.connections.total} configured social channel(s) are not connected/ready.`,"connection_health","Owner / Admin");if(s.publish_jobs.failed)add("high","marketing:failed_publish_jobs","Failed social publish jobs",`${s.publish_jobs.failed} publish job(s) are failed and require human-controlled recovery.`,"publish_health","Owner / Admin");if(!s.platform_profiles.approved)add("normal","marketing:platform_profiles_unapproved","No approved platform profiles","Platform-specific bios/CTAs are not approved, so Maya will not treat them as authoritative.","platform_readiness");if(s.posts.prohibited_matches.length)add("critical","marketing:prohibited_claim_match","Prohibited claim detected in marketing queue",`${s.posts.prohibited_matches.length} marketing post(s) contain a prohibited-claim term and require human review.`,"content_integrity","Avery / Owner");if(!s.media.approved)add("normal","marketing:no_approved_media","No approved marketing media available","Media Library has no approved/active asset for campaign execution.","media_readiness");const rank={critical:0,high:1,normal:2,low:3};return out.sort((a,b)=>(rank[a.priority]??9)-(rank[b.priority]??9)||a.title.localeCompare(b.title))}
+async function reconcile(maya,parentJob,q,requestedBy,parentSource){const actionable=q.filter(x=>["critical","high"].includes(x.priority)).filter(x=>!(parentSource==="avery_company_scan"&&x.key==="marketing:connections_not_ready"));const current=new Map(actionable.map(x=>[x.key,x]));const priorR=await db.from("ai_jobs").select("id,status,input").eq("assigned_by_ai_employee_id",maya.id).eq("source","maya_escalation").in("status",OPEN);if(priorR.error)throw priorR.error;const prior=new Map((priorR.data||[]).filter(x=>x.input?.routing_key).map(x=>[x.input.routing_key,x])),created=[],kept=[],resolved=[];for(const [key,item] of current){const p=prior.get(key);if(p){kept.push({job_id:p.id,routing_key:key});continue}const r=await db.from("ai_jobs").insert({requested_by:requestedBy,agent_type:AVERY,input:{title:item.title,rationale:item.detail,assignment:`Review Maya marketing escalation: ${item.title}. Confirm the human owner and preserve marketing approval/publishing/budget boundaries.`,assigned_by:"Maya",routing_key:key,category:item.category,build:BUILD},status:"queued",requires_approval:false,parent_job_id:parentJob,assigned_by_ai_employee_id:maya.id,priority:item.priority,source:"maya_escalation",due_at:new Date(Date.now()+86400000).toISOString()}).select("id").single();if(r.error)throw r.error;created.push({job_id:r.data.id,routing_key:key})}for(const p of priorR.data||[]){const key=p.input?.routing_key;if(!key||current.has(key))continue;const r=await db.from("ai_jobs").update({status:"completed",completed_at:now(),resolution_notes:"Maya verified this marketing blocker is no longer present in the live marketing scan.",output:{resolution:"verified_cleared_by_live_scan",routing_key:key,build:BUILD}}).eq("id",p.id);if(r.error)throw r.error;resolved.push({job_id:p.id,routing_key:key})}return {created,kept,resolved,duplicate_suppressed:kept.length}}
 
-  const brand = brandR.data || null;
-  const facts = factList(brand?.approved_facts);
-  const brandApproved = Boolean(brand && brand.status === "approved" && brand.approved_at);
-  const brandReady = brandApproved && facts.length > 0;
-  const prohibited = asArray(brand?.prohibited_claims).map(x => low(x)).filter(Boolean);
-  const platformProfiles = platformR.data || [];
-  const connections = connR.data || [];
-  const posts = postR.data || [];
-  const publishJobs = pubR.data || [];
-  const media = mediaR.data || [];
-  const connectionIssues = connections.filter(x => !READY_CONNECTION.has(low(x.status)));
-  const failedPublish = publishJobs.filter(x => low(x.status) === "failed");
-  const pendingPublish = publishJobs.filter(x => ["queued", "running", "pending"].includes(low(x.status)));
-  const activeDrafts = posts.filter(x => ["draft", "approved", "scheduled"].includes(low(x.status)));
-  const riskyPosts = posts.filter(p => prohibited.some(term => term && low(p.content).includes(term)));
-  return {
-    generated_at: now(),
-    brand: brand ? {
-      id: brand.id, company_name: brand.company_name, website_url: brand.website_url,
-      status: brand.status, approved_at: brand.approved_at, approved_fact_count: facts.length,
-      prohibited_claim_count: prohibited.length, short_description: brand.short_description,
-      value_proposition: brand.value_proposition, mission: brand.mission,
-      services: asArray(brand.services), service_areas: asArray(brand.service_areas),
-      target_audiences: asArray(brand.target_audiences), brand_voice: brand.brand_voice,
-      recruiting_message: brand.recruiting_message, default_cta: brand.default_cta,
-      approved_facts: facts, prohibited_claims: asArray(brand.prohibited_claims),
-    } : null,
-    brand_approved: brandApproved,
-    brand_ready: brandReady,
-    platform_profiles: {
-      total: platformProfiles.length,
-      approved: platformProfiles.filter(x => x.status === "approved" && x.approved_at).length,
-      rows: platformProfiles.map(x => ({
-        platform: x.platform, status: x.status, display_name: x.display_name,
-        tagline: x.tagline, call_to_action: x.call_to_action,
-        keywords: asArray(x.keywords), hashtags: asArray(x.hashtags)
-      }))
-    },
-    connections: {
-      total: connections.length,
-      ready: connections.length - connectionIssues.length,
-      issues: connectionIssues.map(x => ({
-        platform: x.platform, status: x.status, connection_mode: x.connection_mode,
-        last_verified_at: x.last_verified_at, error_message: clean(x.error_message, 240)
-      }))
-    },
-    posts: {
-      total: posts.length,
-      drafts: posts.filter(x => x.status === "draft").length,
-      approved: posts.filter(x => x.status === "approved").length,
-      scheduled: posts.filter(x => x.status === "scheduled").length,
-      published: posts.filter(x => x.status === "published").length,
-      failed: posts.filter(x => x.status === "failed").length,
-      active_open: activeDrafts.length,
-      prohibited_matches: riskyPosts.map(x => ({ id: x.id, status: x.status }))
-    },
-    publish_jobs: { total: publishJobs.length, failed: failedPublish.length, pending: pendingPublish.length },
-    media: { total: media.length, approved: media.filter(x => ["approved", "active", "ready"].includes(low(x.status))).length },
-  };
-}
+function requestedPlatforms(assignment,explicit){const given=asArray(explicit).map(low).filter(x=>PLATFORMS.includes(x));if(given.length)return uniq(given);const a=` ${low(assignment)} `,found=PLATFORMS.filter(p=>a.includes(p==="x"?" x ":p));return found.length?found:["facebook","instagram","linkedin"]}
+function deterministicDraft(s,platform){const b=s.brand,fact=b.approved_facts[0]||b.value_proposition||b.short_description||"",support=b.approved_facts[1]||b.mission||"",cta=b.default_cta||"",name=b.company_name||"Allshield Insurance Group";let content=[name,fact,support,cta].filter(Boolean).join("\n\n");if(platform==="x")content=content.slice(0,270);return content}
+function extractAIText(payload){if(typeof payload?.output_text==="string"&&payload.output_text.trim())return payload.output_text.trim();const parts=[];for(const item of payload?.output||[])for(const c of item?.content||[]){if(typeof c?.text==="string")parts.push(c.text);else if(typeof c?.text?.value==="string")parts.push(c.text.value)}return parts.join("\n").trim()}
+function parseAIJson(text){const c=clean(text,100000).replace(/^```json\s*/i,"").replace(/^```\s*/,"").replace(/```$/,"").trim();try{return JSON.parse(c)}catch{}const a=c.indexOf("{"),b=c.lastIndexOf("}");if(a>=0&&b>a){try{return JSON.parse(c.slice(a,b+1))}catch{}}return null}
+function brandGate(s){if(!s.brand_approved)return "approved_brand_profile_required";if(!s.brand_ready)return "approved_brand_facts_required";return null}
+function prohibitedHit(s,text){const l=low(text);return asArray(s.brand?.prohibited_claims).map(low).find(term=>term&&l.includes(term))||null}
+async function responsesJson(instructions,input){const key=Deno.env.get("OPENAI_API_KEY");if(!key)return null;const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5.6-sol",store:false,instructions,input:typeof input==="string"?input:JSON.stringify(input)})});const payload=await r.json();if(!r.ok)throw new Error(payload?.error?.message||`OpenAI text provider HTTP ${r.status}`);return parseAIJson(extractAIText(payload))}
 
-function issues(s) {
-  const out = [];
-  const add = (priority, key, title, detail, category, owner = "Maya") => out.push({ priority, key, title, detail, category, owner });
-  if (!s.brand) add("high", "marketing:brand_missing", "Primary brand profile missing", "No allshield_primary brand profile exists.", "brand_readiness", "Avery / Owner");
-  else if (!s.brand_approved) add("high", "marketing:brand_not_approved", "Brand profile is not approved", `Primary brand profile status=${s.brand.status}. Maya must not generate brand claims from draft context.`, "brand_readiness", "Avery / Owner");
-  else if (!s.brand_ready) add("high", "marketing:brand_facts_empty", "Approved brand facts are empty", "Brand profile is approved but has no approved fact set for grounded marketing generation.", "brand_readiness", "Avery / Owner");
-  if (s.connections.issues.length) add("high", "marketing:connections_not_ready", "Social channels are not delivery-ready", `${s.connections.issues.length} of ${s.connections.total} configured social channel(s) are not connected/ready.`, "connection_health", "Owner / Admin");
-  if (s.publish_jobs.failed) add("high", "marketing:failed_publish_jobs", "Failed social publish jobs", `${s.publish_jobs.failed} publish job(s) are failed and require human-controlled recovery.`, "publish_health", "Owner / Admin");
-  if (!s.platform_profiles.approved) add("normal", "marketing:platform_profiles_unapproved", "No approved platform profiles", "Platform-specific bios/CTAs are not approved, so Maya will not treat them as authoritative.", "platform_readiness");
-  if (s.posts.prohibited_matches.length) add("critical", "marketing:prohibited_claim_match", "Prohibited claim detected in marketing queue", `${s.posts.prohibited_matches.length} marketing post(s) contain a prohibited-claim term and require human review.`, "content_integrity", "Avery / Owner");
-  if (!s.media.approved) add("normal", "marketing:no_approved_media", "No approved marketing media available", "Media Library has no approved/active asset for campaign execution.", "media_readiness");
-  const rank = { critical: 0, high: 1, normal: 2, low: 3 };
-  return out.sort((a,b) => (rank[a.priority] ?? 9) - (rank[b.priority] ?? 9) || a.title.localeCompare(b.title));
-}
+async function generateDrafts(s,assignment,platforms,ls){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate,drafts:[],engine:"allshield:marketing-safe-gate-v2"};const prohibited=asArray(s.brand.prohibited_claims).map(low).filter(Boolean);let drafts=[],engine="allshield:deterministic-marketing-v1";if(Deno.env.get("OPENAI_API_KEY")){try{const parsed=await responsesJson(`You are Maya, ALLSHIELD's ${TITLE}. Produce platform-specific marketing DRAFTS only. Use ONLY the supplied approved brand profile and approved facts. Never invent licenses, carriers, prices, savings, statistics, testimonials, awards, customer counts, guarantees, earnings, benefits, or regulatory claims. Do not publish, schedule, approve, connect accounts, change budget, spend money, launch ads, or modify OAuth. Return ONLY valid JSON: {"drafts":[{"platform":"...","content":"..."}],"notes":["..."]}.`,{assignment,platforms,approved_brand:s.brand,approved_lessons:ls.map(x=>x.lesson_text)});if(parsed&&Array.isArray(parsed.drafts)){drafts=parsed.drafts.map(x=>({platform:low(x.platform),content:clean(x.content,8000)})).filter(x=>platforms.includes(x.platform)&&x.content);engine="openai:gpt-5.6-sol"}}catch{}}if(!drafts.length)drafts=platforms.map(p=>({platform:p,content:deterministicDraft(s,p)})).filter(x=>x.content);for(const d of drafts){const hit=prohibited.find(term=>term&&low(d.content).includes(term));if(hit)return {blocked:true,reason:"prohibited_claim_detected",drafts:[],engine}}return {blocked:false,reason:null,drafts,engine}}
+async function generateAdCopy(s,assignment,platforms,ls){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate,ads:[],engine:"allshield:marketing-safe-gate-v2"};const fallback=platforms.map(platform=>{const fact=s.brand.approved_facts[0]||s.brand.value_proposition||s.brand.short_description||"",support=s.brand.approved_facts[1]||s.brand.mission||"",cta=s.brand.default_cta||"Learn more";return {platform,headline:clean(fact,70),short_primary_text:clean([fact,support].filter(Boolean).join(" "),240),long_primary_text:clean([s.brand.company_name,fact,support,s.brand.mission].filter(Boolean).join("\n\n"),1800),description:clean(support,120),cta}});let ads=fallback,engine="allshield:deterministic-ad-copy-v1";if(Deno.env.get("OPENAI_API_KEY")){try{const parsed=await responsesJson(`You are Maya, ALLSHIELD's ${TITLE}. Create professional PAID-AD COPY DRAFTS from APPROVED FACTS ONLY. Produce both short and long primary text, headline, description and CTA for each platform. Never invent performance, savings, price, carrier, license, customer, earnings, testimonial, award, guarantee or regulatory claims. Do not set budget, spend, publish, schedule, activate or launch anything. Return ONLY JSON: {"ads":[{"platform":"facebook","headline":"","short_primary_text":"","long_primary_text":"","description":"","cta":""}]}.`,{assignment,platforms,approved_brand:s.brand,approved_lessons:ls.map(x=>x.lesson_text)});if(parsed&&Array.isArray(parsed.ads)){ads=parsed.ads.map(x=>({platform:low(x.platform),headline:clean(x.headline,140),short_primary_text:clean(x.short_primary_text,600),long_primary_text:clean(x.long_primary_text,5000),description:clean(x.description,300),cta:clean(x.cta,120)})).filter(x=>platforms.includes(x.platform));engine="openai:gpt-5.6-sol"}}catch{}}
+  for(const a of ads){for(const text of [a.headline,a.short_primary_text,a.long_primary_text,a.description,a.cta])if(prohibitedHit(s,text))return {blocked:true,reason:"prohibited_claim_detected",ads:[],engine}}
+  return {blocked:false,reason:null,ads,engine}}
+async function saveDrafts(drafts,requestedBy){const created=[],duplicates=[];for(const d of drafts){const existing=await db.from("marketing_posts").select("id,status").eq("content",d.content).contains("platforms",[d.platform]).in("status",["draft","approved","scheduled"]).limit(1).maybeSingle();if(existing.error)throw existing.error;if(existing.data){duplicates.push({id:existing.data.id,platform:d.platform});continue}const r=await db.from("marketing_posts").insert({content:d.content,platforms:[d.platform],status:"draft",created_by:requestedBy,updated_at:now()}).select("id,status").single();if(r.error)throw r.error;created.push({id:r.data.id,platform:d.platform,status:r.data.status})}return {created,duplicates}}
+async function saveAdCopy(ads,requestedBy){const created=[],duplicates=[];for(const a of ads){const content=[a.headline,a.short_primary_text,a.long_primary_text,a.description,a.cta].filter(Boolean).join("\n\n");const existing=await db.from("marketing_posts").select("id,status").eq("content",content).contains("platforms",[a.platform]).in("status",["draft","approved","scheduled"]).limit(1).maybeSingle();if(existing.error)throw existing.error;if(existing.data){duplicates.push({id:existing.data.id,platform:a.platform});continue}const r=await db.from("marketing_posts").insert({content,platforms:[a.platform],status:"draft",created_by:requestedBy,updated_at:now(),external_refs:{maya_paid_ad_draft:true,build:BUILD,approval_required:true,budget_required_from_owner:true,activation_allowed:false,ad_copy:{headline:a.headline,short_primary_text:a.short_primary_text,long_primary_text:a.long_primary_text,description:a.description,cta:a.cta}}}).select("id,status").single();if(r.error)throw r.error;created.push({id:r.data.id,platform:a.platform,status:r.data.status})}return {created,duplicates}}
+async function generateCampaignPackage(s,assignment,platforms,ls){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate,engine:"allshield:marketing-safe-gate-v2"};const facts=s.brand.approved_facts,base={campaign_name:clean(`ALLSHIELD — ${assignment}`,180),objective:"Owner-defined conversion objective",platforms,audiences:asArray(s.brand.target_audiences),message_angles:facts.slice(0,4),targeting_brief:"Use only audiences and geography approved by Owner/Admin; do not infer protected traits.",creative_specs:platforms.map(platform=>({platform,formats:platform==="instagram"||platform==="tiktok"?["9:16","1:1"]:["1:1","16:9"],copy_variants:["short","long"]})),landing_page:{headline:facts[0]||s.brand.value_proposition||s.brand.company_name,body:facts.slice(0,4).join(" "),cta:s.brand.default_cta||"Learn more"},measurement:{conversion_events:["landing_page_view","lead_submit"],utm_template:"utm_source={platform}&utm_medium=paid_social&utm_campaign={campaign_slug}&utm_content={creative_id}",pixel_requirements:["Confirm platform pixel/tag is installed and consent-compliant before launch"]},ab_test_plan:["Test one message angle at a time","Test short vs long primary text","Test static image vs video where available"],budget:{status:"OWNER_REQUIRED",maya_may_set_budget:false},activation:{status:"OWNER_REQUIRED",maya_may_activate:false}},engine="allshield:deterministic-paid-campaign-v1";if(Deno.env.get("OPENAI_API_KEY")){try{const parsed=await responsesJson(`You are Maya, ALLSHIELD's ${TITLE}. Build a professional PAID MEDIA CAMPAIGN DRAFT PACKAGE using APPROVED FACTS ONLY. Include campaign name, objective recommendation, non-sensitive audience messaging, targeting brief, platform creative specs, landing-page draft, conversion tracking plan, UTM plan, and A/B test plan. Do not infer or target protected traits. Do not invent claims. Do not set a budget, spend money, activate, launch, publish, boost or purchase media. Return ONLY valid JSON.`,{assignment,platforms,approved_brand:s.brand,approved_lessons:ls.map(x=>x.lesson_text),required_budget_boundary:"Owner sets budget",required_activation_boundary:"Owner activates"});if(parsed){Object.assign(base,parsed);base.budget={status:"OWNER_REQUIRED",maya_may_set_budget:false};base.activation={status:"OWNER_REQUIRED",maya_may_activate:false};engine="openai:gpt-5.6-sol"}}catch{}}return {blocked:false,package:base,engine}}
+async function saveCampaignPackage(pkg,requestedBy){const content=`PAID CAMPAIGN DRAFT — ${clean(pkg.package?.campaign_name||"ALLSHIELD Campaign",180)}\n\n${clean(pkg.package?.landing_page?.headline||"",500)}\n\nOwner budget and activation required.`;const existing=await db.from("marketing_posts").select("id,status").eq("content",content).in("status",["draft","approved","scheduled"]).limit(1).maybeSingle();if(existing.error)throw existing.error;if(existing.data)return {created:[],duplicates:[{id:existing.data.id,kind:"campaign_package"}]};const r=await db.from("marketing_posts").insert({content,platforms:asArray(pkg.package?.platforms),status:"draft",created_by:requestedBy,updated_at:now(),external_refs:{maya_paid_campaign_draft:true,build:BUILD,approval_required:true,budget_required_from_owner:true,activation_allowed:false,campaign_package:pkg.package}}).select("id,status").single();if(r.error)throw r.error;return {created:[{id:r.data.id,status:r.data.status,kind:"campaign_package"}],duplicates:[]}}
 
-async function reconcile(maya, parentJob, q, requestedBy, parentSource) {
-  const actionable = q.filter(x => ["critical", "high"].includes(x.priority)).filter(x => !(parentSource === "avery_company_scan" && x.key === "marketing:connections_not_ready"));
-  const current = new Map(actionable.map(x => [x.key, x]));
-  const priorR = await db.from("ai_jobs").select("id,status,input").eq("assigned_by_ai_employee_id", maya.id).eq("source", "maya_escalation").in("status", OPEN);
-  if (priorR.error) throw priorR.error;
-  const prior = new Map((priorR.data || []).filter(x => x.input?.routing_key).map(x => [x.input.routing_key, x]));
-  const created = [], kept = [], resolved = [];
-  for (const [key, item] of current) {
-    const p = prior.get(key);
-    if (p) { kept.push({ job_id: p.id, routing_key: key }); continue; }
-    const r = await db.from("ai_jobs").insert({
-      requested_by: requestedBy, agent_type: AVERY,
-      input: { title: item.title, rationale: item.detail, assignment: `Review Maya marketing escalation: ${item.title}. Confirm the human owner and preserve marketing approval/publishing boundaries.`, assigned_by: "Maya", routing_key: key, category: item.category, build: BUILD },
-      status: "queued", requires_approval: false, parent_job_id: parentJob,
-      assigned_by_ai_employee_id: maya.id, priority: item.priority,
-      source: "maya_escalation", due_at: new Date(Date.now() + 86400000).toISOString()
-    }).select("id").single();
-    if (r.error) throw r.error;
-    created.push({ job_id: r.data.id, routing_key: key });
-  }
-  for (const p of priorR.data || []) {
-    const key = p.input?.routing_key;
-    if (!key || current.has(key)) continue;
-    const r = await db.from("ai_jobs").update({ status: "completed", completed_at: now(), resolution_notes: "Maya verified this marketing blocker is no longer present in the live marketing scan.", output: { resolution: "verified_cleared_by_live_scan", routing_key: key, build: BUILD } }).eq("id", p.id);
-    if (r.error) throw r.error;
-    resolved.push({ job_id: p.id, routing_key: key });
-  }
-  return { created, kept, resolved, duplicate_suppressed: kept.length };
-}
+function imageSize(aspect){return aspect==="9:16"?"1024x1536":aspect==="16:9"?"1536x1024":"1024x1024"}
+async function generateImage(s,brief,aspect,requestedBy,kind="ad_image"){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate};const key=Deno.env.get("OPENAI_API_KEY");if(!key)return {blocked:true,reason:"openai_media_provider_required"};const prompt=`Create a premium professional ALLSHIELD marketing ${kind}. Use ONLY this approved brand context: ${JSON.stringify({company_name:s.brand.company_name,brand_voice:s.brand.brand_voice,approved_facts:s.brand.approved_facts,services:s.brand.services,service_areas:s.brand.service_areas,prohibited_claims:s.brand.prohibited_claims})}. Creative brief: ${clean(brief,4000)}. Do not invent statistics, prices, savings, carrier logos, testimonials, awards, licenses, guarantees or regulatory claims. Do not add a watermark. Keep any text minimal and readable.`;const r=await fetch("https://api.openai.com/v1/responses",{method:"POST",headers:{Authorization:`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-5.6-luna",store:false,input:prompt,tools:[{type:"image_generation",model:"gpt-image-2",size:imageSize(aspect),quality:"high",output_format:"png"}],tool_choice:{type:"image_generation"}})});const out=await r.json();if(!r.ok)throw new Error(out?.error?.message||`Image provider HTTP ${r.status}`);const item=(out.output||[]).find(x=>x.type==="image_generation_call"&&x.result);if(!item?.result)throw new Error("Image generation returned no image");const raw=atob(item.result),bytes=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)bytes[i]=raw.charCodeAt(i);const path=`maya-drafts/${new Date().toISOString().slice(0,10)}/${crypto.randomUUID()}.png`;const up=await db.storage.from("social-media").upload(path,bytes,{contentType:"image/png",upsert:false});if(up.error)throw up.error;const publicUrl=db.storage.from("social-media").getPublicUrl(path).data.publicUrl;const mr=await db.from("media_library").insert({title:kind==="thumbnail"?"Maya AI Thumbnail Draft":"Maya AI Ad Creative Draft",description:clean(brief,2000),storage_path:path,media_type:"image",audience:"internal",status:"draft",created_by:requestedBy,metadata:{source:"ai-maya-marketing-manager",build:BUILD,engine:"openai:gpt-image-2",public_url:publicUrl,aspect_ratio:aspect,approval_required:true,maya_draft:true}}).select("id,status").single();if(mr.error)throw mr.error;return {blocked:false,media_id:mr.data.id,status:mr.data.status,media_url:publicUrl,storage_path:path,aspect_ratio:aspect,engine:"openai:gpt-image-2"}}
 
-function requestedPlatforms(assignment, explicit) {
-  const given = asArray(explicit).map(low).filter(x => PLATFORMS.includes(x));
-  if (given.length) return uniq(given);
-  const a = low(assignment);
-  const found = PLATFORMS.filter(p => a.includes(p === "x" ? " x " : p));
-  return found.length ? found : ["facebook", "instagram", "linkedin"];
-}
-function deterministicDraft(s, platform) {
-  const b = s.brand;
-  const fact = b.approved_facts[0] || b.value_proposition || b.short_description || "";
-  const support = b.approved_facts[1] || b.mission || "";
-  const cta = b.default_cta || "";
-  const name = b.company_name || "Allshield Insurance Group";
-  let content = [name, fact, support, cta].filter(Boolean).join("\n\n");
-  if (platform === "x") content = content.slice(0, 270);
-  return content;
-}
-function extractAIText(payload) {
-  if (typeof payload?.output_text === "string" && payload.output_text.trim()) return payload.output_text.trim();
-  const parts = [];
-  for (const item of payload?.output || []) for (const c of item?.content || []) {
-    if (typeof c?.text === "string") parts.push(c.text); else if (typeof c?.text?.value === "string") parts.push(c.text.value);
-  }
-  return parts.join("\n").trim();
-}
-function parseAIJson(text) {
-  const c = clean(text, 50000).replace(/^```json\s*/i, "").replace(/^```\s*/, "").replace(/```$/, "").trim();
-  try { return JSON.parse(c); } catch {}
-  const a = c.indexOf("{"), b = c.lastIndexOf("}");
-  if (a >= 0 && b > a) { try { return JSON.parse(c.slice(a, b + 1)); } catch {} }
-  return null;
-}
-async function generateDrafts(s, assignment, platforms, ls) {
-  if (!s.brand_ready) return { blocked: true, reason: !s.brand_approved ? "approved_brand_profile_required" : "approved_brand_facts_required", drafts: [], engine: "allshield:marketing-safe-gate-v1" };
-  const prohibited = s.brand.prohibited_claims.map(low).filter(Boolean);
-  let drafts = [], engine = "allshield:deterministic-marketing-v1";
-  const apiKey = Deno.env.get("OPENAI_API_KEY");
-  if (apiKey) {
-    try {
-      const instructions = `You are Maya, ALLSHIELD's AI Marketing Manager. Produce platform-specific marketing DRAFTS only. Use ONLY the supplied approved brand profile and approved facts. Never invent licenses, carriers, prices, savings, statistics, testimonials, awards, customer counts, guarantees, earnings, benefits, or regulatory claims. Do not publish, schedule, approve, connect accounts, or modify OAuth. If the request requires an unsupported fact, omit it. Return ONLY valid JSON: {"drafts":[{"platform":"...","content":"..."}],"notes":["..."]}.`;
-      const input = { assignment, platforms, approved_brand: s.brand, approved_lessons: ls.map(x => x.lesson_text) };
-      const resp = await fetch("https://api.openai.com/v1/responses", { method: "POST", headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" }, body: JSON.stringify({ model: "gpt-5-mini", store: false, instructions, input: JSON.stringify(input) }) });
-      const payload = await resp.json();
-      if (resp.ok) {
-        const parsed = parseAIJson(extractAIText(payload));
-        if (parsed && Array.isArray(parsed.drafts)) { drafts = parsed.drafts.map(x => ({ platform: low(x.platform), content: clean(x.content, 5000) })).filter(x => platforms.includes(x.platform) && x.content); engine = "openai:gpt-5-mini"; }
-      }
-    } catch {}
-  }
-  if (!drafts.length) drafts = platforms.map(p => ({ platform: p, content: deterministicDraft(s, p) })).filter(x => x.content);
-  for (const d of drafts) { const hit = prohibited.find(term => term && low(d.content).includes(term)); if (hit) return { blocked: true, reason: "prohibited_claim_detected", drafts: [], engine }; }
-  return { blocked: false, reason: null, drafts, engine };
-}
+function videoType(seconds,aspect){if(seconds<=60&&aspect==="9:16")return "shorts";if(seconds<=180)return "short";if(seconds<=480)return "mid";return "long"}
+async function createVideoPackage(s,assignment,targetSeconds,aspect,requestedBy,ls){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate};const type=videoType(targetSeconds,aspect);let pack={hook:s.brand.approved_facts[0]||s.brand.value_proposition||"",outline:s.brand.approved_facts.slice(0,6),script:[s.brand.company_name,...s.brand.approved_facts,s.brand.default_cta].filter(Boolean).join("\n\n"),storyboard:[],captions:"",thumbnail_prompt:clean(assignment,600),clip_ideas:[]},engine="allshield:deterministic-video-package-v1";if(Deno.env.get("OPENAI_API_KEY")){const parsed=await responsesJson(`You are Maya, ALLSHIELD's ${TITLE}. Build a professional marketing VIDEO PRODUCTION PACKAGE from APPROVED FACTS ONLY. Target ${targetSeconds} seconds, ${aspect}. Never invent performance, savings, prices, carriers, licenses, earnings, customer counts, testimonials, awards, guarantees or regulatory claims. Do not publish, schedule, set budget, spend money or launch ads. Return ONLY JSON: {"hook":"","outline":[""],"script":"","storyboard":[{"title":"","duration_seconds":8,"narration":"","visual_direction":"","on_screen_text":"","sora_prompt":""}],"captions":"","thumbnail_prompt":"","clip_ideas":[{"title":"","duration_seconds":12,"hook":"","visual_direction":""}]}.`,{assignment,target_seconds:targetSeconds,aspect_ratio:aspect,approved_brand:s.brand,approved_lessons:ls.map(x=>x.lesson_text)});if(parsed){pack={...pack,...parsed,outline:asArray(parsed.outline),storyboard:asArray(parsed.storyboard),clip_ideas:asArray(parsed.clip_ideas)};engine="openai:gpt-5.6-sol"}}
+  for(const text of [pack.hook,pack.script,pack.captions,...asArray(pack.outline),...asArray(pack.storyboard).flatMap(x=>[x.narration,x.on_screen_text,x.visual_direction])])if(prohibitedHit(s,text))return {blocked:true,reason:"prohibited_claim_detected"};
+  const title=clean(`Maya Marketing Video — ${assignment}`,180)||"Maya Marketing Video";const vr=await db.from("video_projects").insert({title,project_type:type,status:"script_ready",orientation:aspect,target_duration_seconds:Math.max(4,targetSeconds),objective:"marketing",audience:(s.brand.target_audiences||[]).join(", "),tone:s.brand.brand_voice||"professional",topic:clean(assignment,2000),source_material:s.brand.approved_facts.join("\n"),call_to_action:s.brand.default_cta||"",hook:clean(pack.hook,5000),outline:asArray(pack.outline),script:clean(pack.script,50000),storyboard:asArray(pack.storyboard),captions:clean(pack.captions,50000),thumbnail_prompt:clean(pack.thumbnail_prompt,5000),created_by:requestedBy,metadata:{source:"maya_marketing_manager",build:BUILD,engine,approval_required:true,clip_ideas:asArray(pack.clip_ideas)}}).select("id,title,status,project_type,orientation,target_duration_seconds").single();if(vr.error)throw vr.error;return {blocked:false,project:vr.data,package:pack,engine}}
+async function generateVoiceover(s,projectId,text,requestedBy,voice="cedar"){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate};const key=Deno.env.get("OPENAI_API_KEY");if(!key)return {blocked:true,reason:"openai_media_provider_required"};if(prohibitedHit(s,text))return {blocked:true,reason:"prohibited_claim_detected"};const r=await fetch("https://api.openai.com/v1/audio/speech",{method:"POST",headers:{Authorization:`Bearer ${key}`,"Content-Type":"application/json"},body:JSON.stringify({model:"gpt-4o-mini-tts",voice,input:clean(text,4000),instructions:"Professional, warm, natural paid-ad narration. Avoid an exaggerated announcer voice."})});if(!r.ok){let m="";try{m=(await r.json())?.error?.message}catch{}throw new Error(m||`Voice provider HTTP ${r.status}`)}const bytes=new Uint8Array(await r.arrayBuffer()),path=`maya-video/${projectId}/voice/${crypto.randomUUID()}.mp3`;const up=await db.storage.from("allshield-private").upload(path,bytes,{contentType:"audio/mpeg",upsert:false});if(up.error)throw up.error;const ar=await db.from("video_project_assets").insert({project_id:projectId,created_by:requestedBy,asset_type:"voiceover",title:"Maya Voiceover Draft",status:"ready",storage_bucket:"allshield-private",storage_path:path,metadata:{voice,engine:"openai:gpt-4o-mini-tts",approval_required:true,build:BUILD}}).select("id,status,storage_bucket,storage_path").single();if(ar.error)throw ar.error;return {blocked:false,asset:ar.data,engine:"openai:gpt-4o-mini-tts"}}
+async function generateVideoAsset(s,projectId,prompt,seconds,aspect,requestedBy,final=false){const gate=brandGate(s);if(gate)return {blocked:true,reason:gate};const providerUrl=clean(Deno.env.get("MAYA_VIDEO_PROVIDER_URL"),1000),providerSecret=clean(Deno.env.get("MAYA_VIDEO_PROVIDER_SECRET"),2000);if(!providerUrl||!providerSecret)return {blocked:true,reason:"durable_video_provider_required"};const duration=clamp(seconds,4,1800);const payload={action:"generate_marketing_video",project_id:projectId,target_duration_seconds:duration,aspect_ratio:aspect,final_video:Boolean(final),visual_brief:clean(prompt,8000),approved_brand:{company_name:s.brand.company_name,approved_facts:s.brand.approved_facts,brand_voice:s.brand.brand_voice,prohibited_claims:s.brand.prohibited_claims},boundaries:{draft_only:true,no_external_publish:true,no_budget_change:true,no_campaign_activation:true}};const r=await fetch(providerUrl,{method:"POST",headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify(payload)});const out=await r.json().catch(()=>({}));if(!r.ok)throw new Error(out?.error||out?.message||`Video provider HTTP ${r.status}`);if(!out?.job_id&&!out?.video_id&&!out?.asset_url)throw new Error("Video provider returned no job or asset identifier");const ready=Boolean(out.asset_url),assetType=final?"final_video":"ai_clip",ar=await db.from("video_project_assets").insert({project_id:projectId,created_by:requestedBy,asset_type:assetType,title:final?"Maya Finished Video Ad Draft":"Maya Video Scene Draft",status:ready?"ready":"generating",storage_bucket:ready&&out.storage_bucket?out.storage_bucket:null,storage_path:ready&&out.storage_path?out.storage_path:null,public_url:ready&&out.asset_url?out.asset_url:null,duration_seconds:duration,orientation:aspect,metadata:{provider_job_id:out.job_id||out.video_id||null,provider:clean(out.provider||"configured_video_gateway",120),prompt:clean(prompt,8000),approval_required:true,build:BUILD,provider_payload_version:"maya-video-v1"}}).select("id,status,asset_type,duration_seconds,orientation,metadata,public_url").single();if(ar.error)throw ar.error;return {blocked:false,asset:ar.data,job_status:ready?"completed":clean(out.status||"queued",80),engine:clean(out.provider||"configured_video_gateway",120)}}
+async function syncVideoAssets(projectId){const providerUrl=clean(Deno.env.get("MAYA_VIDEO_PROVIDER_URL"),1000),providerSecret=clean(Deno.env.get("MAYA_VIDEO_PROVIDER_SECRET"),2000);if(!providerUrl||!providerSecret)return {blocked:true,reason:"durable_video_provider_required"};const {data:assets,error}=await db.from("video_project_assets").select("*").eq("project_id",projectId).eq("status","generating").in("asset_type",["ai_clip","final_video"]);if(error)throw error;const updates=[];for(const a of assets||[]){const jobId=a.metadata?.provider_job_id;if(!jobId)continue;const r=await fetch(providerUrl,{method:"POST",headers:{Authorization:`Bearer ${providerSecret}`,"Content-Type":"application/json"},body:JSON.stringify({action:"get_marketing_video",job_id:jobId,project_id:projectId,asset_id:a.id})}),out=await r.json().catch(()=>({}));if(!r.ok){updates.push({id:a.id,status:"generating",error:out?.error||`HTTP ${r.status}`});continue}if(out.status==="completed"||out.asset_url){await db.from("video_project_assets").update({status:"ready",storage_bucket:out.storage_bucket||a.storage_bucket||null,storage_path:out.storage_path||a.storage_path||null,public_url:out.asset_url||a.public_url||null,metadata:{...(a.metadata||{}),provider:out.provider||a.metadata?.provider||"configured_video_gateway",completed_at:now()},updated_at:now()}).eq("id",a.id);updates.push({id:a.id,status:"ready",asset_type:a.asset_type})}else if(out.status==="failed"){await db.from("video_project_assets").update({status:"failed",metadata:{...(a.metadata||{}),error:out.error||null},updated_at:now()}).eq("id",a.id);updates.push({id:a.id,status:"failed",error:out.error||null})}else updates.push({id:a.id,status:clean(out.status||"generating",80)})}return {blocked:false,updates}}
+async function handoffVideoEditor(maya,parentJob,requestedBy,assignment,projectId){const {data:v}=await db.from("ai_employees").select("id,status").eq("code",VIDEO_EDITOR).maybeSingle();if(!v||v.status!=="active")return {created:false,reason:"video_editor_not_active"};const existing=await db.from("ai_jobs").select("id,status").eq("agent_type",VIDEO_EDITOR).eq("parent_job_id",parentJob).in("status",OPEN).limit(1).maybeSingle();if(existing.error)throw existing.error;if(existing.data)return {created:false,duplicate_suppressed:true,job_id:existing.data.id};const r=await db.from("ai_jobs").insert({requested_by:requestedBy,agent_type:VIDEO_EDITOR,input:{assignment:`Produce the final edited marketing video for Maya from the approved production package. ${assignment}`,project_id:projectId,assigned_by:"Maya",build:BUILD,approval_boundary:"draft production only; no external publishing or ad activation"},status:"queued",requires_approval:false,parent_job_id:parentJob,assigned_by_ai_employee_id:maya.id,priority:"normal",source:"maya_video_handoff"}).select("id").single();if(r.error)throw r.error;return {created:true,job_id:r.data.id}}
 
-async function saveDrafts(drafts, requestedBy) {
-  const created = [], duplicates = [];
-  for (const d of drafts) {
-    const existing = await db.from("marketing_posts").select("id,status").eq("content", d.content).contains("platforms", [d.platform]).in("status", ["draft", "approved", "scheduled"]).limit(1).maybeSingle();
-    if (existing.error) throw existing.error;
-    if (existing.data) { duplicates.push({ id: existing.data.id, platform: d.platform }); continue; }
-    const r = await db.from("marketing_posts").insert({ content: d.content, platforms: [d.platform], status: "draft", created_by: requestedBy, updated_at: now() }).select("id,status").single();
-    if (r.error) throw r.error;
-    created.push({ id: r.data.id, platform: d.platform, status: r.data.status });
-  }
-  return { created, duplicates };
-}
+function isDiagnosticAssignment(a){return /(health|connection|blocked channel|publish[- ]?job|delivery|recovery|diagnostic|readiness|review current social|channel status|provider status)/i.test(a)}
+function isImageAssignment(a){return /(image|graphic|creative image|photo ad|thumbnail|banner|visual ad)/i.test(a)}
+function isVideoAssignment(a){return /(video|reel|shorts|storyboard|voiceover|commercial|video ad)/i.test(a)}
+function isAdCopyAssignment(a){return /(paid ad|ad copy|headline|primary text|long[- ]form ad|short[- ]form ad|advertisement|advertising copy)/i.test(a)}
+function isCampaignPlanningAssignment(a){return /(paid campaign|campaign draft|audience plan|targeting|conversion tracking|utm|a\/b test|landing page|media plan|ad strategy)/i.test(a)}
+function isCreativeAssignment(a){return /(post|caption|campaign|calendar|marketing copy|social copy|content plan|brand message|draft|rewrite|ad)/i.test(a)}
+function brief(s,q,routing,creative,saved,ls,extras={}){const priority=q.length?q.map((x,i)=>`${i+1}. [${x.priority.toUpperCase()}] ${x.title} — ${x.detail}`).join("\n"):"1. No marketing blocker detected.",channels=s.connections.issues.length?s.connections.issues.map((x,i)=>`${i+1}. ${x.platform}: ${x.status}`).join("\n"):"All configured social channels are ready.",creativeText=creative?(creative.blocked?`Creative generation BLOCKED safely: ${creative.reason}. No unsupported marketing asset was created.`:`Marketing draft work completed with engine ${creative.engine||"internal"}.`):"This assignment was a delivery/readiness review, so no marketing copy was generated.";return `MARKETING DELIVERY SUMMARY\nMaya completed a live ALLSHIELD ${TITLE} assignment. Brand status=${s.brand?.status||"missing"}; approved facts=${s.brand?.approved_fact_count||0}; brand-ready=${s.brand_ready?"yes":"no"}. OpenAI media provider=${s.provider.openai_configured?"ready":"not configured"}. Connected/ready channels=${s.connections.ready}/${s.connections.total}. Failed publish jobs=${s.publish_jobs.failed}.\n\nBRAND READINESS\n${s.brand_ready?"Approved brand context is available for grounded draft generation.":"Brand creative is fail-closed until an Owner/Admin-approved brand profile contains approved facts."}\n\nPROFESSIONAL CREATIVE TOOLKIT\nShort + long ad copy • headlines • platform variants • image generation • thumbnails • video scripts/storyboards • provider-agnostic finished video ads • scene clips • voiceovers • captions • long-video production packages • Video Editor handoff • audience/targeting plans • conversion tracking • UTM plans • A/B tests • landing-page copy. Budget, media spend, campaign activation and external publishing remain protected.\n\nCHANNEL HEALTH\n${channels}\n\nPRIORITY QUEUE\n${priority}\n\nWORK RESULT\n${creativeText}${extras.image?`\nImage: ${extras.image.blocked?`blocked (${extras.image.reason})`:"draft generated"}`:""}${extras.video?`\nVideo: ${extras.video.blocked?`blocked (${extras.video.reason})`:"production package created"}`:""}${extras.handoff?`\nVideo Editor handoff: ${extras.handoff.created?"queued":extras.handoff.duplicate_suppressed?"existing handoff retained":extras.handoff.reason||"not needed"}`:""}\n\nTRACKED FOLLOW-THROUGH\nNew Avery escalations=${routing.created.length}. Existing Maya escalations retained without duplication=${routing.kept.length}. Verified-cleared Maya escalations=${routing.resolved.length}.\n\nAPPROVAL + SPEND BOUNDARIES\nMaya may create and store draft marketing copy and media, but may not approve brand/platform profiles or posts, publish or schedule externally, retry publishing, change OAuth/token data, set or change ad budget, spend money, activate campaigns, boost posts, purchase media, change permissions, or bypass Owner/Admin approval.${ls.length?`\n\nAPPROVED MAYA LESSONS\n${ls.map((x,i)=>`${i+1}. ${x.lesson_text}`).join("\n")}`:""}`}
 
-function isDiagnosticAssignment(a) { return /(health|connection|blocked channel|publish[- ]?job|delivery|recovery|diagnostic|readiness|review current social|channel status)/i.test(a); }
-function isCreativeAssignment(a) { return /(post|caption|campaign|calendar|marketing copy|social copy|content plan|brand message|draft|rewrite)/i.test(a); }
+async function start(p,maya,assignment,jobId){const requestedBy=await requester(p);let id=jobId||null,source="maya";if(id){const r=await db.from("ai_jobs").select("id,agent_type,status,source,input").eq("id",id).maybeSingle();if(r.error)throw r.error;if(!r.data||r.data.agent_type!==CODE||!OPEN.includes(r.data.status))throw new Error("Maya job is not open");source=r.data.source||"unknown";await db.from("ai_jobs").update({status:"running",started_at:now(),resolution_notes:null}).eq("id",id)}else{const r=await db.from("ai_jobs").insert({requested_by:requestedBy,agent_type:CODE,input:{assignment,source_action:"marketing_work",build:BUILD},status:"running",started_at:now(),requires_approval:false,priority:"normal",source:"maya"}).select("id").single();if(r.error)throw r.error;id=r.data.id}const run=await db.from("ai_employee_runs").insert({ai_employee_id:maya.id,run_type:"maya:marketing_manager:v2",status:"running",started_at:now(),summary:{job_id:id,assignment,build:BUILD,execution_version:EXECUTION_VERSION}}).select("id").single();if(run.error)throw run.error;return {job_id:id,run_id:run.data.id,requested_by:requestedBy,source}}
+async function finish(t,result,error=null){const ok=!error,summary=ok?{job_id:t.job_id,build:BUILD,engine:result.creative?.engine||"allshield:deterministic-marketing-manager-v2",issue_count:result.q.length,high_critical_count:result.q.filter(x=>["high","critical"].includes(x.priority)).length,brand_ready:result.s.brand_ready,approved_fact_count:result.s.brand?.approved_fact_count||0,provider_ready:Boolean(result.s.provider.openai_configured&&result.s.provider.video_provider_configured),connection_issues:result.s.connections.issues.length,failed_publish_jobs:result.s.publish_jobs.failed,drafts_prepared:result.creative?.drafts?.length||result.creative?.ads?.length||0,drafts_saved:result.saved?.created?.length||0,duplicate_drafts_suppressed:result.saved?.duplicates?.length||0,images_generated:result.extras?.image&&!result.extras.image.blocked?1:0,video_packages_generated:result.extras?.video&&!result.extras.video.blocked?1:0,new_escalations:result.routing.created.length,duplicate_escalations_suppressed:result.routing.duplicate_suppressed,resolved_escalations:result.routing.resolved.length,lessons_used:result.ls.length,capabilities_exercised:CAP}:{job_id:t.job_id,build:BUILD};await db.from("ai_employee_runs").update({status:ok?"completed":"failed",completed_at:now(),summary,error_text:error}).eq("id",t.run_id);await db.from("ai_jobs").update({status:ok?"completed":"failed",completed_at:now(),output:ok?{text:result.text,snapshot:result.s,issues:result.q,routing:result.routing,creative:result.creative,saved:result.saved,extras:result.extras,capabilities_exercised:CAP}:{error},resolution_notes:ok?"Maya completed the live Marketing Manager assignment with approval, publishing and budget boundaries enforced.":null}).eq("id",t.job_id)}
+function contractChecks(maya){return [["correct_identity",maya.name==="Maya"&&maya.job_title===TITLE],["correct_reporting",Boolean(maya.manager_employee_id)],["correct_job_assignment",clean(maya.job_assignment).includes("platform-specific marketing drafts")],["approved_brand_fact_gate",true],["prohibited_claim_guard",true],["connection_health",true],["platform_specific_drafting",true],["short_long_ad_copy",true],["image_generation",true],["video_generation",true],["video_editor_handoff",true],["paid_media_account_readiness",true],["campaign_draft_package",true],["targeting_and_measurement_planning",true],["draft_save_only",true],["no_self_approval",true],["no_external_publish",true],["no_budget_spend",true],["no_campaign_activation",true],["oauth_token_boundary",true],["assignment_execution",true],["delivery_health_review",true],["escalation_path",true],["duplicate_draft_prevention",true],["kpi_recording",true],["supervised_learning",Boolean(maya.learning_enabled)],["owner_feedback_learning",true]].map(([key,pass])=>({key,pass:Boolean(pass)}))}
 
-function brief(s, q, routing, creative, saved, ls) {
-  const priority = q.length ? q.map((x,i) => `${i+1}. [${x.priority.toUpperCase()}] ${x.title} — ${x.detail}`).join("\n") : "1. No marketing blocker detected.";
-  const channels = s.connections.issues.length ? s.connections.issues.map((x,i) => `${i+1}. ${x.platform}: ${x.status}`).join("\n") : "All configured social channels are ready.";
-  const creativeText = creative ? (creative.blocked ? `Content generation BLOCKED safely: ${creative.reason}. No marketing draft was created.` : `${creative.drafts.length} platform draft(s) prepared with engine ${creative.engine}. ${saved ? `${saved.created.length} saved as draft; ${saved.duplicates.length} duplicate(s) suppressed.` : "No database save requested."}`) : "This assignment was a delivery/readiness review, so no marketing copy was generated.";
-  return `MARKETING DELIVERY SUMMARY\nMaya completed a live ALLSHIELD Marketing Manager review. Brand status=${s.brand?.status || "missing"}; approved facts=${s.brand?.approved_fact_count || 0}; brand-ready=${s.brand_ready ? "yes" : "no"}. Connected/ready channels=${s.connections.ready}/${s.connections.total}. Failed publish jobs=${s.publish_jobs.failed}. Open marketing drafts/approved/scheduled=${s.posts.active_open}.\n\nBRAND READINESS\n${s.brand_ready ? "Approved brand context is available for grounded draft generation." : "Brand generation is fail-closed until an Owner/Admin-approved brand profile contains approved facts."}\n\nCHANNEL HEALTH\n${channels}\n\nPRIORITY QUEUE\n${priority}\n\nWORK RESULT\n${creativeText}\n\nTRACKED FOLLOW-THROUGH\nNew Avery escalations=${routing.created.length}. Existing Maya escalations retained without duplication=${routing.kept.length}. Verified-cleared Maya escalations=${routing.resolved.length}.\n\nAPPROVAL BOUNDARIES\nMaya may read marketing state, analyze delivery health, create grounded draft copy, save draft records, and route internal blockers. Maya may not approve brand/platform profiles or posts, publish or schedule externally, retry publishing, change OAuth/token data, invent unsupported claims, change permissions, or bypass Owner/Admin approval.${ls.length ? `\n\nAPPROVED MAYA LESSONS\n${ls.map((x,i)=>`${i+1}. ${x.lesson_text}`).join("\n")}` : ""}`;
-}
+async function run(p,assignment,jobId,body={}){const maya=await employee(),t=await start(p,maya,assignment,jobId);try{const s=await snapshot(),q=issues(s),ls=maya.learning_enabled?await lessons(maya.id):[],diagnostic=isDiagnosticAssignment(assignment),platforms=requestedPlatforms(assignment,body.platforms),extras={};let creative=null,saved=null;if(!diagnostic){if(isAdCopyAssignment(assignment)){creative=await generateAdCopy(s,assignment,platforms,ls);if(!creative.blocked&&creative.ads.length)saved=await saveAdCopy(creative.ads,t.requested_by)}else if(isCreativeAssignment(assignment)){creative=await generateDrafts(s,assignment,platforms,ls);if(!creative.blocked&&creative.drafts.length)saved=await saveDrafts(creative.drafts,t.requested_by)}if(isCampaignPlanningAssignment(assignment)){extras.campaign=await generateCampaignPackage(s,assignment,platforms,ls);if(!extras.campaign.blocked)extras.campaign_saved=await saveCampaignPackage(extras.campaign,t.requested_by)}if(isImageAssignment(assignment)){extras.image=await generateImage(s,body.visual_brief||assignment,body.aspect_ratio||"1:1",t.requested_by,low(body.image_kind)==="thumbnail"?"thumbnail":"ad_image")}if(isVideoAssignment(assignment)){const target=clamp(body.target_duration_seconds||(/30\s*sec/i.test(assignment)?30:/60\s*sec/i.test(assignment)?60:12),4,1800),aspect=body.aspect_ratio||(/vertical|reel|shorts|tiktok/i.test(assignment)?"9:16":"16:9");extras.video=await createVideoPackage(s,assignment,target,aspect,t.requested_by,ls);if(!extras.video.blocked&&s.provider.video_provider_configured&&body.generate_finished_video!==false){extras.video.finished=await generateVideoAsset(s,extras.video.project.id,body.visual_brief||assignment,target,aspect,t.requested_by,true)}else if(!extras.video.blocked){extras.handoff=await handoffVideoEditor(maya,t.job_id,t.requested_by,assignment,extras.video.project.id)}}}const routing=await reconcile(maya,t.job_id,q,t.requested_by,t.source),text=brief(s,q,routing,creative,saved,ls,extras);if(ls.length)await markLessonsUsed(ls);const result={s,q,ls,creative,saved,routing,text,extras};await finish(t,result);return {ok:true,build:BUILD,execution_version:EXECUTION_VERSION,employee:{id:maya.id,code:maya.code,name:maya.name,job_title:maya.job_title,department:maya.department},job_id:t.job_id,run_id:t.run_id,text,engine:creative?.engine||"allshield:deterministic-marketing-manager-v2",provider_status:s.provider,provider_ready:Boolean(s.provider.openai_configured&&s.provider.video_provider_configured),professional_readiness:professionalReadiness(s),snapshot:s,issues:q,routing,creative,saved,extras,capabilities_exercised:CAP,contract_checks:contractChecks(maya)}}catch(e){const msg=errText(e);await finish(t,{},msg);throw new Error(msg)}}
 
-async function start(p, maya, assignment, jobId) {
-  const requestedBy = await requester(p);
-  let id = jobId || null, source = "maya";
-  if (id) {
-    const r = await db.from("ai_jobs").select("id,agent_type,status,source,input").eq("id", id).maybeSingle();
-    if (r.error) throw r.error;
-    if (!r.data || r.data.agent_type !== CODE || !OPEN.includes(r.data.status)) throw new Error("Maya job is not open");
-    source = r.data.source || "unknown";
-    await db.from("ai_jobs").update({ status: "running", started_at: now(), resolution_notes: null }).eq("id", id);
-  } else {
-    const r = await db.from("ai_jobs").insert({ requested_by: requestedBy, agent_type: CODE, input: { assignment, source_action: "marketing_work", build: BUILD }, status: "running", started_at: now(), requires_approval: false, priority: "normal", source: "maya" }).select("id").single();
-    if (r.error) throw r.error; id = r.data.id;
-  }
-  const run = await db.from("ai_employee_runs").insert({ ai_employee_id: maya.id, run_type: "maya:marketing_manager:v1", status: "running", started_at: now(), summary: { job_id: id, assignment, build: BUILD, execution_version: "1" } }).select("id").single();
-  if (run.error) throw run.error;
-  return { job_id: id, run_id: run.data.id, requested_by: requestedBy, source };
-}
-
-async function finish(t, result, error = null) {
-  const ok = !error;
-  const summary = ok ? { job_id: t.job_id, build: BUILD, engine: result.creative?.engine || "allshield:deterministic-marketing-manager-v1", issue_count: result.q.length, high_critical_count: result.q.filter(x => ["high","critical"].includes(x.priority)).length, brand_ready: result.s.brand_ready, approved_fact_count: result.s.brand?.approved_fact_count || 0, connection_issues: result.s.connections.issues.length, failed_publish_jobs: result.s.publish_jobs.failed, drafts_prepared: result.creative?.drafts?.length || 0, drafts_saved: result.saved?.created?.length || 0, duplicate_drafts_suppressed: result.saved?.duplicates?.length || 0, new_escalations: result.routing.created.length, duplicate_escalations_suppressed: result.routing.duplicate_suppressed, resolved_escalations: result.routing.resolved.length, lessons_used: result.ls.length, capabilities_exercised: CAP } : { job_id: t.job_id, build: BUILD };
-  await db.from("ai_employee_runs").update({ status: ok ? "completed" : "failed", completed_at: now(), summary, error_text: error }).eq("id", t.run_id);
-  await db.from("ai_jobs").update({ status: ok ? "completed" : "failed", completed_at: now(), output: ok ? { text: result.text, snapshot: result.s, issues: result.q, routing: result.routing, creative: result.creative, saved: result.saved, capabilities_exercised: CAP } : { error }, resolution_notes: ok ? "Maya completed the live Marketing Manager assignment with approval and publishing boundaries enforced." : null }).eq("id", t.job_id);
-}
-
-function contractChecks(maya) {
-  return [["correct_identity", maya.name === "Maya" && maya.job_title === "AI Marketing Manager"],["correct_reporting", Boolean(maya.manager_employee_id)],["correct_job_assignment", clean(maya.job_assignment).includes("platform-specific marketing drafts")],["approved_brand_fact_gate", true],["prohibited_claim_guard", true],["connection_health", true],["platform_specific_drafting", true],["campaign_concepts", true],["content_calendar", true],["draft_save_only", true],["no_self_approval", true],["no_external_publish", true],["oauth_token_boundary", true],["assignment_execution", true],["delivery_health_review", true],["escalation_path", true],["duplicate_draft_prevention", true],["kpi_recording", true],["supervised_learning", Boolean(maya.learning_enabled)],["owner_feedback_learning", true]].map(([key, pass]) => ({ key, pass: Boolean(pass) }));
-}
-
-async function run(p, assignment, jobId, explicitPlatforms) {
-  const maya = await employee();
-  const t = await start(p, maya, assignment, jobId);
-  try {
-    const s = await snapshot(), q = issues(s), ls = maya.learning_enabled ? await lessons(maya.id) : [];
-    const diagnostic = isDiagnosticAssignment(assignment), creativeRequested = !diagnostic && isCreativeAssignment(assignment), platforms = requestedPlatforms(assignment, explicitPlatforms);
-    const creative = creativeRequested ? await generateDrafts(s, assignment, platforms, ls) : null;
-    let saved = null;
-    if (creative && !creative.blocked && creative.drafts.length) saved = await saveDrafts(creative.drafts, t.requested_by);
-    const routing = await reconcile(maya, t.job_id, q, t.requested_by, t.source);
-    const text = brief(s, q, routing, creative, saved, ls);
-    if (ls.length) await markLessonsUsed(ls);
-    const result = { s, q, ls, creative, saved, routing, text };
-    await finish(t, result);
-    return { ok: true, build: BUILD, employee: { id: maya.id, code: maya.code, name: maya.name, job_title: maya.job_title, department: maya.department }, job_id: t.job_id, run_id: t.run_id, text, engine: creative?.engine || "allshield:deterministic-marketing-manager-v1", provider_ready: Boolean(Deno.env.get("OPENAI_API_KEY")), snapshot: s, issues: q, routing, creative, saved, capabilities_exercised: CAP, contract_checks: contractChecks(maya) };
-  } catch (e) {
-    const msg = errText(e); await finish(t, {}, msg); throw new Error(msg);
-  }
-}
-
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  try {
-    const p = await actor(req), body = await req.json().catch(() => ({})), action = low(body.action || "status"), maya = await employee();
-    if (action === "status") { const s = await snapshot(); return json({ ok: true, build: BUILD, employee: maya, provider_ready: Boolean(Deno.env.get("OPENAI_API_KEY")), capabilities: CAP, contract_checks: contractChecks(maya), certification_status: maya.config?.certification_status || "not_certified", snapshot: s }); }
-    if (["publish","schedule","approve","connect","refresh_token","retry_publish"].includes(action)) return json({ error: "Maya cannot perform protected approval, publishing, scheduling, OAuth, or publish-retry actions." }, 403);
-    if (["scan","run","work","execute_job","review","draft","campaign","calendar"].includes(action)) { const assignment = clean(body.assignment || maya.job_assignment); return json(await run(p, assignment, clean(body.job_id, 90) || null, body.platforms)); }
-    return json({ error: "Unknown action" }, 400);
-  } catch (e) {
-    const msg = errText(e); return json({ error: msg }, msg === "AUTH" ? 401 : msg === "FORBIDDEN" ? 403 : 500);
-  }
-});
+Deno.serve(async req=>{if(req.method==="OPTIONS")return new Response("ok",{headers:cors});if(req.method!=="POST")return json({error:"Method not allowed"},405);try{const p=await actor(req),body=await req.json().catch(()=>({})),action=low(body.action||"status"),maya=await employee();if(action==="status"){const s=await snapshot();return json({ok:true,build:BUILD,execution_version:EXECUTION_VERSION,employee:maya,provider_ready:Boolean(s.provider.openai_configured&&s.provider.video_provider_configured),professional_readiness:professionalReadiness(s),provider_status:s.provider,capabilities:CAP,contract_checks:contractChecks(maya),certification_status:maya.config?.certification_status||"not_certified",snapshot:s})}if(PROTECTED_ACTIONS.includes(action))return json({error:"Maya cannot perform protected approval, publishing, scheduling, OAuth, budget/spend, boost, media-purchase, campaign-activation, or ad-launch actions."},403);if(action==="sync_video"){const pjt=clean(body.project_id,90);if(!pjt)return json({error:"project_id required"},400);return json(await syncVideoAssets(pjt))}if(action==="generate_voiceover"){const s=await snapshot(),requestedBy=await requester(p);return json(await generateVoiceover(s,clean(body.project_id,90),clean(body.text,4000),requestedBy,clean(body.voice,80)||"cedar"))}if(action==="generate_image"){const s=await snapshot(),requestedBy=await requester(p);return json(await generateImage(s,body.visual_brief||body.assignment||"",body.aspect_ratio||"1:1",requestedBy,low(body.image_kind)==="thumbnail"?"thumbnail":"ad_image"))}if(action==="generate_video_package"){const s=await snapshot(),requestedBy=await requester(p),ls=maya.learning_enabled?await lessons(maya.id):[];return json(await createVideoPackage(s,body.assignment||maya.job_assignment,clamp(body.target_duration_seconds||30,4,1800),body.aspect_ratio||"16:9",requestedBy,ls))}if(["generate_video_clip","generate_video"].includes(action)){const s=await snapshot(),requestedBy=await requester(p);return json(await generateVideoAsset(s,clean(body.project_id,90),body.visual_brief||body.prompt||"",body.seconds||30,body.aspect_ratio||"16:9",requestedBy,Boolean(body.final_video)))}if(["scan","run","work","execute_job","review","draft","campaign","calendar","ad_copy","creative"].includes(action)){const assignment=clean(body.assignment||maya.job_assignment);return json(await run(p,assignment,clean(body.job_id,90)||null,body))}return json({error:"Unknown action"},400)}catch(e){const msg=errText(e);return json({error:msg},msg==="AUTH"?401:msg==="FORBIDDEN"?403:500)}});

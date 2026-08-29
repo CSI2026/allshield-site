@@ -1,0 +1,32 @@
+name: Certify Maya Marketing Manager
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'phase16-ai-command-production.js'
+      - 'index.html'
+      - 'build-info.js'
+      - 'package.json'
+      - 'tests/maya-marketing-manager-contract.mjs'
+      - 'tests/maya-marketing-manager-cert.mjs'
+      - 'supabase/functions/ai-maya-marketing-manager/index.ts'
+      - 'supabase/seeds/maya-marketing-capabilities-b036.sql'
+      - '.github/workflows/maya-marketing-manager-cert.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run permanent contracts
+        run: npm test
+      - name: Certify Maya production contract
+        run: ALLSHIELD_LIVE_URL='https://allshieldinsurancegroup.com' node tests/maya-marketing-manager-cert.mjs

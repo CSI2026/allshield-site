@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
 const FUNCTION='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-command-center';
-const SOURCE_VERSION='2026.08.29.008';
+const SOURCE_VERSION='2026.08.29.009';
 const LIVE_VERSION=process.env.ALLSHIELD_EXPECTED_LIVE_RUNTIME||SOURCE_VERSION;
 const checks=[];
 const rec=(name,ok,detail='')=>checks.push({name,ok,detail});
@@ -36,6 +36,7 @@ try{
   rec('Agent questions route to authorized Training Coach',ui.includes("role==='agent'?{action:'run',kind:'training_coach',assignment:q}"));
   rec('Avery Owner/Admin calls route to dedicated Chief of Staff engine',ui.includes("target='ai-avery-chief-of-staff'"));
   rec('Olivia Owner/Admin operations calls route to dedicated Operations Manager engine',ui.includes("target='ai-olivia-operations-manager'"));
+  rec('Victor Owner/Admin video calls route to dedicated Media & Video Producer engine',ui.includes("target='ai-victor-video-editor'"));
   rec('Owner contract tests new AI workforce markers',ownerContract.includes('AI WORKFORCE COMMAND CENTER')&&ownerContract.includes('Rate & Teach Employee'));
   rec('AI employee schema has job assignments and KPIs',schema.includes('job_assignment text')&&schema.includes('kpis jsonb')&&schema.includes('manager_employee_id'));
   rec('AI feedback table exists',schema.includes('create table if not exists public.ai_employee_feedback'));

@@ -1,12 +1,20 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.29.041',
-  label:'Production B041 — Living Compensation Contracts + Versioned Re-Acceptance — Certified',
+  current_build:'B2026.08.29.042',
+  label:'Production B042 — Victor Core Media Engine + Modern Video Provider Gateway — External Providers Pending',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',
   certification:{
+    victor_video_editor:'CORE LIVE WORK PASS — PROFESSIONAL COMPLETION BLOCKED',
+    victor_core_capabilities:'39/39 PASS',
+    victor_provider_capabilities:'6 PLANNED — PROVIDERS REQUIRED',
+    victor_real_work:'AVERY MEDIA READINESS JOB PASS',
+    victor_protected_boundaries:'403 PASS',
+    victor_external_provider_readiness:'INCOMPLETE',
+    video_studio_provider_gateway:'PASS',
+    video_studio_legacy_sora_removed:'PASS',
     living_compensation_contracts:'PASS',
     contract_section_auto_sync:'PASS',
     residual_section_removal:'PASS',
@@ -60,6 +68,9 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'Added Victor dedicated AI Media & Video Producer execution with 39 enabled core capabilities, 6 provider-dependent capabilities held planned, real-media-only evidence, tracked work, repurposing packages and protected publish/OAuth/delete boundaries',
+    'Victor completed Avery’s real media delivery readiness assignment against the existing Careers video, detected YouTube and provider blockers, generated a real production/repurpose package from stored script/storyboard data, and created three tracked Avery escalations',
+    'Modernized Video Studio to GPT-5.6 Sol, GPT-Image-2, GPT-4o-mini-TTS and a provider-independent durable video gateway; removed direct use of the deprecated Sora video endpoint',
     'Added living compensation agreements generated directly from each compensation version; base rates, bonuses, tiers, leadership rules, residuals and program terms now drive the current agreement automatically',
     'Removing residuals from a draft clears that version residual split configuration, blocks residual calculations and removes the entire Residuals section and residual clauses from the generated agreement',
     'Previously published and accepted agreements remain immutable; each newly published compensation version creates a new agreement and pending acceptance requirement for assigned agents',

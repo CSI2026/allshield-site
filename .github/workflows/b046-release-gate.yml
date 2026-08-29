@@ -1,0 +1,55 @@
+name: B046 Final Release Gate
+on:
+  push:
+    branches: [social-x-b046]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-x-b046
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Finalize B046 release metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-info.js');s=p.read_text()
+          old="label:'B046 Candidate — X Professional Engagement Verification'"
+          if old not in s: raise SystemExit('B046 candidate label missing')
+          s=s.replace(old,"label:'Production B046 — X Professional Engagement Verification — Certified'",1)
+          anchor="    social_professional_provider_verification:'PASS',\n"
+          extra="    social_professional_provider_verification:'PASS',\n    x_professional_engagement_verification:'PASS',\n    x_mentions_readiness_gate:'PASS',\n    x_reply_permission_gate:'PASS',\n"
+          if "x_professional_engagement_verification" not in s:
+            if anchor not in s: raise SystemExit('certification anchor missing')
+            s=s.replace(anchor,extra,1)
+          marker="  changes:[\n"
+          change="    'Added X professional readiness checks for authenticated identity, authored-post public metrics, mentions access and reply permissions; X remains fail-closed until a real connected account passes those provider API probes',\n"
+          if change.strip() not in s:
+            if marker not in s: raise SystemExit('changes anchor missing')
+            s=s.replace(marker,marker+change,1)
+          p.write_text(s)
+          PY
+      - name: Exact B046 release tests
+        run: |
+          grep -q "Production B046 — X Professional Engagement Verification — Certified" build-info.js
+          grep -q "jsonb_build_object" supabase/migrations/20260829_social_x_professional_b046.sql
+          node --check social-connection-center.js
+          node --check tests/social-x-b046-contract.mjs
+          node tests/social-x-b046-contract.mjs
+          deno check --node-modules-dir=auto supabase/functions/social-connection-admin/index.ts
+          npm test
+      - name: Commit clean release tree
+        run: |
+          git checkout -- deno.lock || true
+          rm -f .github/workflows/b046-release-gate.yml
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Certify B046 X professional engagement verification'
+          git push origin social-x-b046

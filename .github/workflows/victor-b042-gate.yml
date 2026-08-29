@@ -1,3 +1,4 @@
+# rerun after forward-compatible B041 living-contract regression fix
 name: Victor B042 Integration Gate
 on:
   push:

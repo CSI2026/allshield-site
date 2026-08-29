@@ -1,0 +1,35 @@
+name: B046 X Professional Verification Gate
+on:
+  push:
+    branches: [social-x-b046]
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-x-b046
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Apply B046 X patch
+        run: python3 scripts/b046_x_patch.py
+      - name: Run B046 and full regressions
+        run: |
+          node --check social-connection-center.js
+          node --check tests/social-x-b046-contract.mjs
+          node tests/social-x-b046-contract.mjs
+          deno check --node-modules-dir=auto supabase/functions/social-connection-admin/index.ts
+          npm test
+      - name: Commit clean B046 candidate
+        run: |
+          git checkout -- deno.lock || true
+          rm -f .github/workflows/b046-x-gate.yml scripts/b046_x_patch.py
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Build B046 X professional engagement verification'
+          git push origin social-x-b046

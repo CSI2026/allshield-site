@@ -1,0 +1,47 @@
+name: B046 Rebase Release Gate
+on:
+  push:
+    branches: [social-x-b046-release]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: social-x-b046-release
+          fetch-depth: 0
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v2.x
+      - name: Overlay exact certified B046 social files
+        run: |
+          git fetch origin social-x-b046
+          git checkout origin/social-x-b046 -- \
+            build-info.js \
+            index.html \
+            social-connection-center.js \
+            supabase/functions/social-connection-admin/index.ts \
+            supabase/migrations/20260829_social_x_professional_b046.sql \
+            tests/social-x-b046-contract.mjs
+      - name: Verify rebased production tree
+        run: |
+          grep -q "Production B046 — X Professional Engagement Verification — Certified" build-info.js
+          grep -q "jsonb_build_object" supabase/migrations/20260829_social_x_professional_b046.sql
+          test -f certification/live-browser-certification.json
+          node --check social-connection-center.js
+          node --check tests/social-x-b046-contract.mjs
+          node tests/social-x-b046-contract.mjs
+          deno check --node-modules-dir=auto supabase/functions/social-connection-admin/index.ts
+          npm test
+      - name: Commit clean rebased release
+        run: |
+          git checkout -- deno.lock || true
+          rm -f .github/workflows/b046-rebase-release.yml
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Release B046 X professional verification on current production'
+          git push origin social-x-b046-release

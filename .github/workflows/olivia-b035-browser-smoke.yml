@@ -1,0 +1,57 @@
+name: Olivia B035 Browser Smoke
+on:
+  push:
+    paths:
+      - '.github/workflows/olivia-b035-browser-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  production-browser-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production HTML and critical assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE='https://allshieldinsurancegroup.com'
+          curl -fsSL --retry 3 "$BASE/" -o index.html
+          grep -qi 'allshield' index.html
+          for asset in phase16-ai-command-production.js build-info.js responsive.css backoffice-build-registry-2026-08-28.js; do
+            code="$(curl -sS -L -o "/tmp/$asset" -w '%{http_code}' "$BASE/$asset")"
+            test "$code" = '200' || { echo "$asset returned HTTP $code"; exit 1; }
+            test -s "/tmp/$asset" || { echo "$asset was empty"; exit 1; }
+          done
+          echo 'Production HTML/assets: PASS'
+
+      - name: Desktop browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          test -n "$CHROME"
+          timeout 45s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --window-size=1440,1000 --virtual-time-budget=10000 --enable-logging=stderr --v=0 --dump-dom 'https://allshieldinsurancegroup.com/' > desktop-dom.html 2> desktop-browser.log || rc=$?
+          rc=${rc:-0}
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then cat desktop-browser.log; exit "$rc"; fi
+          grep -qi 'allshield' desktop-dom.html
+          if grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)|ReferenceError:|SyntaxError:|TypeError:' desktop-browser.log; then
+            cat desktop-browser.log
+            echo 'Desktop JavaScript runtime error detected'
+            exit 1
+          fi
+          echo 'Desktop browser: PASS'
+
+      - name: Mobile browser smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHROME="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser)"
+          timeout 45s "$CHROME" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --window-size=390,844 --user-agent='Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1' --virtual-time-budget=10000 --enable-logging=stderr --v=0 --dump-dom 'https://allshieldinsurancegroup.com/' > mobile-dom.html 2> mobile-browser.log || rc=$?
+          rc=${rc:-0}
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 124 ]; then cat mobile-browser.log; exit "$rc"; fi
+          grep -qi 'allshield' mobile-dom.html
+          if grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)|ReferenceError:|SyntaxError:|TypeError:' mobile-browser.log; then
+            cat mobile-browser.log
+            echo 'Mobile JavaScript runtime error detected'
+            exit 1
+          fi
+          echo 'Mobile browser: PASS'

@@ -1,0 +1,51 @@
+name: Maya B036 Browser Smoke
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/maya-b036-browser-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Playwright Chromium
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Verify live Maya runtime and browser health
+        run: |
+          cat > /tmp/maya-browser.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const BASE='https://allshieldinsurancegroup.com';
+          async function txt(path){const r=await fetch(BASE+path+(path.includes('?')?'&':'?')+'maya='+Date.now(),{cache:'no-store',redirect:'follow'});if(!r.ok)throw new Error(path+' HTTP '+r.status);return r.text()}
+          async function waitLive(){for(let i=0;i<30;i++){try{const [idx,ai]=await Promise.all([txt('/'),txt('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.007')&&ai.includes("VERSION='2026.08.28.007'")&&ai.includes("target='ai-maya-marketing-manager'"))return;}catch{}await new Promise(r=>setTimeout(r,5000));}throw new Error('Maya .007 runtime not live')}
+          await waitLive();
+          const browser=await chromium.launch({headless:true});
+          try{
+            for(const [name,width,height] of [['desktop',1440,1000],['mobile',390,844]]){
+              const page=await browser.newPage({viewport:{width,height}});const errors=[];
+              page.on('pageerror',e=>errors.push(e.message));
+              const r=await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:60000});
+              if(!r?.ok())throw new Error(name+' navigation HTTP '+r?.status());
+              await page.waitForTimeout(3500);
+              const critical=errors.filter(e=>/ReferenceError|TypeError|SyntaxError/i.test(e));
+              if(critical.length)throw new Error(name+' JS error: '+critical.join(' | '));
+              const loaded=await page.evaluate(()=>[...document.scripts].some(s=>s.src.includes('phase16-ai-command-production.js?v=2026.08.28.007')));
+              if(!loaded)throw new Error(name+' .007 script tag missing');
+              console.log(name+' PASS; critical page errors=0');
+              await page.close();
+            }
+          } finally { await browser.close(); }
+          console.log('MAYA_B036_BROWSER_SMOKE=PASS');
+          JS
+          node /tmp/maya-browser.mjs

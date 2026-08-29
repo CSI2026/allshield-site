@@ -9,6 +9,9 @@ window.ALLSHIELD_BUILD_INFO={
   certification:{
     social_connection_center:'PASS',
     tiktok_professional_connection:'PASS',
+    x_professional_engagement_verification:'PASS',
+    x_mentions_readiness_gate:'PASS',
+    x_reply_permission_gate:'PASS',
     tiktok_account_stats_verification:'PASS',
     tiktok_video_metrics_verification:'PASS',
     tiktok_creator_eligibility_verification:'PASS',

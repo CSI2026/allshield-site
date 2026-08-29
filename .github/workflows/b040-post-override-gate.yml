@@ -1,0 +1,41 @@
+name: B040 Override-Aware Release Gate
+on:
+  push:
+    branches: [universal-comp-b040]
+    paths: ['.github/workflows/b040-post-override-gate.yml']
+permissions:
+  contents: write
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: universal-comp-b040
+          fetch-depth: 0
+      - name: JavaScript syntax
+        run: |
+          node --check universal-compensation-platform.js
+          node --check comp-qualification-ui.js
+      - name: Universal compensation live contract
+        run: node tests/universal-compensation-live-contract.mjs
+      - name: Full ALLSHIELD suite
+        run: npm test
+      - name: AI organization regression
+        run: node tests/ai-workforce-organization-cert.mjs
+      - name: Verify configurable override rules
+        run: |
+          grep -q "manager_direct_override" supabase/migrations/20260829_aca_configurable_override_rules.sql
+          grep -q "promoting_manager_market" supabase/migrations/20260829_aca_configurable_override_rules.sql
+          grep -q "comp_qualification_snapshots" supabase/migrations/20260829_universal_compensation_qualification_tracking.sql
+          grep -q "comp_plan_publish_qualification_refresh" supabase/migrations/20260829_universal_compensation_publish_refresh.sql
+      - name: Remove one-time workflow
+        run: rm -f .github/workflows/b040-post-override-gate.yml
+      - name: Commit clean release tree
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m 'Finalize B040 configurable compensation and qualification tracking'
+          git push origin HEAD:universal-comp-b040

@@ -7,7 +7,7 @@ const checks=[
  ['B046 UI marker',ui.includes("B2026.08.29.046")],
  ['X engagement enabled',mig.includes('engagement_metrics_supported = true')],
  ['X comments enabled',mig.includes('comment_read_supported = true')&&mig.includes('comment_reply_supported = true')],
- ['X scopes remain least-privilege set',mig.includes("array['tweet.read','users.read']")&&mig.includes("array['tweet.read','users.read','tweet.write']"))],
+ ['X scopes remain least-privilege set',mig.includes("array['tweet.read','users.read']")&&mig.includes("array['tweet.read','users.read','tweet.write']")],
  ['X identity probe',src.includes("api.x.com/2/users/me?user.fields=id,name,username"))],
  ['X authored-post metrics probe',src.includes('/tweets?max_results=5&tweet.fields=created_at,public_metrics')&&src.includes('engagement_probe_ok'))],
  ['X mentions probe',src.includes('/mentions?max_results=5&tweet.fields=created_at,public_metrics')&&src.includes('mentions_probe_ok'))],

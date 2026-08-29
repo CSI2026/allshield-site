@@ -56,6 +56,7 @@ window.ALLSHIELD_BUILD_INFO={
     'Maya permanent source contract passed 24/24 and live production contract passed 12/12, including CORS, unauthorized-access rejection and live runtime routing',
     'Independent desktop and mobile browser smoke passed on the live site with the Maya-aware .007 runtime loaded and no detected ReferenceError, TypeError or SyntaxError',
     'Retired the temporary Maya certification runner and removed the one-time routing and browser-smoke workflows after permanent evidence was recorded',
+    'Final B036 cross-employee release gate requires Maya, Olivia and Avery certifications to remain valid together under the current 2026.08.28.007 AI Workforce runtime and B036 production metadata',
     'Retained the approved B2026.08.23.021 baseline and all prior certified Avery, Olivia, dashboard, onboarding, Agent Operations, E-Sign, Careers, communications, Academy, Video Studio, mobile and desktop behavior'
   ]
 };

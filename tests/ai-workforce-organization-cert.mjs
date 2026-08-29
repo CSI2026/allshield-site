@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 const BASE=(process.env.ALLSHIELD_LIVE_URL||'https://allshieldinsurancegroup.com').replace(/\/$/,'');
 const FUNCTION='https://xxeiddnfbdqxwuojuggy.supabase.co/functions/v1/ai-command-center';
+const SOURCE_VERSION='2026.08.29.008';
+const LIVE_VERSION=process.env.ALLSHIELD_EXPECTED_LIVE_RUNTIME||SOURCE_VERSION;
 const checks=[];
 const rec=(name,ok,detail='')=>checks.push({name,ok,detail});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
@@ -22,9 +24,9 @@ const expected=[
  ['content_manager','Claire','AI Content Quality Manager']
 ];
 async function text(path){const r=await fetch(`${BASE}${path}${path.includes('?')?'&':'?'}aicert=${Date.now()}`,{cache:'no-store',redirect:'follow'});if(!r.ok)throw new Error(`${path} HTTP ${r.status}`);return r.text();}
-async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes('phase16-ai-command-production.js?v=2026.08.28.007')&&liveUi.includes("VERSION='2026.08.28.007'"))return;}catch{}await sleep(5000)}throw new Error('Current AI workforce runtime .006 did not become live in time');}
+async function waitLive(){for(let i=0;i<72;i++){try{const [idx,liveUi]=await Promise.all([text('/'),text('/phase16-ai-command-production.js')]);if(idx.includes(`phase16-ai-command-production.js?v=${LIVE_VERSION}`)&&liveUi.includes(`VERSION='${LIVE_VERSION}'`))return;}catch{}await sleep(5000)}throw new Error(`Expected AI workforce runtime ${LIVE_VERSION} did not become live in time`);}
 try{
-  rec('AI workforce UI source is version .006',ui.includes("VERSION='2026.08.28.007'"));
+  rec(`AI workforce UI source is version ${SOURCE_VERSION}`,ui.includes(`VERSION='${SOURCE_VERSION}'`));
   rec('Owner command center uses named workforce',ui.includes('AI WORKFORCE COMMAND CENTER')&&ui.includes('Your measurable AI workforce.'));
   rec('Specific work assignment UI exists',ui.includes('Assign Work')&&ui.includes('allshieldAISubmitAssignment'));
   rec('Scorecard UI exists',ui.includes('Scorecard & Learning')&&ui.includes('allshieldAIEmployeeDetail'));
@@ -46,7 +48,7 @@ try{
   rec('Academy team reports through Lexi',seed.includes("manager.code='licensing_curriculum_manager'")&&seed.includes("'training_coach','testing_analyst','content_manager'"));
   rec('Other department leads report through Avery',seed.includes("manager.code='command_center'")&&seed.includes("'operations_manager','performance_analyst','marketing_manager','video_editor','regulatory_monitor','licensing_curriculum_manager'"));
   await waitLive();
-  rec('Current AI workforce runtime is live',true,'.006 loader and runtime live');
+  rec('Current AI workforce runtime is live',true,`${LIVE_VERSION} loader and runtime live`);
   const pre=await fetch(FUNCTION,{method:'OPTIONS',headers:{Origin:BASE,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'authorization,x-client-info,apikey,content-type'}});
   const allow=(pre.headers.get('access-control-allow-headers')||'').toLowerCase();
   rec('AI command center CORS preflight succeeds',pre.ok,`HTTP ${pre.status}`);

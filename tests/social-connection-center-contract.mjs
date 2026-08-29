@@ -22,7 +22,8 @@ ok('credentials never returned',!edge.includes('secret_value:')&&!ui.includes('d
 ok('controlled internal service auth',edge.includes('apiSecretMatches')&&edge.includes('internal_service:true')&&edge.includes("req.headers.get('apikey')"));
 ok('URL constructor not shadowed',!edge.includes('const URL=')&&edge.includes('const SUPABASE_URL=')&&edge.includes('new URL(req.url)'));
 ok('Meta professional scopes',edge.includes('pages_manage_engagement')&&edge.includes('pages_read_user_content')&&edge.includes('instagram_manage_comments'));
-ok('TikTok posting scopes',edge.includes('user.info.basic,video.publish,video.upload'));
+ok('TikTok posting scopes',edge.includes('user.info.basic')&&edge.includes('video.publish')&&edge.includes('video.upload'));
+ok('TikTok professional analytics scopes preserved when present',edgeBuild<47||(edge.includes('user.info.stats')&&edge.includes('video.list')));
 ok('TikTok creator verification',edge.includes('/v2/post/publish/creator_info/query/'));
 ok('YouTube upload and comment scopes',edge.includes('youtube.upload')&&edge.includes('youtube.force-ssl'));
 ok('LinkedIn organization scope gate',edge.includes('w_organization_social')&&edge.includes('r_organization_social_feed'));

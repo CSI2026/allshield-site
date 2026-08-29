@@ -1,8 +1,8 @@
 window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
-  current_build:'B2026.08.29.044',
-  label:'Production B044 — Secure Social Connection Center + Professional Verification — Certified',
+  current_build:'B2026.08.29.045',
+  label:'B045 Candidate — Professional Social Provider Verification',
   completion_release:'2026.08.28.021',
   channel:'production',
   released_at:'2026-08-29',

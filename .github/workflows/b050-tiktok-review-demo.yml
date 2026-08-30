@@ -6,6 +6,7 @@ on:
       - '.github/workflows/b050-tiktok-review-demo.yml'
       - 'scripts/b050_patch.py'
       - 'scripts/b050_release_fix.py'
+      - 'tests/social-credential-save-b049-contract.mjs'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +31,7 @@ jobs:
         run: |
           git config user.name "ALLSHIELD Build Bot"
           git config user.email "buildbot@allshieldinsurancegroup.com"
-          git add supabase/functions/social-connection-admin/index.ts social-connection-center.js build-info.js index.html tests/social-tiktok-b050-review-demo-contract.mjs package.json tests/social-connection-center-contract.mjs
+          git add supabase/functions/social-connection-admin/index.ts social-connection-center.js build-info.js index.html tests/social-tiktok-b050-review-demo-contract.mjs package.json tests/social-connection-center-contract.mjs tests/social-credential-save-b049-contract.mjs
           git commit -m "Add real TikTok Sandbox review demo transfers B050"
           git push origin main
       - name: Retire temporary B050 files

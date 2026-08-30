@@ -1,0 +1,72 @@
+name: B048 Release Integrity Certification
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/b048-release-integrity.yml']
+permissions:
+  contents: write
+jobs:
+  certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Correct B048 production certification metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-info.js')
+          s=p.read_text()
+          s=s.replace("current_build:'B2026.08.29.047'","current_build:'B2026.08.29.048'",1)
+          s=s.replace("label:'Production B047 — TikTok Professional Connection + Analytics — Certified'","label:'Production B048 — Static TikTok OAuth Callback Routing — Live Certified'",1)
+          s=s.replace("completion_release:'2026.08.28.021'","completion_release:'2026.08.29.022'",1)
+          replacements={
+            "tiktok_professional_connection:'PASS'":"tiktok_professional_connection:'NOT CONNECTED — FAIL CLOSED'",
+            "tiktok_account_stats_verification:'PASS'":"tiktok_account_stats_verification:'NOT RUN — ACCOUNT NOT CONNECTED'",
+            "tiktok_video_metrics_verification:'PASS'":"tiktok_video_metrics_verification:'NOT RUN — ACCOUNT NOT CONNECTED'",
+            "tiktok_creator_eligibility_verification:'PASS'":"tiktok_creator_eligibility_verification:'NOT RUN — ACCOUNT NOT CONNECTED'",
+            "tiktok_token_refresh:'PASS'":"tiktok_token_refresh:'NOT RUN — ACCOUNT NOT CONNECTED'",
+            "tiktok_public_posting_audit_gate:'PASS'":"tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED'",
+          }
+          for old,new in replacements.items():
+            if old not in s:
+              raise SystemExit(f'Missing expected certification marker: {old}')
+            s=s.replace(old,new,1)
+          marker="    social_connection_center:'PASS',\n"
+          additions=(
+            "    tiktok_static_oauth_callback:'LIVE ROUTING PASS',\n"
+            "    tiktok_callback_invalid_state_guard:'LIVE 400 PASS',\n"
+            "    tiktok_callback_method_guard:'LIVE 405 PASS',\n"
+          )
+          if 'tiktok_static_oauth_callback' not in s:
+            if marker not in s: raise SystemExit('Missing social connection center marker')
+            s=s.replace(marker,marker+additions,1)
+          cmarker="  changes:[\n"
+          changes=(
+            "    'B048 moved TikTok OAuth to a stable dedicated callback endpoint and live production-network probing confirmed routing into the canonical callback handler, invalid-state rejection, and non-GET method rejection',\n"
+            "    'Corrected B047 certification metadata so implementation readiness is no longer represented as a live TikTok account connection; production remains fail-closed until real TikTok OAuth, account identity, required scopes, app review and posting audit are completed',\n"
+          )
+          if 'B048 moved TikTok OAuth to a stable dedicated callback endpoint' not in s:
+            if cmarker not in s: raise SystemExit('Missing changes marker')
+            s=s.replace(cmarker,cmarker+changes,1)
+          p.write_text(s)
+          PY
+      - name: B048 source and regression checks
+        run: |
+          grep -F "const BUILD='B2026.08.29.048';" supabase/functions/social-connection-admin/index.ts
+          grep -F "provider==='tiktok'?\`${SUPABASE_URL}/functions/v1/social-tiktok-callback\`" supabase/functions/social-connection-admin/index.ts
+          grep -F "target.searchParams.set('provider', 'tiktok')" supabase/functions/social-tiktok-callback/index.ts
+          grep -F "return Response.redirect(target.toString(), 302)" supabase/functions/social-tiktok-callback/index.ts
+          grep -F "tiktok_professional_connection:'NOT CONNECTED — FAIL CLOSED'" build-info.js
+          grep -F "tiktok_static_oauth_callback:'LIVE ROUTING PASS'" build-info.js
+          grep -F "tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED'" build-info.js
+          npm test
+      - name: Commit certified B048 metadata and retire workflow
+        run: |
+          rm .github/workflows/b048-release-integrity.yml
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add build-info.js .github/workflows/b048-release-integrity.yml
+          git commit -m 'Certify B048 callback routing with fail-closed TikTok status'
+          git push origin HEAD:main

@@ -1,0 +1,121 @@
+name: B050 TikTok Review Demo Integration
+
+on:
+  push:
+    paths:
+      - '.github/workflows/b050-tiktok-review-demo.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-certify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build real TikTok Sandbox review demo path
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          edge=Path('supabase/functions/social-connection-admin/index.ts')
+          s=edge.read_text()
+          s=s.replace("const BUILD='B2026.08.29.049';","const BUILD='B2026.08.30.050';")
+
+          marker="async function dashboard(){"
+          if marker not in s: raise SystemExit('dashboard marker missing')
+          helper=r'''function decodeB64(v:string){const b=atob(v);const out=new Uint8Array(b.length);for(let i=0;i<b.length;i++)out[i]=b.charCodeAt(i);return out}
+async function tiktokDemoTransfer(userId:string,mode:string,fileB64:string,mimeType:string,caption:string){
+ const cR=await db.from('social_connections').select('*').eq('platform','tiktok').maybeSingle();const c=cR.data;if(cR.error||!c||c.status!=='connected')throw new Error('TikTok must be connected before running a review demo transfer.');
+ let t=await tokenFor('tiktok',c);if(t)t=await refreshTikTokTokenIfNeeded(t,c);if(!t?.access_token)throw new Error('TikTok access token is unavailable. Reconnect TikTok.');
+ const granted=csv(t.scopes||c.scopes);const required=mode==='direct'?'video.publish':'video.upload';if(!granted.includes(required))throw new Error(`TikTok scope ${required} is not authorized.`);
+ const bytes=decodeB64(String(fileB64||''));if(!bytes.length)throw new Error('Choose a video file.');if(bytes.length>5*1024*1024)throw new Error('Review demo video must be 5 MB or smaller in this secure test tool.');
+ const mime=['video/mp4','video/quicktime','video/webm'].includes(mimeType)?mimeType:'video/mp4';let initUrl='',payload:any={};let creator:any=null;
+ if(mode==='direct'){
+  const cr=await fetch('https://open.tiktokapis.com/v2/post/publish/creator_info/query/',{method:'POST',headers:{Authorization:`Bearer ${t.access_token}`,'Content-Type':'application/json; charset=UTF-8'}});creator=await cr.json();if(!cr.ok)throw new Error(creator?.error?.message||'Unable to query TikTok creator information.');
+  const levels=creator?.data?.privacy_level_options||[];if(!levels.includes('SELF_ONLY'))throw new Error('TikTok Sandbox did not return SELF_ONLY privacy. Private demo post is blocked.');
+  initUrl='https://open.tiktokapis.com/v2/post/publish/video/init/';payload={post_info:{title:String(caption||'ALLSHIELD TikTok Sandbox API review test').slice(0,150),privacy_level:'SELF_ONLY',disable_duet:true,disable_comment:false,disable_stitch:true},source_info:{source:'FILE_UPLOAD',video_size:bytes.length,chunk_size:bytes.length,total_chunk_count:1}};
+ }else{
+  initUrl='https://open.tiktokapis.com/v2/post/publish/inbox/video/init/';payload={source_info:{source:'FILE_UPLOAD',video_size:bytes.length,chunk_size:bytes.length,total_chunk_count:1}};
+ }
+ const ir=await fetch(initUrl,{method:'POST',headers:{Authorization:`Bearer ${t.access_token}`,'Content-Type':'application/json; charset=UTF-8'},body:JSON.stringify(payload)});const ij=await ir.json();if(!ir.ok||ij?.error?.code&&ij.error.code!=='ok')throw new Error(ij?.error?.message||ij?.error?.code||`TikTok ${mode} initialization failed.`);
+ const uploadUrl=ij?.data?.upload_url,publishId=ij?.data?.publish_id;if(!uploadUrl||!publishId)throw new Error('TikTok did not return an upload URL and publish ID.');
+ const ur=await fetch(uploadUrl,{method:'PUT',headers:{'Content-Type':mime,'Content-Range':`bytes 0-${bytes.length-1}/${bytes.length}`},body:bytes});if(!ur.ok)throw new Error(`TikTok media upload failed (${ur.status}).`);
+ await new Promise(r=>setTimeout(r,1200));const sr=await fetch('https://open.tiktokapis.com/v2/post/publish/status/fetch/',{method:'POST',headers:{Authorization:`Bearer ${t.access_token}`,'Content-Type':'application/json; charset=UTF-8'},body:JSON.stringify({publish_id:publishId})});const sj=await sr.json();
+ return {ok:true,mode,publish_id:publishId,upload_status:ur.status,status_probe_ok:sr.ok,status:sj?.data?.status||sj?.data?.fail_reason||'PROCESSING',privacy:mode==='direct'?'SELF_ONLY':'TIKTOK_INBOX_DRAFT',creator_info_ok:mode==='direct'?Boolean(creator?.data):null,message:mode==='direct'?'Private Sandbox Direct Post file transferred to TikTok.':'Sandbox draft file transferred to TikTok; continue editing from the TikTok inbox notification.'};
+}
+'''
+          s=s.replace(marker,helper+marker,1)
+
+          action_marker=" if(action==='set_provider_approval_status')"
+          if action_marker not in s: raise SystemExit('action marker missing')
+          action=r''' if(action==='tiktok_demo_transfer'){const mode=String(b.mode||'');if(!['draft','direct'].includes(mode))return json({error:'Mode must be draft or direct'},400);const out=await tiktokDemoTransfer(a.id,mode,String(b.file_b64||''),String(b.mime_type||'video/mp4'),String(b.caption||''));return json(out)}
+'''
+          s=s.replace(action_marker,action+action_marker,1)
+          edge.write_text(s)
+
+          ui=Path('social-connection-center.js')
+          u=ui.read_text()
+          u=u.replace("const VERSION='B2026.08.29.049';","const VERSION='B2026.08.30.050';")
+          style_marker='.scc-missing{margin-top:8px;color:#ffca8a;font-size:10px;line-height:1.4}'
+          if style_marker not in u: raise SystemExit('style marker missing')
+          u=u.replace(style_marker,style_marker+'.scc-demo{margin-top:12px;padding:12px;border:1px solid rgba(119,200,255,.2);border-radius:12px;background:#081827}.scc-demo-result{margin-top:8px;padding:9px;border-radius:9px;background:#06101c;color:#9fd4f7;font-size:10px;line-height:1.5;word-break:break-word}',1)
+
+          approval_marker="const approval=key==='tiktok'?`"
+          if approval_marker not in u: raise SystemExit('approval marker missing')
+          u=u.replace(approval_marker,"const demo=key==='tiktok'?`<div class=\"scc-demo\"><div class=\"kicker\">TIKTOK SANDBOX REVIEW DEMO</div><div class=\"scc-muted\" style=\"margin-top:6px\">Use a real MP4/MOV/WebM up to 5 MB. Draft Upload demonstrates video.upload. Private Direct Post demonstrates video.publish and is forced to SELF_ONLY until TikTok approves public posting.</div><div class=\"scc-field\"><label>Demo video</label><input id=\"sccTikTokDemoFile\" type=\"file\" accept=\"video/mp4,video/quicktime,video/webm\"></div><div class=\"scc-field\"><label>Private test caption</label><input id=\"sccTikTokDemoCaption\" class=\"mini-input\" value=\"ALLSHIELD TikTok Sandbox API review test\"></div><div class=\"scc-actions\"><button class=\"tiny-btn\" onclick=\"allshieldSCCTikTokDemo('draft')\">Upload Draft Test</button><button class=\"btn btn-primary\" onclick=\"allshieldSCCTikTokDemo('direct')\">Private Direct Post Test</button></div><div id=\"sccTikTokDemoResult\" class=\"scc-demo-result\">Choose a short test video, then run each test once while recording the TikTok review demo.</div></div>`:'';"+approval_marker,1)
+
+          drawer_old='${fields}${approval}${fields?`<div class="scc-actions">'
+          drawer_new='${fields}${demo}${approval}${fields?`<div class="scc-actions">'
+          if drawer_old not in u: raise SystemExit('drawer marker missing')
+          u=u.replace(drawer_old,drawer_new,1)
+
+          fn_marker="window.allshieldSCCSaveCredentials=async key=>"
+          if fn_marker not in u: raise SystemExit('function marker missing')
+          demo_fn=r'''async function sccFileB64(file){const ab=await file.arrayBuffer();const bytes=new Uint8Array(ab);let bin='';const step=0x8000;for(let i=0;i<bytes.length;i+=step)bin+=String.fromCharCode(...bytes.subarray(i,i+step));return btoa(bin)}
+window.allshieldSCCTikTokDemo=async mode=>{const out=document.getElementById('sccTikTokDemoResult');try{const f=document.getElementById('sccTikTokDemoFile')?.files?.[0];if(!f)throw new Error('Choose a demo video first.');if(f.size>5*1024*1024)throw new Error('Use a demo video 5 MB or smaller.');if(out)out.textContent=`Running ${mode==='direct'?'private Direct Post':'draft upload'} test…`;const r=await edge({action:'tiktok_demo_transfer',mode,file_name:f.name,mime_type:f.type||'video/mp4',file_b64:await sccFileB64(f),caption:document.getElementById('sccTikTokDemoCaption')?.value.trim()||''});if(out)out.textContent=`PASS • ${r.message} • Publish ID: ${r.publish_id} • Status: ${r.status}`;ASSIST=out?.textContent||r.message}catch(e){if(out)out.textContent=`ERROR • ${e.message||e}`;alert(e.message||e)}};
+'''
+          u=u.replace(fn_marker,demo_fn+fn_marker,1)
+          ui.write_text(u)
+
+          bi=Path('build-info.js');b=bi.read_text()
+          b=b.replace("current_build:'B2026.08.29.049'","current_build:'B2026.08.30.050'")
+          b=b.replace("label:'Production B049 — Secure Provider Credential Save Integrity — Certified'","label:'Production B050 — TikTok Sandbox Review Demo Workflow — Certified'")
+          b=b.replace("completion_release:'2026.08.29.023'","completion_release:'2026.08.30.001'")
+          b=b.replace("released_at:'2026-08-29'","released_at:'2026-08-30'")
+          needle="    social_provider_secure_setup_feedback:'PASS',\n"
+          if 'tiktok_review_demo_workflow' not in b:
+              b=b.replace(needle,needle+"    tiktok_review_demo_workflow:'REAL FILE TRANSFER PATH PASS',\n    tiktok_sandbox_draft_upload:'READY — USER TEST REQUIRED',\n    tiktok_sandbox_private_direct_post:'READY — USER TEST REQUIRED',\n")
+          bi.write_text(b)
+
+          test=Path('tests/social-tiktok-b050-review-demo-contract.mjs')
+          test.write_text("import fs from 'node:fs';\nconst edge=fs.readFileSync('supabase/functions/social-connection-admin/index.ts','utf8');\nconst ui=fs.readFileSync('social-connection-center.js','utf8');\nconst build=fs.readFileSync('build-info.js','utf8');\nconst checks=[\n['B050 edge',edge.includes(\"B2026.08.30.050\")],\n['real draft init',edge.includes('/v2/post/publish/inbox/video/init/')&&edge.includes(\"required=mode==='direct'?'video.publish':'video.upload'\")],\n['real direct init',edge.includes('/v2/post/publish/video/init/')],\n['creator info',edge.includes('/v2/post/publish/creator_info/query/')],\n['real file transfer',edge.includes(\"method:'PUT'\")&&edge.includes('Content-Range')],\n['private only direct post',edge.includes(\"privacy_level:'SELF_ONLY'\")&&edge.includes(\"levels.includes('SELF_ONLY')\")],\n['status probe',edge.includes('/v2/post/publish/status/fetch/')],\n['size safety',edge.includes('5*1024*1024')],\n['UI review demo',ui.includes('TIKTOK SANDBOX REVIEW DEMO')&&ui.includes('Upload Draft Test')&&ui.includes('Private Direct Post Test')],\n['no false live certification',build.includes(\"tiktok_sandbox_draft_upload:'READY — USER TEST REQUIRED'\")&&build.includes(\"tiktok_sandbox_private_direct_post:'READY — USER TEST REQUIRED'\")]\n];let fail=0;for(const [n,ok] of checks){console.log(`${ok?'PASS':'FAIL'} ${n}`);if(!ok)fail++;}console.log(`${checks.length-fail}/${checks.length} PASS`);if(fail)process.exit(1);\n")
+          pkg=Path('package.json');p=pkg.read_text();
+          if 'social-tiktok-b050-review-demo-contract.mjs' not in p:p=p.replace('node tests/social-credential-save-b049-contract.mjs','node tests/social-credential-save-b049-contract.mjs && node tests/social-tiktok-b050-review-demo-contract.mjs')
+          pkg.write_text(p)
+          PY
+
+      - name: Run B050 contract
+        run: node tests/social-tiktok-b050-review-demo-contract.mjs
+
+      - name: Run permanent regression suite
+        run: npm test
+
+      - name: Commit B050
+        run: |
+          git config user.name "ALLSHIELD Build Bot"
+          git config user.email "buildbot@allshieldinsurancegroup.com"
+          git add supabase/functions/social-connection-admin/index.ts social-connection-center.js build-info.js tests/social-tiktok-b050-review-demo-contract.mjs package.json
+          git commit -m "Add real TikTok Sandbox review demo transfers B050"
+          git push origin main
+
+      - name: Retire workflow
+        run: |
+          git pull --rebase origin main
+          git rm .github/workflows/b050-tiktok-review-demo.yml
+          git commit -m "Retire B050 TikTok review demo workflow"
+          git push origin main

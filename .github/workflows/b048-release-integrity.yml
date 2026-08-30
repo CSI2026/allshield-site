@@ -52,16 +52,31 @@ jobs:
             s=s.replace(cmarker,cmarker+changes,1)
           p.write_text(s)
           PY
-      - name: B048 source and regression checks
+      - name: B048 semantic source checks
         run: |
-          grep -F "const BUILD='B2026.08.29.048';" supabase/functions/social-connection-admin/index.ts
-          grep -F "functions/v1/social-tiktok-callback" supabase/functions/social-connection-admin/index.ts
-          grep -F "target.searchParams.set('provider','tiktok')" supabase/functions/social-tiktok-callback/index.ts
-          grep -F "return Response.redirect(target.toString(),302)" supabase/functions/social-tiktok-callback/index.ts
-          grep -F "tiktok_professional_connection:'NOT CONNECTED — FAIL CLOSED'" build-info.js
-          grep -F "tiktok_static_oauth_callback:'LIVE ROUTING PASS'" build-info.js
-          grep -F "tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED'" build-info.js
-          npm test
+          python3 - <<'PY'
+          from pathlib import Path
+          admin=Path('supabase/functions/social-connection-admin/index.ts').read_text()
+          callback=Path('supabase/functions/social-tiktok-callback/index.ts').read_text()
+          badge=Path('build-info.js').read_text()
+          checks={
+            'B048 admin build': "B2026.08.29.048" in admin,
+            'admin uses dedicated TikTok callback': 'functions/v1/social-tiktok-callback' in admin,
+            'callback routes TikTok provider': "target.searchParams.set('provider', 'tiktok')" in callback,
+            'callback routes callback flag': "target.searchParams.set('callback', '1')" in callback,
+            'callback forwards OAuth fields': all(k in callback for k in ['code','state','error','error_description']),
+            'callback GET-only guard': "req.method !== 'GET'" in callback and 'status: 405' in callback,
+            'callback redirect': 'Response.redirect(target.toString(), 302)' in callback,
+            'badge says TikTok not connected': "tiktok_professional_connection:'NOT CONNECTED — FAIL CLOSED'" in badge,
+            'badge records live callback routing': "tiktok_static_oauth_callback:'LIVE ROUTING PASS'" in badge,
+            'badge keeps posting audit closed': "tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED'" in badge,
+          }
+          failed=[name for name,ok in checks.items() if not ok]
+          for name,ok in checks.items(): print(('PASS' if ok else 'FAIL'), name)
+          if failed: raise SystemExit('B048 semantic checks failed: '+', '.join(failed))
+          PY
+      - name: Permanent regression suite
+        run: npm test
       - name: Commit certified B048 metadata and retire workflow
         run: |
           rm .github/workflows/b048-release-integrity.yml

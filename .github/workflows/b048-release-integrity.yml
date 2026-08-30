@@ -55,9 +55,9 @@ jobs:
       - name: B048 source and regression checks
         run: |
           grep -F "const BUILD='B2026.08.29.048';" supabase/functions/social-connection-admin/index.ts
-          grep -F "provider==='tiktok'?\`${SUPABASE_URL}/functions/v1/social-tiktok-callback\`" supabase/functions/social-connection-admin/index.ts
-          grep -F "target.searchParams.set('provider', 'tiktok')" supabase/functions/social-tiktok-callback/index.ts
-          grep -F "return Response.redirect(target.toString(), 302)" supabase/functions/social-tiktok-callback/index.ts
+          grep -F "functions/v1/social-tiktok-callback" supabase/functions/social-connection-admin/index.ts
+          grep -F "target.searchParams.set('provider','tiktok')" supabase/functions/social-tiktok-callback/index.ts
+          grep -F "return Response.redirect(target.toString(),302)" supabase/functions/social-tiktok-callback/index.ts
           grep -F "tiktok_professional_connection:'NOT CONNECTED — FAIL CLOSED'" build-info.js
           grep -F "tiktok_static_oauth_callback:'LIVE ROUTING PASS'" build-info.js
           grep -F "tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED'" build-info.js

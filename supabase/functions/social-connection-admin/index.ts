@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 
-const BUILD='B2026.08.29.047';
+const BUILD='B2026.08.29.048';
 const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,x-client-info,apikey,content-type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"};
 const json=(d:any,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...cors,"Content-Type":"application/json","Cache-Control":"no-store"}});
 const SUPABASE_URL=Deno.env.get('SUPABASE_URL')!;
@@ -38,7 +38,7 @@ async function actor(req:Request){if(apiSecretMatches(req)){const p=await db.fro
 async function vaultMap(names:string[]){const map=new Map<string,string>();if(!names.length)return map;const r=await db.rpc('social_vault_get',{p_names:uniq(names)});if(!r.error)for(const x of r.data||[])if(x.secret_name&&x.secret_value)map.set(String(x.secret_name),String(x.secret_value));return map}
 async function credsFor(provider:string){const d=PROVIDERS[provider];if(!d)return new Map<string,string>();const m=await vaultMap(d.credential_names);for(const n of d.credential_names){const e=Deno.env.get(n);if(e)m.set(n,e)}return m}
 async function configured(provider:string){const d=PROVIDERS[provider];if(!d)return false;const m=await credsFor(provider);return d.credential_names.every((n:string)=>Boolean(m.get(n)))}
-function callback(provider:string){return `${fnBase}?provider=${enc(provider)}&callback=1`}
+function callback(provider:string){return provider==='tiktok'?`${SUPABASE_URL}/functions/v1/social-tiktok-callback`:`${fnBase}?provider=${enc(provider)}&callback=1`}
 async function saveState(userId:string,provider:string,returnUrl:string,metadata:any={}){const state=crypto.randomUUID()+crypto.randomUUID().replaceAll('-','');const r=await db.from('social_oauth_states').insert({state,user_id:userId,provider,return_url:returnUrl,expires_at:new Date(Date.now()+10*60*1000).toISOString(),metadata});if(r.error)throw r.error;return state}
 async function setConn(platform:string,row:any){const r=await db.from('social_connections').upsert({platform,connection_mode:'oauth',updated_at:now(),...row},{onConflict:'platform'});if(r.error)throw r.error}
 async function storeToken(platform:string,userId:string,token:any,externalId:string|null,metadata:any={}){const old=await db.from('social_oauth_tokens').select('refresh_token').eq('platform',platform).eq('user_id',userId).maybeSingle();const r=await db.from('social_oauth_tokens').upsert({platform,user_id:userId,external_account_id:externalId,access_token:token.access_token,refresh_token:token.refresh_token||old.data?.refresh_token||null,token_type:token.token_type||'Bearer',scopes:Array.isArray(token.scopes)?token.scopes:csv(token.scope),expires_at:token.expires_in?new Date(Date.now()+Number(token.expires_in)*1000).toISOString():null,refresh_expires_at:token.refresh_expires_in?new Date(Date.now()+Number(token.refresh_expires_in)*1000).toISOString():null,metadata,updated_at:now()},{onConflict:'platform,user_id'});if(r.error)throw r.error}

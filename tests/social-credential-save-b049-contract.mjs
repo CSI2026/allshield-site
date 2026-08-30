@@ -13,5 +13,5 @@ const checks=[
  ['UI B049-or-later',Number(uiVersion[2]||0)>=49],
  ['UI Vault saved',ui.includes('VAULT SAVED')],
  ['Drawer persists',ui.includes('OPEN_DRAWER=key')],
- ['Production loads current social center',Boolean(uiVersion[1])&&index.includes(`social-connection-center.js?v=${uiVersion[1]}`))
+ ['Production loads current social center',Boolean(uiVersion[1])&&index.includes(`social-connection-center.js?v=${uiVersion[1]}`)]
 ];let f=0;for(const [n,o] of checks){console.log(`${o?'PASS':'FAIL'} ${n}`);if(!o)f++;}if(f)process.exit(1);console.log(`${checks.length}/${checks.length} PASS`);

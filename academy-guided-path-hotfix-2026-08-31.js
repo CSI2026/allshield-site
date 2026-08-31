@@ -1,7 +1,8 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.001';
+const VERSION='2026.08.31.002';
 let lastLessonId=null;
+let poller=null;
 
 function wrapLessonStart(){
   const current=window.asGuidedStartLesson;
@@ -18,9 +19,7 @@ function wrapLessonStart(){
 function repairRetryButtons(root=document){
   root.querySelectorAll?.('.as-guide button').forEach(btn=>{
     const text=String(btn.textContent||'').trim();
-    if(text==='Review Lesson & Try Again'){
-      btn.setAttribute('onclick','asGuidedRetryLesson()');
-    }
+    if(text==='Review Lesson & Try Again')btn.setAttribute('onclick','asGuidedRetryLesson()');
   });
 }
 
@@ -44,21 +43,16 @@ function serializeActivityHeartbeats(){
   functions.invoke=wrapped;
 }
 
-function boot(){
+function tick(){
   wrapLessonStart();
   serializeActivityHeartbeats();
-  repairRetryButtons();
-  const observer=new MutationObserver(records=>{
-    for(const r of records){
-      for(const node of r.addedNodes){
-        if(node.nodeType!==1)continue;
-        repairRetryButtons(node);
-      }
-    }
-    wrapLessonStart();
-    serializeActivityHeartbeats();
-  });
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+  repairRetryButtons(document);
+}
+
+function boot(){
+  tick();
+  if(poller)clearInterval(poller);
+  poller=setInterval(tick,500);
   window.__allshieldGuidedHotfixVersion=VERSION;
 }
 

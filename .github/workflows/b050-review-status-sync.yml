@@ -1,4 +1,5 @@
 name: B050 TikTok Review Status Sync
+# Retry after updating the permanent B050 truthfulness contract for real completed user tests.
 on:
   push:
     branches: [main]

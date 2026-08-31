@@ -632,8 +632,8 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <div class="kicker" style="text-align:center">AGENT PORTAL</div>
     <h2>Welcome back.</h2>
     <p>Secure access to your Allshield back office.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
-    <input class="field" placeholder="Email address">
-    <input class="field" type="password" placeholder="Password">
+    <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
+    <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('agent')">Enter Agent Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
@@ -645,8 +645,8 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <div class="kicker" style="text-align:center">ADMIN PORTAL</div>
     <h2>Administration.</h2>
     <p>Authorized Allshield leadership and administration only.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
-    <input class="field" placeholder="Admin email">
-    <input class="field" type="password" placeholder="Password">
+    <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
+    <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('admin')">Enter Admin Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
@@ -707,8 +707,8 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <div class="kicker" style="text-align:center">OWNER PORTAL</div>
     <h2>Platform command.</h2>
     <p>Full-control access for authorized Allshield ownership.</p><div class="backend-status" data-backend-status>Secure Supabase access</div>
-    <input class="field" placeholder="Username">
-    <input class="field" type="password" placeholder="Password">
+    <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
+    <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('owner')">Enter Owner Portal</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
@@ -765,9 +765,19 @@ function hideSite(){
   document.getElementById('leadModal').classList.remove('show');
   document.getElementById('portalChooser').classList.remove('show');
 }
-function showLogin(role){
+const portalLoginRoles=new Set(['agent','admin','owner']);
+function setPortalLoginRoute(role){
+  const url=new URL(window.location.href);
+  if(role)url.searchParams.set('portal',role);
+  else url.searchParams.delete('portal');
+  window.history.replaceState({},'',url.pathname+url.search+url.hash);
+}
+function showLogin(role,updateRoute=true){
+  if(!portalLoginRoles.has(role))return;
   hideSite();
+  ['agent','admin','owner'].forEach(r=>document.getElementById(r+'Login').classList.remove('show'));
   document.getElementById(role+'Login').classList.add('show');
+  if(updateRoute)setPortalLoginRoute(role);
 }
 async function ensureOwnerLiveDashboard(){
   for(let attempt=0;attempt<100;attempt++){
@@ -801,8 +811,12 @@ function returnHome(){
   ['agentLogin','adminLogin','ownerLogin'].forEach(id=>document.getElementById(id).classList.remove('show'));
   ['agentPortal','adminPortal','ownerPortal'].forEach(id=>document.getElementById(id).classList.remove('show'));
   document.querySelector('.shell').style.display='block';
+  setPortalLoginRoute(null);
   window.scrollTo({top:0,behavior:'smooth'});
 }
+
+const requestedPortal=new URLSearchParams(window.location.search).get('portal');
+if(portalLoginRoles.has(requestedPortal))showLogin(requestedPortal,false);
 
 
 const agentViews = {

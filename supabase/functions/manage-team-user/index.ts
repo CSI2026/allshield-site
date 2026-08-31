@@ -15,7 +15,7 @@ function welcomeText(first:string,username:string,password:string,licensing:stri
   : licensing==="not_licensed"||licensing==="studying"
     ? "Your next step is the ALLSHIELD pre-licensing path. Your state track, training, licensing, contracting, Marketplace requirements, and production readiness will be organized inside your portal."
     : "Your next step is to sign in and confirm whether you are currently licensed. ALLSHIELD will automatically place you on the correct onboarding path from there.";
- return `Hi ${first},\n\nWelcome to ALLSHIELD Insurance Group. Your Agent Portal account is ready.\n\nUsername: ${username}\nTemporary password: ${password}\n\n${route}\n\nSign in at: https://allshieldinsurancegroup.com/\n\nKeep these temporary credentials private. If you need help accessing your account, reply to this email or contact ALLSHIELD onboarding.\n\nALLSHIELD Insurance Group\nonboarding@allshieldinsurancegroup.com`;
+ return `Hi ${first},\n\nWelcome to ALLSHIELD Insurance Group. Your Agent Portal account is ready.\n\nUsername: ${username}\nTemporary password: ${password}\n\n${route}\n\nOpen the Agent Portal: https://allshieldinsurancegroup.com/?portal=agent\n\nOn the sign-in screen, enter the Username shown above — not your email address.\n\nKeep these temporary credentials private. If you need help accessing your account, reply to this email or contact ALLSHIELD onboarding.\n\nALLSHIELD Insurance Group\nonboarding@allshieldinsurancegroup.com`;
 }
 
 Deno.serve(async(req:Request)=>{

@@ -1,9 +1,25 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.27.011';
+const VERSION='2026.08.31.012';
+
+function loadAcademyBootstrap(){
+  if(document.getElementById('allshieldCommercialAcademyLoader'))return;
+  const s=document.createElement('script');
+  s.id='allshieldCommercialAcademyLoader';
+  s.src='./academy-commercial-loader-2026-08-31.js?v=2026.08.31.003';
+  s.async=false;
+  (document.body||document.documentElement).appendChild(s);
+}
+if(document.body)loadAcademyBootstrap();
+else document.addEventListener('DOMContentLoaded',loadAcademyBootstrap,{once:true});
+
 if(window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION===VERSION)return;
 const Native=window.MutationObserver;
-if(typeof Native!=='function')return;
+if(typeof Native!=='function'){
+  window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION=VERSION;
+  window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=0;
+  return;
+}
 let blocked=0;
 class AllshieldMutationObserver{
   constructor(callback){this._native=new Native(callback)}

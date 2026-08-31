@@ -23,7 +23,7 @@ window.ALLSHIELD_CONFIG = {
     ['allshieldOnboardingEsignBridgeLoader','./onboarding-esign-bridge-2026-08-28.js?v=2026.08.28.004'],
     ['allshieldCareerLicenseNormalizerLoader','./career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'],
     ['allshieldCareerApplicationDetailLoader','./career-application-detail-2026-08-28.js?v=2026.08.28.001'],
-    ['allshieldCommercialAcademyLoader','./academy-commercial-loader-2026-08-31.js?v=2026.08.31.001']
+    ['allshieldCommercialAcademyLoader','./academy-commercial-loader-2026-08-31.js?v=2026.08.31.002']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

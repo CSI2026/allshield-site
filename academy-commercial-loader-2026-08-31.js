@@ -1,11 +1,20 @@
 (()=>{
 'use strict';
+function loadMobileAcademy(){
+  if(document.getElementById('allshieldAcademyMobileApp'))return;
+  const m=document.createElement('script');
+  m.id='allshieldAcademyMobileApp';
+  m.src='./academy-mobile-app-2026-08-31.js?v=2026.08.31.001';
+  m.async=false;
+  document.body.appendChild(m);
+}
 function loadClassroom(){
-  if(document.getElementById('allshieldAcademyClassroomMode'))return;
+  if(document.getElementById('allshieldAcademyClassroomMode')){setTimeout(loadMobileAcademy,60);return;}
   const c=document.createElement('script');
   c.id='allshieldAcademyClassroomMode';
   c.src='./academy-classroom-mode-2026-08-31.js?v=2026.08.31.002';
   c.async=false;
+  c.onload=()=>setTimeout(loadMobileAcademy,40);
   document.body.appendChild(c);
 }
 function loadCommercialAcademy(){

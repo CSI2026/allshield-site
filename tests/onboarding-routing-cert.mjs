@@ -10,7 +10,7 @@ try{
       fetch(`${BASE}/?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text()),
       fetch(`${BASE}/config.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
     ]);
-    if(cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.28.014')&&cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013')&&html.includes('agent-operations-core-2026-08-28.js?v=2026.08.28.002'))break;
+    if(cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.31.015')&&cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013')&&html.includes('agent-operations-core-2026-08-28.js?v=2026.08.28.002'))break;
     await sleep(2000);
   }
   const [router,normalizer,opsCore]=await Promise.all([
@@ -19,7 +19,7 @@ try{
     fetch(`${BASE}/agent-operations-core-2026-08-28.js?cert=${Date.now()}`,{cache:'no-store'}).then(r=>r.text())
   ]);
   rec('Index loads production config',html.includes('config.js'),'config.js present');
-  rec('Production config loads final onboarding router',cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.28.014'),'router .014');
+  rec('Production config loads final onboarding router',cfg.includes('onboarding-router-2026-08-27.js?v=2026.08.31.015'),'router .015');
   rec('Production config loads Careers license normalizer',cfg.includes('career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'),'normalizer .013');
   rec('Production loads canonical Agent Operations Core',html.includes('agent-operations-core-2026-08-28.js?v=2026.08.28.002'),'Agent Operations .002');
   rec('Router has four current launch states',['TX','FL','GA','TN'].every(s=>router.includes(`${s}:'`)),'TX, FL, GA, TN');
@@ -52,8 +52,8 @@ try{
   const errors=[];page.on('pageerror',e=>errors.push(e.message));
   const response=await page.goto(`${BASE}/?browsercert=${Date.now()}`,{waitUntil:'domcontentloaded',timeout:60000});
   rec('Live homepage loads',response?.ok()===true,`HTTP ${response?.status()}`);
-  await page.waitForFunction(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.28.014'&&window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013'&&window.ALLSHIELD_AGENT_OPERATIONS_CORE_VERSION==='2026.08.28.002',{timeout:30000});
-  rec('Automated onboarding runtime executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.28.014'),'.014 active');
+  await page.waitForFunction(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.31.015'&&window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013'&&window.ALLSHIELD_AGENT_OPERATIONS_CORE_VERSION==='2026.08.28.002',{timeout:30000});
+  rec('Automated onboarding runtime executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_ONBOARDING_ROUTER_VERSION==='2026.08.31.015'),'.015 active');
   rec('Careers licensing normalizer executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_CAREER_LICENSE_NORMALIZER_VERSION==='2026.08.27.013'),'.013 active');
   rec('Agent Operations Core executes in Chrome',await page.evaluate(()=>window.ALLSHIELD_AGENT_OPERATIONS_CORE_VERSION==='2026.08.28.002'),'.002 active');
 

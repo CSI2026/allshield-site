@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,content-type,apikey","Access-Control-Allow-Methods":"POST,OPTIONS"};
+const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization,x-client-info,content-type,apikey","Access-Control-Allow-Methods":"POST,OPTIONS"};
 const json=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...cors,"Content-Type":"application/json"}});
 const clean=(v:unknown,max=160)=>String(v??"").trim().slice(0,max);
 const ROUTES={
@@ -146,7 +146,11 @@ Deno.serve(async(req:Request)=>{
 
     if(action==="select_prelicense_state"){
       if(!isAgent)return json({error:"Agent access required"},403);
-      const pathway=await getPath(actor.id);
+      let pathway=await getPath(actor.id);
+      if(pathway==="self_select"){
+        await setRoute(actor.id,"prelicensing","not_licensed","agent_state_selection");
+        pathway="prelicensing";
+      }
       if(pathway!=="prelicensing")return json({error:"This action is for the pre-licensing route."},400);
       const state=clean(body.state_code,2).toUpperCase();
       const track=await stateTrack(state);

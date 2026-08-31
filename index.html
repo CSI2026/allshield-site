@@ -660,17 +660,11 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
   <div class="portal-shell">
     <aside class="sidebar">
       <div class="role">AGENT PORTAL</div>
-      <div class="side-link active" onclick="showAgentView('dashboard',this)">⌂ Dashboard</div><div class="side-link" onclick="showAgentView('ai',this)">✦ AI Assistant</div>
-      <div class="side-link" onclick="showAgentView('onboarding',this)">✓ Onboarding</div><div class="side-link" onclick="showAgentView('licensing',this)">◎ Licensing Center</div>
-      <div class="side-link" onclick="showAgentView('study',this)">▣ Licensing Academy</div>
-      <div class="side-link" onclick="showAgentView('tests',this)">✎ Practice Tests</div>
-      <div class="side-link" onclick="showAgentView('performance',this)">↗ Performance & Rankings</div>
-      <div class="side-link" onclick="showAgentView('documents',this)">▤ Documents & E-Sign</div>
-      <div class="side-link" onclick="showAgentView('meetings',this)">◉ Meeting Rooms</div>
-      <div class="side-link" onclick="showAgentView('achievements',this)">★ Achievements</div><div class="side-link" onclick="showAgentView('careerpath',this)">◆ Career Path</div>
-      <div class="side-link" onclick="showAgentView('production',this)">↗ Production</div>
-      <div class="side-link" onclick="showAgentView('communications',this)">✉ Communications</div><div class="side-link" onclick="showAgentView('resources',this)">☰ Resources</div>
-      <div class="side-link" onclick="showAgentView('profile',this)">⚙ Profile & Settings</div>
+      <div class="side-link active" onclick="showAgentView('onboarding',this)">1 Get Licensed</div>
+      <div class="side-link" onclick="showAgentView('study',this)">2 Study & Complete Tasks</div>
+      <div class="side-link" onclick="showAgentView('tests',this)">3 Practice & Take Tests</div>
+      <div class="side-link" onclick="showAgentView('ai',this)">✦ AI Study Help</div>
+      <div class="side-link" onclick="showAgentView('profile',this)">⚙ My Account</div>
     </aside>
     <main class="portal-main" id="agentMain"><div class="bo-card">Loading live dashboard…</div></main>
   </div>
@@ -802,7 +796,7 @@ function enterPortal(role){
   document.getElementById(role+'Portal').classList.add('show');
   const first=document.querySelector('#'+role+'Portal .sidebar .side-link');
   setTimeout(()=>{
-    if(role==='agent') window.showAgentView?.('dashboard',first);
+    if(role==='agent') window.showAgentView?.('onboarding',first);
     if(role==='admin') window.showAdminView?.('dashboard',first);
     if(role==='owner') window.showOwnerView?.('dashboard',first);
   },0);
@@ -876,6 +870,7 @@ function runRegisteredView(role,view,el){
 }
 
 function showAgentView(view,el){
+  if(!el)el=[...document.querySelectorAll('#agentPortal .sidebar .side-link')].find(link=>(link.getAttribute('onclick')||'').includes(`'${view}'`));
   if(runRegisteredView('agent',view,el)) return;
   setActive(el);
   const host=document.getElementById('agentMain');

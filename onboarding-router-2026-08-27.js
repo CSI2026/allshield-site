@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.28.014';
+const VERSION='2026.08.31.015';
 const STATE_LABELS={
   TX:'Texas · General Lines Life, Accident & Health / HMO',
   FL:'Florida · Health & Life',
@@ -44,7 +44,9 @@ function injectStyles(){
   .as-contract-copy{max-height:240px;overflow:auto;white-space:pre-wrap;padding:14px;border-radius:12px;background:#07111f;color:#b8c8d8;font-size:12px;line-height:1.6;margin:12px 0}
   .as-demo{display:inline-block;padding:4px 7px;border-radius:999px;background:rgba(255,194,92,.13);color:#ffd38a;font-size:9px;font-weight:900;letter-spacing:.08em}
   .as-route-pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#102b46;color:#7bcaff;font-size:11px}
+  .as-license-flow{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:16px 0 22px}.as-license-flow span{padding:10px 8px;border-radius:10px;background:#0b1829;border:1px solid rgba(255,255,255,.08);color:#91a7bc;text-align:center;font-size:11px}.as-license-flow strong{color:#7bcaff;margin-right:4px}
   @media(max-width:700px){.as-choice{grid-template-columns:1fr}.as-inline{display:grid;grid-template-columns:1fr}.as-inline>div{min-width:0}}
+  @media(max-width:700px){.as-license-flow{grid-template-columns:1fr 1fr}}
   `;document.head.appendChild(s);
 }
 function patchCareerApplication(){
@@ -58,12 +60,12 @@ async function renderAgentOnboarding(main){
   main.innerHTML='<div class="bo-card">Loading your onboarding path…</div>';
   try{
     const ctx=await context(),path=ctx.pathway,primary=firstPrimaryLicense(ctx),active=(ctx.licenses||[]).find(x=>x.status==='active'),pending=(ctx.licenses||[]).find(x=>x.status==='pending_verification');
-    let html=`<div class="dashboard-head"><div><div class="kicker">AGENT ONBOARDING</div><h2>Your next step — automatically routed.</h2><p>Your Careers application determines which onboarding path you receive. You only provide information ALLSHIELD does not already have.</p></div><button class="btn btn-primary" onclick="asRefreshAgentOnboarding()">Refresh</button></div>
-    <div class="real-data-banner">LIVE SUPABASE DATA • SELF-SERVICE ONBOARDING</div>
-    <div class="as-route-banner"><div><strong>${esc(ROUTE_LABELS[path]||path)}</strong><small>${ctx.source_application?'Route carried forward from your Careers application.':'Direct account — one licensing question is required.'}</small></div><span class="as-route-pill">${esc(ctx.profile.status)}</span></div>`;
+    let html=`<div class="dashboard-head"><div><div class="kicker">GET LICENSED</div><h2>Your fastest path to a license.</h2><p>Follow one step at a time. ALLSHIELD will always show you what to do next.</p></div><button class="tiny-btn" onclick="asRefreshAgentOnboarding()">Refresh</button></div>
+    <div class="as-license-flow"><span><strong>1</strong> Choose state</span><span><strong>2</strong> Study tasks</span><span><strong>3</strong> Practice & test</span><span><strong>4</strong> Submit license</span></div>
+    <div class="as-route-banner"><div><strong>${esc(ROUTE_LABELS[path]||path)}</strong><small>${ctx.source_application?'Route carried forward from your Careers application.':'Choose your licensing goal below to begin.'}</small></div><span class="as-route-pill">${esc(ctx.profile.status)}</span></div>`;
 
     if(path==='self_select'){
-      html+=`<div class="as-step"><h3>Are you currently licensed?</h3><p>This is only shown because this account was created directly instead of from a Careers application. Answer once and ALLSHIELD routes the rest.</p><div class="as-choice"><button class="btn btn-primary" onclick="asChooseLicenseStatus('licensed')">Yes — I am licensed</button><button class="btn btn-ghost" onclick="asChooseLicenseStatus('not_licensed')">No — I need my license</button></div></div>`;
+      html+=`<div class="as-step"><div class="as-step-head"><h3>1. Choose the state and license you want</h3><span class="as-wait">Start here</span></div><p>Select your state. The matching license type is shown automatically, and one click assigns the correct study path.</p><div class="as-inline"><div><label>State & License</label><select id="asPrelicenseState" class="mini-input">${stateOptions(ctx.states)}</select></div><button class="btn btn-primary" onclick="asStartPrelicense()">Choose & Start Studying</button></div><p style="margin-top:14px">Already hold a license? <button class="tiny-btn" onclick="asChooseLicenseStatus('licensed')">Submit it for verification</button></p></div>`;
       main.innerHTML=html;return;
     }
 
@@ -71,13 +73,14 @@ async function renderAgentOnboarding(main){
 
     if(path==='prelicensing'){
       if(!primary){
-        html+=`<div class="as-step"><div class="as-step-head"><h3>1. Choose your licensing state</h3><span class="as-wait">Required</span></div><p>Your product path is already set to <strong>Life & Health / ACA</strong>. Choose the state you are getting licensed in and ALLSHIELD assigns the correct Academy training automatically.</p><div class="as-inline"><div><label>License / Product</label><input class="mini-input" value="Life & Health / ACA" disabled></div><div><label>State</label><select id="asPrelicenseState" class="mini-input">${stateOptions(ctx.states)}</select></div><button class="btn btn-primary" onclick="asStartPrelicense()">Start My Training</button></div></div>`;
+        html+=`<div class="as-step"><div class="as-step-head"><h3>1. Choose the state and license you want</h3><span class="as-wait">Required</span></div><p>Select the state where you want to become licensed. ALLSHIELD shows the correct license track and assigns the matching study course.</p><div class="as-inline"><div><label>State & License</label><select id="asPrelicenseState" class="mini-input">${stateOptions(ctx.states)}</select></div><button class="btn btn-primary" onclick="asStartPrelicense()">Choose & Start Studying</button></div></div>`;
       }else{
         html+=`<div class="as-step"><div class="as-step-head"><h3>1. Licensing state selected</h3><span class="as-ok">✓ Complete</span></div><p><strong>${esc(STATE_LABELS[primary.state_code]||primary.state_code)}</strong><br>ALLSHIELD track: ${esc(primary.license_type)} • Status: ${esc(primary.status)}</p></div>`;
       }
-      html+=`<div class="as-step"><div class="as-step-head"><h3>2. Academy training</h3><span class="${(ctx.assignments||[]).length?'as-ok':'as-wait'}">${(ctx.assignments||[]).length?'Assigned':'Waiting on state'}</span></div><p>${(ctx.assignments||[]).length?'Your assigned training is ready in Academy.':'Choose your state first and the correct Life & Health course will be assigned.'}</p>${(ctx.assignments||[]).map(a=>`<div class="as-license-card"><span>${esc(a.course?.title||'Assigned course')}</span><span class="pill">${Number(a.progress_percent||0)}%</span></div>`).join('')}</div>`;
+      html+=`<div class="as-step"><div class="as-step-head"><h3>2. Study and complete each task</h3><span class="${(ctx.assignments||[]).length?'as-ok':'as-wait'}">${(ctx.assignments||[]).length?'Ready':'Waiting on state'}</span></div><p>${(ctx.assignments||[]).length?'Open your study plan and mark each lesson complete as you finish it.':'Choose your state first and the correct course will be assigned.'}</p>${(ctx.assignments||[]).map(a=>`<div class="as-license-card"><span>${esc(a.course?.title||'Assigned course')}</span><span class="pill">${Number(a.progress_percent||0)}%</span></div>`).join('')}${(ctx.assignments||[]).length?`<button class="btn btn-primary" style="margin-top:14px" onclick="showAgentView('study',null)">Continue My Study Tasks</button>`:''}</div>`;
+      html+=`<div class="as-step"><div class="as-step-head"><h3>3. Practice and take the readiness test</h3><span class="${(ctx.assignments||[]).length?'as-ok':'as-wait'}">${(ctx.assignments||[]).length?'Available':'Locked'}</span></div><p>Use practice questions while studying. When you feel ready, take the full readiness test and use your results to focus your review.</p><button class="btn btn-primary" onclick="showAgentView('tests',null)" ${(ctx.assignments||[]).length?'':'disabled'}>Practice & Take a Test</button></div>`;
       if(primary && primary.status==='studying'){
-        html+=licenseSubmission(ctx,primary.state_code,'3. When your state license is issued');
+        html+=licenseSubmission(ctx,primary.state_code,'4. Submit your state license when issued');
       }
     }
 
@@ -97,7 +100,7 @@ async function renderAgentOnboarding(main){
     html+=`<div class="as-step"><div class="as-step-head"><h3>Final readiness</h3><span class="${stepDone(ctx,'ready')?'as-ok':'as-wait'}">${stepDone(ctx,'ready')?'✓ Ready':'In progress'}</span></div><p>ALLSHIELD keeps this account in Onboarding until licensing, contracting, compensation setup, and Marketplace requirements are complete.</p></div>`;
     html+='</div>';
     main.innerHTML=html;
-  }catch(e){main.innerHTML=`<div class="bo-card"><h3>Unable to load onboarding</h3><p>${esc(e.message||e)}</p></div>`}
+  }catch(e){main.innerHTML=`<div class="bo-card"><h3>We could not load your licensing path</h3><p>${esc(e.message||e)}</p><button class="btn btn-primary" onclick="asRefreshAgentOnboarding()">Try Again</button></div>`}
 }
 function licenseSubmission(ctx,selected,title){
   return `<div class="as-step"><div class="as-step-head"><h3>${esc(title)}</h3><span class="as-wait">Submit for verification</span></div><p>Enter the license information exactly as it appears on your state record. ALLSHIELD will verify it before contracting unlocks.</p><div class="as-inline"><div><label>State</label><select id="asLicenseState" class="mini-input">${stateOptions(ctx.states,selected)}</select></div><div><label>License Number</label><input id="asLicenseNumber" class="mini-input" placeholder="License number"></div><div><label>Expiration Date</label><input id="asLicenseExpiration" type="date" class="mini-input"></div><button class="btn btn-primary" onclick="asSubmitLicense()">Submit License</button></div></div>`;

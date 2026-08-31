@@ -53,13 +53,14 @@
   }
 
   async function renderStudy(){
-    loading('Assigned training');
+    loading('Study & complete tasks');
     try{
       const d=await data(true); const h=host(); if(!h)return;
       const as=d.assignments||[];
-      h.innerHTML=`<div class="dashboard-head"><div><div class="kicker">MY COURSES</div><h2>Assigned training.</h2><p>Your course progress is stored live in Allshield.</p></div></div>
+      h.innerHTML=`<div class="dashboard-head"><div><div class="kicker">STEP 2 OF 4</div><h2>Study & complete your tasks.</h2><p>Work from top to bottom. Mark each lesson complete so your progress is always clear.</p></div></div>
       ${as.length?as.map((a,ai)=>`<div class="bo-card" style="margin-bottom:18px"><div class="dashboard-head"><div><h3 style="margin:0">${esc(a.course?.title||'Course')}</h3><p>${esc(a.course?.state_code?`State: ${a.course.state_code}`:'Allshield core training')}</p></div><span class="pill">${Number(a.progress_percent||0)}%</span></div>
-      <div>${(a.modules||[]).map((m,mi)=>`<details style="border-top:1px solid rgba(255,255,255,.08);padding:14px 0" ${mi===0?'open':''}><summary style="cursor:pointer;font-weight:700">${m.progress?.completed?'✓ ':''}${esc(m.module_order+'. '+m.title)}</summary><div style="padding:12px 4px">${bodyHtml(m.body)}<div class="row-actions"><button class="tiny-btn" onclick="allshieldSetModuleComplete('${esc(m.id)}',${m.progress?.completed?'false':'true'})">${m.progress?.completed?'Mark Incomplete':'Mark Complete'}</button></div></div></details>`).join('')}</div></div>`).join(''):'<div class="bo-card"><h3>No courses assigned yet</h3><p>Your state and foundation courses will appear here after your account setup is complete.</p></div>'}`;
+      <div>${(a.modules||[]).map((m,mi)=>`<details style="border-top:1px solid rgba(255,255,255,.08);padding:14px 0" ${mi===0?'open':''}><summary style="cursor:pointer;font-weight:700">${m.progress?.completed?'✓ ':''}${esc(m.module_order+'. '+m.title)}</summary><div style="padding:12px 4px">${bodyHtml(m.body)}<div class="row-actions"><button class="tiny-btn" onclick="allshieldSetModuleComplete('${esc(m.id)}',${m.progress?.completed?'false':'true'})">${m.progress?.completed?'Completed — Undo':'Complete This Task'}</button></div></div></details>`).join('')}</div></div>`).join(''):'<div class="bo-card"><h3>Choose your state first</h3><p>Your correct study course appears after you choose a state and license.</p><button class="btn btn-primary" onclick="showAgentView(\'onboarding\',null)">Choose State & License</button></div>'}
+      ${as.length?'<div class="row-actions"><button class="btn btn-primary" onclick="showAgentView(\'tests\',null)">Practice & Take a Test</button><button class="tiny-btn" onclick="showAgentView(\'onboarding\',null)">Back to My Licensing Path</button></div>':''}`;
     }catch(e){err('Assigned training',e)}
   }
 
@@ -74,7 +75,7 @@
       const d=await data(true); const h=host(); if(!h)return;
       const state=d.profile?.resident_state||d.licenses?.[0]?.state_code||'';
       const exams=d.exams||[];
-      h.innerHTML=`<div class="dashboard-head"><div><div class="kicker">EXAM PREP</div><h2>Practice & readiness exams.</h2><p>Questions come from the validated state question bank. Scoring is deterministic; AI is used only for coaching and explanation.</p></div></div>
+      h.innerHTML=`<div class="dashboard-head"><div><div class="kicker">STEP 3 OF 4</div><h2>Practice & take your readiness test.</h2><p>Start with practice. Take the full simulation when you are ready, then return to weak topics and keep improving.</p></div></div>
       <div class="bo-grid"><div class="bo-card"><h3>Start Exam</h3><p>Resident state: <strong>${esc(state||'Not set')}</strong></p><div class="row-actions"><button class="btn btn-primary" onclick="allshieldStartExam('diagnostic')" ${state?'':'disabled'}>40-Question Diagnostic</button><button class="tiny-btn" onclick="allshieldStartExam('full')" ${state?'':'disabled'}>Full Simulation</button></div></div>
       <div class="bo-card"><h3>Recent Attempts</h3>${exams.length?exams.slice(0,5).map(x=>`<div class="activity"><strong>${esc((x.exam_type||'exam').toUpperCase())} — ${esc(x.state_code||'')}</strong><small>${Number(x.score_percent||0).toFixed(1)}% • ${new Date(x.created_at).toLocaleDateString()}</small></div>`).join(''):'No exam attempts yet.'}</div></div>`;
     }catch(e){err('Practice exams',e)}

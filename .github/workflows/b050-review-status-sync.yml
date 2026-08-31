@@ -1,0 +1,53 @@
+name: B050 TikTok Review Status Sync
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/b050-review-status-sync.yml']
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync truthful review metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-info.js')
+          s=p.read_text()
+          s=s.replace("label:'Production B050 — TikTok Sandbox Review Demo Workflow — Live User Tests Passed'","label:'Production B050 — TikTok Production App Review Submitted — In Review'")
+          s=s.replace("completion_release:'2026.08.30.002'","completion_release:'2026.08.30.003'")
+          needle="    tiktok_token_refresh:'ACTIVE TOKEN — REFRESH NOT YET REQUIRED',\n"
+          if "tiktok_app_review:" not in s:
+              s=s.replace(needle, needle+"    tiktok_app_review:'SUBMITTED — IN REVIEW',\n")
+          s=s.replace("    tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED',","    tiktok_public_posting_audit_gate:'APP REVIEW SUBMITTED — POSTING AUDIT NOT SUBMITTED — FAIL CLOSED',")
+          marker="  changes:[\n"
+          additions=(
+          "    'TikTok Production App Review was submitted on August 30, 2026 and is currently In review; ALLSHIELD public posting remains fail-closed while provider approval is pending',\n"
+          "    'ALLSHIELD provider approval state was synchronized to submitted while the separate posting-audit status remains not_submitted',\n"
+          "    'Prepared the primary ALLSHIELD social brand source draft from the current public website using verified customer and careers facts; owner approval remains required before Maya may use it as approved context',\n"
+          )
+          if "TikTok Production App Review was submitted on August 30, 2026" not in s:
+              s=s.replace(marker, marker+additions)
+          p.write_text(s)
+          PY
+      - name: Validate build metadata and permanent suite
+        run: |
+          node --check build-info.js
+          npm test
+      - name: Commit status sync
+        run: |
+          git config user.name 'ALLSHIELD Build Bot'
+          git config user.email 'buildbot@allshieldinsurancegroup.com'
+          git add build-info.js
+          git diff --cached --quiet || git commit -m 'Sync B050 TikTok review submitted state'
+          git push
+      - name: Retire temporary workflow
+        run: |
+          git pull --rebase
+          git rm .github/workflows/b050-review-status-sync.yml
+          git commit -m 'Retire B050 TikTok review status sync'
+          git push

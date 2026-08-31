@@ -2,8 +2,8 @@ window.ALLSHIELD_BUILD_INFO={
   build_number:'B2026.08.23.021',
   base_build:'B2026.08.23.021',
   current_build:'B2026.08.30.050',
-  label:'Production B050 — TikTok Sandbox Review Demo Workflow — Live User Tests Passed',
-  completion_release:'2026.08.30.002',
+  label:'Production B050 — TikTok Production App Review Submitted — In Review',
+  completion_release:'2026.08.30.003',
   channel:'production',
   released_at:'2026-08-30',
   certification:{
@@ -25,7 +25,8 @@ window.ALLSHIELD_BUILD_INFO={
     tiktok_video_metrics_verification:'LIVE PASS',
     tiktok_creator_eligibility_verification:'LIVE PASS — PRIVATE TEST READY',
     tiktok_token_refresh:'ACTIVE TOKEN — REFRESH NOT YET REQUIRED',
-    tiktok_public_posting_audit_gate:'NOT SUBMITTED — FAIL CLOSED',
+    tiktok_app_review:'SUBMITTED — IN REVIEW',
+    tiktok_public_posting_audit_gate:'APP REVIEW SUBMITTED — POSTING AUDIT NOT SUBMITTED — FAIL CLOSED',
     tiktok_comments_api:'NOT CERTIFIED — FAIL CLOSED',
     social_professional_provider_verification:'PASS',
     social_engagement_scope_model:'PASS',
@@ -100,6 +101,9 @@ window.ALLSHIELD_BUILD_INFO={
     database_security:'PASS'
   },
   changes:[
+    'TikTok Production App Review was submitted on August 30, 2026 and is currently In review; ALLSHIELD public posting remains fail-closed while provider approval is pending',
+    'ALLSHIELD provider approval state was synchronized to submitted while the separate posting-audit status remains not_submitted',
+    'Prepared the primary ALLSHIELD social brand source draft from the current public website using verified customer and careers facts; owner approval remains required before Maya may use it as approved context',
     'Live Sandbox Draft Upload user test passed against the connected Allshield.Insurance.Group TikTok account with a real TikTok publish ID and PROCESSING_UPLOAD response',
     'Live Sandbox Private Direct Post user test passed with SELF_ONLY visibility after the target account was made private, returning a real TikTok publish ID; public posting remains fail-closed until TikTok audit approval',
     'B048 moved TikTok OAuth to a stable dedicated callback endpoint and live production-network probing confirmed routing into the canonical callback handler, invalid-state rejection, and non-GET method rejection',

@@ -1,81 +1,60 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-}
-
-function shuffled<T>(items: T[]) {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
+const cors={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"authorization, x-client-info, apikey, content-type","Access-Control-Allow-Methods":"POST,OPTIONS"};
+const json=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...cors,"Content-Type":"application/json"}});
+const shuffle=<T>(a:T[])=>{const x=[...a];for(let i=x.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[x[i],x[j]]=[x[j],x[i]];}return x;};
+const TARGETS:Record<string,Record<string,number>>={GA:{policies:16,provisions:15,social:6,concepts:5,underwriting:8,state:30},TN:{health_types:16,provisions:15,social:6,concepts:5,underwriting:8,state:18},TX:{life_general:50,health_general:50,tx_state:30},FL:{life_types:15,life_provisions:15,life_underwriting:12,life_other:7,health_types:17,health_provisions:15,social:6,health_other:6,field_underwriting:7,fl_common:20,fl_life:15,fl_health:15}};
+const TOTALS:Record<string,number>={GA:80,TN:68,TX:130,FL:150};
+const PRETEST:Record<string,Record<string,number>>={TX:{life_general:5,health_general:5,tx_state:5}};
+function diagnosticAllocation(targets:Record<string,number>,total:number){const entries=Object.entries(targets);const raw=entries.map(([k,v])=>[k,Math.floor(v/total*40)] as [string,number]);let used=raw.reduce((a,[,n])=>a+n,0);for(let i=0;used<40;i=(i+1)%raw.length){raw[i][1]++;used++;}return Object.fromEntries(raw);}
+Deno.serve(async(req:Request)=>{
+ if(req.method==="OPTIONS")return new Response("ok",{headers:cors});if(req.method!=="POST")return json({error:"Method not allowed"},405);
+ try{
+  const ah=req.headers.get("Authorization")||"";if(!ah.startsWith("Bearer "))return json({error:"Missing authorization"},401);const token=ah.slice(7);
+  const url=Deno.env.get("SUPABASE_URL")!;const pub=JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS")||"{}").default||Deno.env.get("SUPABASE_ANON_KEY")!;const sec=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}").default||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const uc=createClient(url,pub,{global:{headers:{Authorization:`Bearer ${token}`}},auth:{persistSession:false}});const {data:ud,error:ue}=await uc.auth.getUser(token);if(ue||!ud.user)return json({error:"Invalid session"},401);
+  const admin=createClient(url,sec,{auth:{persistSession:false,autoRefreshToken:false}});const b=await req.json();const action=String(b.action||"start");
+  const {data:requester}=await admin.from("profiles").select("id,status,resident_state,role").eq("id",ud.user.id).single();if(!requester||["inactive","terminated"].includes(requester.status))return json({error:"Academy access unavailable"},403);
+  let p:any=requester;let supportSessionId:string|null=null;
+  const targetId=String(b.support_target_user_id||"").trim();
+  if(targetId){
+    if(requester.role!=="owner")return json({error:"Owner Support Mode required"},403);
+    const {data:ss}=await admin.from("owner_support_sessions").select("id").eq("owner_id",requester.id).eq("target_user_id",targetId).is("ended_at",null).order("started_at",{ascending:false}).limit(1).maybeSingle();if(!ss)return json({error:"No active Owner Support session for this agent"},403);
+    const {data:tp}=await admin.from("profiles").select("id,status,resident_state,role").eq("id",targetId).single();if(!tp||!["agent","team_lead","manager"].includes(tp.role)||["inactive","terminated"].includes(tp.status))return json({error:"Target agent is unavailable"},403);p=tp;supportSessionId=ss.id;
   }
-  return copy;
-}
-
-Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
-  try {
-    const authHeader = req.headers.get("Authorization") || "";
-    if (!authHeader.startsWith("Bearer ")) return json({ error: "Missing authorization" }, 401);
-    const token = authHeader.slice(7);
-    const publishableKeys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
-    const secretKeys = JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") || "{}");
-    const url = Deno.env.get("SUPABASE_URL")!;
-    const publishableKey = publishableKeys.default || Deno.env.get("SUPABASE_ANON_KEY")!;
-    const secretKey = secretKeys.default || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const userClient = createClient(url, publishableKey, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false } });
-    const { data: userData, error: userError } = await userClient.auth.getUser(token);
-    if (userError || !userData.user) return json({ error: "Invalid session" }, 401);
-    const admin = createClient(url, secretKey, { auth: { persistSession: false, autoRefreshToken: false } });
-    const { data: profile } = await admin.from("profiles").select("id,role,status,resident_state").eq("id", userData.user.id).single();
-    if (!profile || ["inactive", "terminated"].includes(profile.status)) return json({ error: "Account is not eligible for academy access" }, 403);
-    const body = await req.json();
-    const action = String(body.action || "start");
-
-    if (action === "start") {
-      const state = String(body.state_code || profile.resident_state || "").trim().toUpperCase() || null;
-      const { data: questions, error } = await admin.from("question_bank").select("id,category,state_code,prompt,answers").eq("status", "published").or(state ? `state_code.is.null,state_code.eq.${state}` : "state_code.is.null");
-      if (error) return json({ error: error.message }, 400);
-      return json({ ok: true, exam_type: "practice", state_code: state, pass_mark: 85, notice: "Internal Allshield readiness practice. This is not a state licensing examination or a substitute for state-required education.", questions: shuffled(questions || []).slice(0, Math.min(10, questions?.length || 0)) });
-    }
-
-    if (action === "submit") {
-      const responses = Array.isArray(body.responses) ? body.responses : [];
-      if (!responses.length) return json({ error: "No responses submitted" }, 400);
-      const ids = responses.map((r: any) => String(r.id || "")).filter(Boolean);
-      const { data: questions, error } = await admin.from("question_bank").select("id,correct_answer_key,explanation").in("id", ids).eq("status", "published");
-      if (error) return json({ error: error.message }, 400);
-      const map = new Map((questions || []).map((q: any) => [q.id, q]));
-      let correct = 0;
-      const review = responses.map((r: any) => {
-        const q: any = map.get(String(r.id));
-        const good = !!q && String(r.answer || "") === q.correct_answer_key;
-        if (good) correct++;
-        return { id: String(r.id), correct: good, explanation: q?.explanation || null };
-      });
-      const count = responses.length;
-      const score = Number(((correct / count) * 100).toFixed(2));
-      const state = String(body.state_code || profile.resident_state || "").trim().toUpperCase() || null;
-      const passed = score >= 85;
-      const { error: insertError } = await admin.from("exam_attempts").insert({ user_id: profile.id, exam_type: "practice", state_code: state, score_percent: score, question_count: count, correct_count: correct, attempt_payload: { responses: responses.map((r: any) => ({ id: String(r.id), answer: String(r.answer || "") })), passed } });
-      if (insertError) return json({ error: insertError.message }, 400);
-      if (state) {
-        const { data: lic } = await admin.from("user_state_licenses").select("id,readiness_percent").eq("user_id", profile.id).eq("state_code", state).maybeSingle();
-        if (lic && score > Number(lic.readiness_percent || 0)) await admin.from("user_state_licenses").update({ readiness_percent: score }).eq("id", lic.id);
-      }
-      if (passed) await admin.from("onboarding_progress").update({ completed: true, completed_at: new Date().toISOString(), metadata: { source: "practice_exam", score_percent: score, pass_mark: 85 } }).eq("user_id", profile.id).eq("step_key", "test");
-      return json({ ok: true, score_percent: score, correct_count: correct, question_count: count, passed, pass_mark: 85, review });
-    }
-    return json({ error: "Unknown action" }, 400);
-  } catch (e) {
-    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
+  const audit=async(key:string,details:any)=>{if(!supportSessionId)return;await admin.from("owner_support_actions").insert({support_session_id:supportSessionId,owner_id:requester.id,target_user_id:p.id,action_key:key,details});};
+  if(action==="start"){
+   const state=String(b.state_code||p.resident_state||"").toUpperCase();if(!TARGETS[state])return json({error:"Launch Academy currently supports GA, TX, FL and TN."},400);
+   const {data:bp}=await admin.from("exam_blueprints").select("*").eq("state_code",state).eq("status","active").order("version",{ascending:false}).limit(1).single();if(!bp)return json({error:"No active official blueprint"},409);const targets=TARGETS[state],officialTotal=TOTALS[state];
+   const mode=String(b.mode||"diagnostic");if(!["diagnostic","topic","full"].includes(mode))return json({error:"Invalid exam mode"},400);
+   const {data:maps,error:me}=await admin.from("question_objectives").select("question_id,objective_key,source_url,verified_at").eq("blueprint_id",bp.id).not("verified_at","is",null);if(me)return json({error:me.message},400);
+   const mapById=new Map((maps||[]).map((m:any)=>[String(m.question_id),m]));const mappedIds=[...mapById.keys()];if(!mappedIds.length)return json({error:"No verified blueprint-mapped questions"},409);
+   const {data:vals,error:ve}=await admin.from("academy_question_validations").select("question_id,validation_status,confidence,answer_source_url,blueprint_source_url").in("question_id",mappedIds).eq("validation_status","verified").gte("confidence",0.90);if(ve)return json({error:ve.message},400);
+   const validSet=new Set((vals||[]).filter((v:any)=>String(v.answer_source_url||"").startsWith("https://")&&String(v.blueprint_source_url||"").startsWith("https://")).map((v:any)=>String(v.question_id)));const eligibleIds=mappedIds.filter(id=>validSet.has(id));
+   const {data:qs,error:qe}=await admin.from("question_bank").select("id,category,prompt,answers").in("id",eligibleIds).eq("state_code",state).eq("status","published");if(qe)return json({error:qe.message},400);const eligible=(qs||[]).map((q:any)=>({...q,objective_key:mapById.get(String(q.id))?.objective_key})).filter((q:any)=>targets[q.objective_key]);
+   let allocation:Record<string,number>;if(mode==="full")allocation=targets;else if(mode==="diagnostic")allocation=diagnosticAllocation(targets,officialTotal);else{const topic=String(b.topic||"");if(!targets[topic])return json({error:"Invalid topic",available_topics:Object.keys(targets)},400);const available=eligible.filter((q:any)=>q.objective_key===topic).length;allocation={[topic]:Math.min(20,available)};}
+   const scored:any[]=[];for(const [obj,n] of Object.entries(allocation)){const pool=shuffle(eligible.filter((q:any)=>q.objective_key===obj));if(pool.length<n||n<1)return json({error:"State question bank does not yet support this exam mode at the required validated depth.",state_code:state,objective_key:obj,available:pool.length,required:n},409);scored.push(...pool.slice(0,n));}
+   const scoredIds=new Set(scored.map((q:any)=>String(q.id)));const pretest:any[]=[];const pretestAllocation=mode==="full"?(PRETEST[state]||{}):{};
+   for(const [obj,n] of Object.entries(pretestAllocation)){const pool=shuffle(eligible.filter((q:any)=>q.objective_key===obj&&!scoredIds.has(String(q.id))));if(pool.length<n)return json({error:"State question bank does not yet support the official pretest delivery depth.",state_code:state,objective_key:obj,available:pool.length,required:n},409);pretest.push(...pool.slice(0,n));}
+   const selected=shuffle([...scored,...pretest]);const expectedScored=Object.values(allocation).reduce((a,n)=>a+n,0);if(scored.length!==expectedScored)return json({error:"Exam scored-question assembly validation failed"},409);const expectedDelivered=expectedScored+pretest.length;if(selected.length!==expectedDelivered)return json({error:"Exam delivered-question assembly validation failed"},409);
+   const objectiveMap=Object.fromEntries(selected.map((q:any)=>[q.id,q.objective_key]));const scoredMap=Object.fromEntries(selected.map((q:any)=>[q.id,scoredIds.has(String(q.id))]));const track=state==="GA"?"accident_sickness":state==="TN"?"accident_health":"life_health";
+   const metadata={question_ids:selected.map((x:any)=>x.id),scored_question_ids:scored.map((x:any)=>x.id),pretest_question_ids:pretest.map((x:any)=>x.id),question_objectives:objectiveMap,question_scored:scoredMap,blueprint_id:bp.id,allocation,pretest_allocation:pretestAllocation,engine_version:5,question_count:selected.length,scored_question_count:expectedScored,pretest_question_count:pretest.length,official_full:mode==="full",official_scored_questions:officialTotal,owner_support:!!supportSessionId};
+   const {data:s,error:se}=await admin.from("exam_sessions").insert({user_id:p.id,state_code:state,license_track:track,mode,blueprint_version:bp.version,metadata}).select().single();if(se)return json({error:se.message},400);await audit("academy_exam_start",{state_code:state,mode,exam_session_id:s.id});
+   return json({ok:true,session_id:s.id,state_code:state,mode,blueprint:{title:bp.title,version:bp.version,source_url:bp.source_url},pass_mark:85,question_count:selected.length,scored_question_count:expectedScored,pretest_question_count:pretest.length,official_scored_questions:officialTotal,time_limit_minutes:state==="TX"&&mode==="full"?150:null,questions:selected.map(({id,prompt,answers,objective_key}:any)=>({id,prompt,answers,objective_key})),owner_support:!!supportSessionId});
   }
+  if(action==="submit"){
+   const sid=String(b.session_id||"");const responses=Array.isArray(b.responses)?b.responses:[];const {data:s}=await admin.from("exam_sessions").select("*").eq("id",sid).eq("user_id",p.id).single();if(!s||s.completed_at)return json({error:"Invalid or completed exam session"},409);
+   const state=String(s.state_code||"").toUpperCase();if(!TARGETS[state])return json({error:"Exam session has an unsupported state"},409);const officialTotal=TOTALS[state];if(b.state_code&&String(b.state_code).toUpperCase()!==state)return json({error:"Submitted state does not match the exam session"},409);
+   const ids=(s.metadata?.question_ids||[]).map(String);const scoredIds=((s.metadata?.scored_question_ids||s.metadata?.question_ids)||[]).map(String);const scoredSet=new Set(scoredIds);const responseIds=responses.map((r:any)=>String(r.id||""));const unique=new Set(responseIds);if(responses.length!==ids.length||unique.size!==ids.length||responseIds.some((id:string)=>!ids.includes(id)))return json({error:"Every exam question must be answered exactly once before submission.",expected:ids.length,received:responses.length},400);
+   const {data:qs,error:qe}=await admin.from("question_bank").select("id,correct_answer_key,explanation").in("id",ids);if(qe)return json({error:qe.message},400);const qm=new Map((qs||[]).map((x:any)=>[String(x.id),x]));let correct=0;const topic:any={};const rows:any[]=[];const review:any[]=[];const objMap=s.metadata?.question_objectives||{};
+   for(const r of responses){const id=String(r.id);const q:any=qm.get(id);if(!q)return json({error:"Question record missing during grading"},409);const answer=String(r.answer||"");const ok=answer===q.correct_answer_key;const isScored=scoredSet.has(id);if(isScored){if(ok)correct++;const obj=String(objMap[id]||"unknown");topic[obj]??={correct:0,total:0};topic[obj].total++;if(ok)topic[obj].correct++;}const obj=String(objMap[id]||"unknown");rows.push({session_id:sid,question_id:id,selected_key:answer,correct:ok,topic:obj});review.push({id,correct:ok,explanation:q.explanation,topic:obj,scored:isScored});}
+   const {error:ie}=await admin.from("exam_session_answers").insert(rows);if(ie)return json({error:ie.message},400);const scoredCount=scoredIds.length;const deliveredCount=rows.length;const score=Number((correct/Math.max(1,scoredCount)*100).toFixed(2));const topicScores:any={};const weak:string[]=[];for(const [k,v] of Object.entries(topic) as any){topicScores[k]=Number((v.correct/v.total*100).toFixed(1));if(topicScores[k]<75)weak.push(k);}const passed=score>=85&&weak.length===0;
+   await admin.from("exam_sessions").update({completed_at:new Date().toISOString(),score_percent:score,passed,weak_topics:weak,metadata:{...s.metadata,topic_scores:topicScores}}).eq("id",sid);await admin.from("exam_attempts").insert({user_id:p.id,exam_type:s.mode,state_code:state,score_percent:score,question_count:scoredCount,correct_count:correct,attempt_payload:{session_id:sid,topic_scores:topicScores,weak_topics:weak,passed,engine_version:5,delivered_question_count:deliveredCount,pretest_question_count:Math.max(0,deliveredCount-scoredCount),owner_support:!!supportSessionId}});
+   const {data:fulls}=await admin.from("exam_sessions").select("score_percent,passed,weak_topics,metadata,completed_at").eq("user_id",p.id).eq("state_code",state).eq("mode","full").not("completed_at","is",null).order("completed_at",{ascending:false}).limit(10);const validFulls=(fulls||[]).filter((x:any)=>x.metadata?.engine_version===5&&x.metadata?.official_full===true&&Number(x.metadata?.scored_question_count)===officialTotal&&(state!=="TX"||Number(x.metadata?.question_count)===145));const latest3=validFulls.slice(0,3);const three=latest3.length===3&&latest3.every((x:any)=>x.passed&&Number(x.score_percent)>=85);
+   const {data:crit}=await admin.from("curriculum_validation_findings").select("id,metadata").eq("severity","critical").is("resolved_at",null);const stateCritical=(crit||[]).some((x:any)=>!x.metadata?.jurisdiction||String(x.metadata.jurisdiction)===state);const {data:launch}=await admin.from("academy_launch_readiness").select("launch_ready").eq("state_code",state).single();const examReady=three&&!stateCritical&&!!launch?.launch_ready;
+   const {data:lic}=await admin.from("user_state_licenses").select("id,metadata").eq("user_id",p.id).eq("state_code",state).maybeSingle();if(lic){if(examReady)await admin.from("user_state_licenses").update({readiness_percent:100,metadata:{...(lic.metadata||{}),exam_ready:true,blueprint_version:s.blueprint_version,verified_at:new Date().toISOString(),engine_version:5}}).eq("id",lic.id);else await admin.from("user_state_licenses").update({readiness_percent:Math.min(99,score),metadata:{...(lic.metadata||{}),exam_ready:false,engine_version:5}}).eq("id",lic.id);}
+   await audit("academy_exam_submit",{state_code:state,exam_session_id:sid,score_percent:score,passed,exam_ready:examReady});
+   return json({ok:true,state_code:state,score_percent:score,correct_count:correct,question_count:deliveredCount,scored_question_count:scoredCount,pretest_question_count:Math.max(0,deliveredCount-scoredCount),pass_mark:85,passed,topic_scores:topicScores,weak_topics:weak.map(k=>({topic:k,percent:topicScores[k]})),weak_topic_keys:weak,exam_ready:examReady,exam_ready_rule:"Three consecutive official-length full simulations at 85%+ with every measured topic at 75%+, current state Academy launch-ready, and no unresolved critical curriculum finding.",review,owner_support:!!supportSessionId});
+  }
+  return json({error:"Unknown action"},400);
+ }catch(e){return json({error:e instanceof Error?e.message:String(e)},500);}
 });

@@ -11,10 +11,15 @@ for(const marker of [
   'as-ava-fresh-guided-start-v3-',
   'as-ava-video-resume-',
   'clearStaleResume',
+  'clearCurrentBookResume',
+  'as-book-page:',
   'asInstructorChoice',
   'asGuidedStartLesson',
   'asGuidedBeginFocus',
   'lesson-1-1-part-1',
+  'Lesson 1.1 · Part 1 of 3 — Your license path',
+  'Lesson 1.1 · Part 2 of 3 — How the Texas exam works',
+  'Lesson 1.1 · Part 3 of 3 — What happens after you pass',
   'makeVideoPrimary',
   'makeSoloPrimary',
   'introduction_seen_at'
@@ -27,4 +32,4 @@ if(!guided.includes('renderLessonIntro')) fail('Expected legacy lesson intro hoo
 if(!seq.includes("localStorage.setItem(focusKey(currentLessonId),'started')")) fail('Focus handoff does not bypass the generic lesson brief deterministically');
 if(!media.includes('instructor_video_urls')) fail('Real Ava lesson playlist support is missing');
 
-console.log('Academy Ava sequence contract: PASS (intro → choice → focus → Ava segment 1 → segment 2 → segment 3 → review)');
+console.log('Academy Ava sequence contract: PASS (intro → choice → focus → labeled Ava parts 1/2/3 → review page 1)');

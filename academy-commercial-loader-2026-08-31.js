@@ -1,13 +1,23 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.008';
+const VERSION='2026.09.01.001';
+
+function loadTextbook(){
+  if(document.getElementById('allshieldAcademyTextbookReader'))return;
+  const t=document.createElement('script');
+  t.id='allshieldAcademyTextbookReader';
+  t.src=`./academy-textbook-reader-2026-09-01.js?v=${VERSION}`;
+  t.async=false;
+  document.body.appendChild(t);
+}
 
 function loadAvaMedia(){
-  if(document.getElementById('allshieldAcademyAvaMedia'))return;
+  if(document.getElementById('allshieldAcademyAvaMedia')){setTimeout(loadTextbook,40);return;}
   const v=document.createElement('script');
   v.id='allshieldAcademyAvaMedia';
   v.src=`./academy-instructor-media-hotfix-2026-08-31.js?v=${VERSION}`;
   v.async=false;
+  v.onload=()=>setTimeout(loadTextbook,30);
   document.body.appendChild(v);
 }
 

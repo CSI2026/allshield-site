@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.011';
+const VERSION='2026.09.01.012';
 const scripts=[
   ['allshieldAcademyGuidedPath',`./academy-guided-path-2026-08-31.js?v=${VERSION}`],
   ['allshieldAcademyGuidedHotfix',`./academy-guided-path-hotfix-2026-08-31.js?v=${VERSION}`],
@@ -8,6 +8,7 @@ const scripts=[
   ['allshieldAcademyAvaWelcomeV2',`./academy-ava-welcome-v2-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyTextbookReader',`./academy-textbook-reader-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyPremiumGuided',`./academy-premium-guided-2026-09-01.js?v=${VERSION}`],
+  ['allshieldAcademyAvaContinuity',`./academy-ava-continuity-hotfix-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyExamExperience',`./academy-exam-experience-2026-09-01.js?v=${VERSION}`]
 ];
 function preloadAll(){for(const [id,src] of scripts){const pid=`${id}Preload`;if(document.getElementById(pid)||document.getElementById(id))continue;const l=document.createElement('link');l.id=pid;l.rel='preload';l.as='script';l.href=src;l.fetchPriority='high';document.head.appendChild(l)}}

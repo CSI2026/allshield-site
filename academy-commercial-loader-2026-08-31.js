@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.001';
+const VERSION='2026.09.01.002';
 
 function loadTextbook(){
   if(document.getElementById('allshieldAcademyTextbookReader'))return;

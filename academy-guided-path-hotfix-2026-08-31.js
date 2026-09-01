@@ -1,8 +1,9 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.005';
+const VERSION='2026.09.01.006';
 let lastLessonId=null;
 let poller=null;
+let delegated=false;
 
 function wrapLessonStart(){
   const current=window.asGuidedStartLesson;
@@ -67,6 +68,21 @@ function repairRetryButtons(root=document){
   });
 }
 
+function installDelegatedSafety(){
+  if(delegated)return;
+  delegated=true;
+  document.addEventListener('click',event=>{
+    const btn=event.target?.closest?.('button');
+    if(!btn||!btn.closest('.as-guide'))return;
+    const text=String(btn.textContent||'').trim();
+    if(text==='Review Lesson & Try Again'){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.asGuidedRetryLesson?.();
+    }
+  },true);
+}
+
 function textbookStatus(message){
   const book=document.getElementById('asTextbook');
   if(!book)return;
@@ -88,7 +104,6 @@ function installTextbookFinishHandoff(){
   if(typeof current!=='function'||current.__allshieldFinishHandoff)return;
   const wrapped=function(){
     const book=document.getElementById('asTextbook');
-    const pages=book?.querySelectorAll('.as-textbook-page')||[];
     const countText=book?.querySelector('.as-textbook-count')?.textContent||'';
     const match=countText.match(/Page\s+(\d+)\s+of\s+(\d+)/i);
     const onLast=!!match&&Number(match[1])===Number(match[2]);
@@ -151,6 +166,7 @@ function tick(){
 }
 
 function boot(){
+  installDelegatedSafety();
   tick();
   if(poller)clearInterval(poller);
   poller=setInterval(tick,350);

@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.003';
+const VERSION='2026.09.01.004';
 let lastLessonId=null;
 let poller=null;
 
@@ -14,6 +14,31 @@ function wrapLessonStart(){
   wrapped.__allshieldGuidedHotfix=true;
   window.asGuidedStartLesson=wrapped;
   window.asGuidedRetryLesson=()=>lastLessonId?wrapped(lastLessonId):window.asGuidedOpenStudy?.();
+}
+
+function dedupeGuidedRenderer(name,marker){
+  const current=window[name];
+  if(typeof current!=='function'||current[marker])return;
+  let inFlight=null;
+  const wrapped=function(){
+    if(inFlight)return inFlight;
+    try{
+      const result=current.apply(this,arguments);
+      if(result&&typeof result.then==='function'){
+        inFlight=Promise.resolve(result).finally(()=>{inFlight=null});
+        return inFlight;
+      }
+      return result;
+    }catch(err){inFlight=null;throw err}
+  };
+  wrapped[marker]=true;
+  wrapped.__allshieldWrappedFrom=current;
+  window[name]=wrapped;
+}
+
+function stabilizeGuidedRenders(){
+  dedupeGuidedRenderer('asGuidedRenderOnboarding','__allshieldStableOnboarding');
+  dedupeGuidedRenderer('asGuidedOpenStudy','__allshieldStableStudy');
 }
 
 function installNoFlashNavigation(){
@@ -71,6 +96,7 @@ function clearAcademyBootVeil(){
 
 function tick(){
   wrapLessonStart();
+  stabilizeGuidedRenders();
   installNoFlashNavigation();
   serializeActivityHeartbeats();
   repairRetryButtons(document);
@@ -80,7 +106,7 @@ function tick(){
 function boot(){
   tick();
   if(poller)clearInterval(poller);
-  poller=setInterval(tick,250);
+  poller=setInterval(tick,500);
   window.__allshieldGuidedHotfixVersion=VERSION;
 }
 

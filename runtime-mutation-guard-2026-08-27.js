@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.007';
-const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.007';
+const VERSION='2026.09.01.008';
+const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.008';
 
 function preloadAcademyBootstrap(){
   if(document.getElementById('allshieldCommercialAcademyLoaderPreload'))return;

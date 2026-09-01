@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.002';
+const VERSION='2026.09.01.003';
 let lastLessonId=null;
 let poller=null;
 
@@ -14,6 +14,25 @@ function wrapLessonStart(){
   wrapped.__allshieldGuidedHotfix=true;
   window.asGuidedStartLesson=wrapped;
   window.asGuidedRetryLesson=()=>lastLessonId?wrapped(lastLessonId):window.asGuidedOpenStudy?.();
+}
+
+function installNoFlashNavigation(){
+  const current=window.showAgentView;
+  if(typeof current!=='function'||current.__allshieldNoFlashAcademy)return;
+  const wrapped=function(view,link){
+    if(view==='study'&&typeof window.asGuidedOpenStudy==='function'){
+      window.asGuidedOpenStudy();
+      return;
+    }
+    if(view==='onboarding'&&typeof window.asGuidedRenderOnboarding==='function'){
+      window.asGuidedRenderOnboarding();
+      return;
+    }
+    return current.apply(this,arguments);
+  };
+  wrapped.__allshieldNoFlashAcademy=true;
+  wrapped.__allshieldWrappedFrom=current;
+  window.showAgentView=wrapped;
 }
 
 function repairRetryButtons(root=document){
@@ -43,16 +62,25 @@ function serializeActivityHeartbeats(){
   functions.invoke=wrapped;
 }
 
+function clearAcademyBootVeil(){
+  if(!document.querySelector('#agentPortal .as-guide'))return;
+  document.documentElement.classList.remove('as-academy-preboot');
+  document.getElementById('asAcademyPrebootVeil')?.remove();
+  window.ALLSHIELD_ACADEMY_GUIDED_READY=true;
+}
+
 function tick(){
   wrapLessonStart();
+  installNoFlashNavigation();
   serializeActivityHeartbeats();
   repairRetryButtons(document);
+  clearAcademyBootVeil();
 }
 
 function boot(){
   tick();
   if(poller)clearInterval(poller);
-  poller=setInterval(tick,500);
+  poller=setInterval(tick,250);
   window.__allshieldGuidedHotfixVersion=VERSION;
 }
 

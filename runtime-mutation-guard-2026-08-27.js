@@ -1,12 +1,12 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.014';
+const VERSION='2026.08.31.015';
 
 function loadAcademyBootstrap(){
   if(document.getElementById('allshieldCommercialAcademyLoader'))return;
   const s=document.createElement('script');
   s.id='allshieldCommercialAcademyLoader';
-  s.src='./academy-commercial-loader-2026-08-31.js?v=2026.08.31.005';
+  s.src='./academy-commercial-loader-2026-08-31.js?v=2026.08.31.006';
   s.async=false;
   (document.body||document.documentElement).appendChild(s);
 }

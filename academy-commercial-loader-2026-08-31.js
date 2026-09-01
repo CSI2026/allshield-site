@@ -1,13 +1,23 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.003';
+const VERSION='2026.08.31.004';
+
+function loadAiInstructor(){
+  if(document.getElementById('allshieldAcademyAiInstructor'))return;
+  const a=document.createElement('script');
+  a.id='allshieldAcademyAiInstructor';
+  a.src=`./academy-ai-instructor-2026-08-31.js?v=${VERSION}`;
+  a.async=false;
+  document.body.appendChild(a);
+}
 
 function loadGuidedHotfix(){
-  if(document.getElementById('allshieldAcademyGuidedHotfix'))return;
+  if(document.getElementById('allshieldAcademyGuidedHotfix')){setTimeout(loadAiInstructor,40);return;}
   const h=document.createElement('script');
   h.id='allshieldAcademyGuidedHotfix';
   h.src=`./academy-guided-path-hotfix-2026-08-31.js?v=${VERSION}`;
   h.async=false;
+  h.onload=()=>setTimeout(loadAiInstructor,30);
   document.body.appendChild(h);
 }
 

@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.001';
+const VERSION='2026.09.01.002';
 const sb=()=>window.allshieldSupabase;
 const portal=()=>document.getElementById('agentPortal');
 let pref=null;
@@ -41,8 +41,6 @@ async function enforceLessonSequence(){if(!currentLessonId)return;const fresh=fr
     if(mode==='solo'){makeSoloPrimary();markFreshHandled();return}
     if(fresh){
       if(!firstSegmentLoaded()){
-        // The media layer reads its resume key before creating the player. A fresh Guided launch
-        // must never inherit an old browser-only part/time, so restart the lesson renderer once.
         clearStaleResume(currentLessonId);
         if(i<4){await sleep(120);continue}
       }
@@ -55,7 +53,6 @@ async function enforceLessonSequence(){if(!currentLessonId)return;const fresh=fr
   }
   await sleep(100);
  }
- // No real Ava video exists for this lesson. Do not pretend an audio-only voice is a moving professor.
  if(mode==='guided'){
    stopDetachedNarration();
    hideInstructorDocks();
@@ -64,14 +61,17 @@ async function enforceLessonSequence(){if(!currentLessonId)return;const fresh=fr
 }
 
 async function loadPreference(){try{const r=await edge({action:'faculty'});pref=r.preference||null;setMode(pref?.guided_enabled?'guided':'solo')}catch{pref=null;setMode('solo')}introPolicyReady=true;applyIntroPolicy()}
-function applyIntroPolicy(){if(!introPolicyReady)return;const card=document.getElementById('asAvaWelcomeCard'),v=welcomeVideo();if(!card||!v)return;v.addEventListener('ended',()=>{hideInstructorDocks();try{window.asInstructorMediaStop?.()}catch{}},{once:true});if(pref?.introduction_seen_at){try{v.pause()}catch{}card.style.display='none';document.getElementById('asInstructorChoice')?.remove()}else{card.style.display='';}}
+function wireWelcomeEnd(v){if(v.dataset.asSequenceEndWired==='1')return;v.dataset.asSequenceEndWired='1';v.addEventListener('ended',()=>{hideInstructorDocks();try{window.asInstructorMediaStop?.()}catch{}},{once:true})}
+function applyIntroPolicy(){if(!introPolicyReady)return;const card=document.getElementById('asAvaWelcomeCard'),v=welcomeVideo();if(!card||!v)return;wireWelcomeEnd(v);if(pref?.introduction_seen_at){try{v.pause()}catch{}card.style.display='none';document.getElementById('asInstructorChoice')?.remove()}else{card.style.display=''}}
 
 function wrapChoice(){if(wrappedChoice||typeof window.asInstructorChoice!=='function')return;const old=window.asInstructorChoice;window.asInstructorChoice=async chosen=>{
   const target=parseNextLessonId()||nextLessonId;
   setMode(chosen==='guided'?'guided':'solo');
   if(target){nextLessonId=target;clearStaleResume(target);try{sessionStorage.setItem(freshKey(target),'1')}catch{}}
   const out=await old(chosen);
+  pref={...(pref||{}),guided_enabled:chosen==='guided',introduction_seen_at:new Date().toISOString()};
   hideInstructorDocks();
+  document.getElementById('asAvaWelcomeCard')?.style?.setProperty('display','none');
   if(target&&typeof window.asGuidedStartLesson==='function')setTimeout(()=>window.asGuidedStartLesson(target),180);
   return out;
  };wrappedChoice=true}
@@ -84,16 +84,12 @@ function wrapStart(){if(wrappedStart||typeof window.asGuidedStartLesson!=='funct
  };wrappedStart=true}
 function wrapFocus(){if(wrappedFocus||typeof window.asGuidedBeginFocus!=='function')return;const old=window.asGuidedBeginFocus;window.asGuidedBeginFocus=()=>{
   if(!currentLessonId)return old();
-  // The old 15-second generic AI brief sat between Ava's program introduction and Ava's real lesson.
-  // Mark the focus session started, then reopen the same lesson so the real instructor content is next.
   try{localStorage.setItem(focusKey(currentLessonId),'started')}catch{}
   return window.asGuidedStartLesson?.(currentLessonId);
  };wrappedFocus=true}
 function wrapStudy(){if(wrappedStudy||typeof window.asGuidedOpenStudy!=='function')return;const old=window.asGuidedOpenStudy;window.asGuidedOpenStudy=async(...args)=>{currentLessonId=null;const out=await old(...args);setTimeout(()=>{nextLessonId=parseNextLessonId();applyIntroPolicy()},180);return out};wrappedStudy=true}
 
-function scan(){wrapChoice();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();if(lessonVideo()){
-  if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary();
- }}
+function scan(){wrapChoice();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();if(lessonVideo()){if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}}
 function boot(){scan();loadPreference();scanTimer=setInterval(scan,180);window.addEventListener('pagehide',()=>{if(scanTimer)clearInterval(scanTimer)});window.ALLSHIELD_AVA_SEQUENCE_VERSION=VERSION}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

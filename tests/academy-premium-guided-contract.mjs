@@ -5,6 +5,8 @@ const premium=read('academy-premium-guided-2026-09-01.js');
 const loader=read('academy-commercial-loader-2026-08-31.js');
 const media=read('academy-instructor-media-hotfix-2026-08-31.js');
 
+try{ new Function(premium); }catch(e){ fail(`Premium Guided Academy JavaScript does not parse: ${e.message}`); }
+
 for(const marker of [
   'Read on my own',
   'Continue with Ava · Guided',

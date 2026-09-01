@@ -29,5 +29,5 @@ if(!welcome.includes(canonical)) fail('Welcome override is not using canonical o
 if(!loader.includes('academy-ava-continuity-hotfix-2026-09-01.js')) fail('Ava continuity hotfix is not in production loader');
 if(loader.indexOf('academy-ava-continuity-hotfix-2026-09-01.js') < loader.indexOf('academy-premium-guided-2026-09-01.js')) fail('Ava continuity must load after Premium Guided');
 if(loader.indexOf('academy-ava-continuity-hotfix-2026-09-01.js') > loader.indexOf('academy-exam-experience-2026-09-01.js')) fail('Ava continuity must load before exam experience');
-if(!loader.includes("2026.09.01.014")||!runtime.includes("2026.09.01.014")) fail('Academy cache version not bumped for completed Ava sequence audit');
+if(!loader.includes("2026.09.01.015")||!runtime.includes("2026.09.01.015")) fail('Academy cache version not bumped for final Ava sequence audit');
 console.log('Academy Ava continuity contract: PASS (canonical Ava + moving-video priority + hard Exit stop)');

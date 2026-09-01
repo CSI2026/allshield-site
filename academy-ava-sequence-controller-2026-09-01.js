@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.003';
+const VERSION='2026.09.01.004';
 const sb=()=>window.allshieldSupabase;
 const portal=()=>document.getElementById('agentPortal');
 let pref=null;
@@ -24,6 +24,8 @@ function focusKey(id){return `allshield-guided-focus-${id}`}
 function setMode(value){mode=value==='guided'?'guided':'solo';window.ALLSHIELD_GUIDED_ASSISTANCE_ACTIVE=mode==='guided';document.body.dataset.asInstructorMode=mode}
 function parseNextLessonId(){const btn=[...document.querySelectorAll('.as-guide-next button,.as-guide-next .as-guide-primary')].find(b=>/Start This Lesson|Continue This Lesson|Continue Lesson/i.test(String(b.textContent||'')));const raw=btn?.getAttribute('onclick')||'';const m=raw.match(/asGuidedStartLesson\(['\"]([^'\"]+)['\"]\)/);return m?.[1]||null}
 function clearStaleResume(id){if(!id)return;try{localStorage.removeItem(legacyResumeKey(id));localStorage.removeItem(sequenceResumeKey(id))}catch{}}
+function currentLessonTitle(){const head=document.querySelector('.as-lesson-head');const title=head?.querySelector('h1,h2')?.textContent||head?.textContent||'';return String(title).trim().slice(0,100)}
+function clearCurrentBookResume(){const title=currentLessonTitle();if(!title)return;try{localStorage.removeItem(`as-book-page:${title}`)}catch{}}
 function hideInstructorDocks(){for(const id of ['asInstructorMediaDock','asGuidedStatus']){const el=document.getElementById(id);if(el){el.classList.remove('show');el.style.display='none'}}}
 function stopDetachedNarration(){const status=document.getElementById('asGuidedStatus'),txt=String(document.getElementById('asGuidedStatusText')?.textContent||'');if(status?.classList.contains('show')&&!/paused|finished|complete|ready/i.test(txt)&&typeof window.__asAvaOriginalGuidedPause==='function'){try{window.__asAvaOriginalGuidedPause()}catch{}}}
 function welcomeVideo(){return document.getElementById('asAvaWelcomeVideo')}
@@ -31,7 +33,8 @@ function lessonVideoElement(){return document.getElementById('asAvaLessonVideo')
 function lessonVideo(){const v=lessonVideoElement();return v&&!v.ended?v:null}
 function lessonVideoCard(){return lessonVideoElement()?.closest('.as-ava-video-card')||null}
 function removeInstructorMode(){portal()?.classList.remove('as-ava-instructor-mode');const book=document.getElementById('asTextbook');if(book)book.removeAttribute('aria-hidden')}
-function makeVideoPrimary(auto=true){const v=lessonVideo();if(!v||mode!=='guided')return false;stopDetachedNarration();hideInstructorDocks();const card=lessonVideoCard();if(card)card.style.display='';portal()?.classList.add('as-ava-instructor-mode');const book=document.getElementById('asTextbook');if(book)book.setAttribute('aria-hidden','true');if(auto&&v.paused)v.play().catch(()=>{});return true}
+function segmentLabel(){const v=lessonVideoElement(),label=document.getElementById('asAvaPartLabel');if(!v||!label)return;const src=String(v.currentSrc||v.src||'');let text='Ava · Instructor lesson';if(/lesson-1-1-part-1\.mp4(?:\?|$)/.test(src))text='Lesson 1.1 · Part 1 of 3 — Your license path';else if(/lesson-1-1-part-2\.mp4(?:\?|$)/.test(src))text='Lesson 1.1 · Part 2 of 3 — How the Texas exam works';else if(/lesson-1-1-part-3\.mp4(?:\?|$)/.test(src))text='Lesson 1.1 · Part 3 of 3 — What happens after you pass';label.textContent=text}
+function makeVideoPrimary(auto=true){const v=lessonVideo();if(!v||mode!=='guided')return false;stopDetachedNarration();hideInstructorDocks();const card=lessonVideoCard();if(card)card.style.display='';segmentLabel();portal()?.classList.add('as-ava-instructor-mode');const book=document.getElementById('asTextbook');if(book)book.setAttribute('aria-hidden','true');if(auto&&v.paused)v.play().catch(()=>{});return true}
 function makeSoloPrimary(){const v=lessonVideoElement();if(v){try{v.pause()}catch{}const card=lessonVideoCard();if(card)card.style.display='none'}stopDetachedNarration();hideInstructorDocks();removeInstructorMode()}
 function firstSegmentLoaded(){const v=lessonVideoElement();if(!v)return false;const src=String(v.currentSrc||v.src||'');return /lesson-1-1-part-1\.mp4(?:\?|$)/.test(src)||/part-1\.mp4(?:\?|$)/.test(src)}
 function markFreshHandled(){if(!currentLessonId)return;try{sessionStorage.removeItem(freshKey(currentLessonId))}catch{}}
@@ -50,7 +53,9 @@ async function enforceLessonSequence(){if(!currentLessonId)return;const fresh=fr
       }
       const reset=()=>{try{if(firstSegmentLoaded()&&Number(v.currentTime||0)>0.35)v.currentTime=0}catch{}};
       if(v.readyState>=1)reset();else v.addEventListener('loadedmetadata',reset,{once:true});
+      clearCurrentBookResume();
     }
+    segmentLabel();
     makeVideoPrimary(true);
     markFreshHandled();
     return;
@@ -90,8 +95,10 @@ function wrapMode(){if(wrappedMode||typeof window.asGuidedSetMode!=='function')r
  };wrappedMode=true}
 function wrapStart(){if(wrappedStart||typeof window.asGuidedStartLesson!=='function')return;const old=window.asGuidedStartLesson;window.asGuidedStartLesson=async(id,...args)=>{
   currentLessonId=String(id||'');
-  if(freshStartPending())clearStaleResume(currentLessonId);
+  const fresh=freshStartPending();
+  if(fresh)clearStaleResume(currentLessonId);
   const out=await old(id,...args);
+  if(fresh)clearCurrentBookResume();
   setTimeout(enforceLessonSequence,80);
   return out;
  };wrappedStart=true}
@@ -104,7 +111,7 @@ function wrapFocus(){if(wrappedFocus||typeof window.asGuidedBeginFocus!=='functi
  };wrappedFocus=true}
 function wrapStudy(){if(wrappedStudy||typeof window.asGuidedOpenStudy!=='function')return;const old=window.asGuidedOpenStudy;window.asGuidedOpenStudy=async(...args)=>{currentLessonId=null;const out=await old(...args);setTimeout(()=>{nextLessonId=parseNextLessonId();applyIntroPolicy()},180);return out};wrappedStudy=true}
 
-function scan(){wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook')){stopDetachedNarration();hideInstructorDocks()}}
+function scan(){wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){segmentLabel();if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook')){stopDetachedNarration();hideInstructorDocks()}}
 function boot(){scan();loadPreference();scanTimer=setInterval(scan,180);window.addEventListener('pagehide',()=>{if(scanTimer)clearInterval(scanTimer)});window.ALLSHIELD_AVA_SEQUENCE_VERSION=VERSION}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

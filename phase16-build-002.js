@@ -201,3 +201,84 @@ if(document.readyState==="loading"){
     };
   }
 })();
+
+/* Build .003 — deterministic Academy preboot; never expose legacy pre-licensing UI while guided route resolves. */
+(()=>{
+  'use strict';
+  const VERSION='2026.09.01.003';
+  let veilStarted=0;
+  let routeTimer=null;
+
+  function isAgentRequest(){
+    try{return new URLSearchParams(location.search).get('portal')==='agent'}catch{return false}
+  }
+
+  function ensureAcademyBootstrap(){
+    if(document.getElementById('allshieldCommercialAcademyLoader'))return;
+    const s=document.createElement('script');
+    s.id='allshieldCommercialAcademyLoader';
+    s.src='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.003';
+    s.async=false;
+    (document.body||document.documentElement).appendChild(s);
+  }
+
+  function installStyles(){
+    if(document.getElementById('asAcademyPrebootStyles'))return;
+    const s=document.createElement('style');
+    s.id='asAcademyPrebootStyles';
+    s.textContent=`
+      #asAcademyPrebootVeil{position:fixed;inset:0;z-index:2147483000;background:#f4f7fa;color:#17384f;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+      #asAcademyPrebootVeil .as-preboot-card{width:min(470px,100%);text-align:center}
+      #asAcademyPrebootVeil .as-preboot-brand{font-size:11px;font-weight:950;letter-spacing:.15em;color:#1f6fa9;margin-bottom:14px}
+      #asAcademyPrebootVeil h2{font-family:Georgia,"Times New Roman",serif;font-size:31px;line-height:1.12;color:#17384f;margin:0 0 10px}
+      #asAcademyPrebootVeil p{font-size:14px;line-height:1.6;color:#718393;margin:0}
+      #asAcademyPrebootVeil .as-preboot-line{width:160px;height:4px;background:#dce8f0;border-radius:999px;overflow:hidden;margin:22px auto 0}
+      #asAcademyPrebootVeil .as-preboot-line:after{content:'';display:block;width:45%;height:100%;background:#2c81b8;border-radius:999px;animation:asPrebootMove 1.05s ease-in-out infinite alternate}
+      @keyframes asPrebootMove{from{transform:translateX(-10%)}to{transform:translateX(135%)}}
+    `;
+    document.head.appendChild(s);
+  }
+
+  function showVeil(){
+    if(document.getElementById('asAcademyPrebootVeil'))return;
+    installStyles();
+    veilStarted=Date.now();
+    document.documentElement.classList.add('as-academy-preboot');
+    const v=document.createElement('div');
+    v.id='asAcademyPrebootVeil';
+    v.innerHTML='<div class="as-preboot-card"><div class="as-preboot-brand">ALLSHIELD INSURANCE ACADEMY</div><h2>Opening your licensing path…</h2><p>Your instructor is finding the exact place you should continue.</p><div class="as-preboot-line"></div></div>';
+    document.body.appendChild(v);
+  }
+
+  function hideVeil(){
+    document.documentElement.classList.remove('as-academy-preboot');
+    document.getElementById('asAcademyPrebootVeil')?.remove();
+  }
+
+  function inspectRoute(){
+    const portal=document.getElementById('agentPortal');
+    if(!portal?.classList.contains('show'))return;
+    const main=document.getElementById('agentMain');
+    const text=String(main?.textContent||'');
+    const guided=!!main?.querySelector('.as-guide');
+    if(guided||window.ALLSHIELD_ACADEMY_GUIDED_READY){hideVeil();return}
+
+    const prelicense=/Pre-Licensing|Continue My Study Tasks|Choose & Start Studying|Licensing state selected/i.test(text);
+    const licensed=/License Verification|License verified/i.test(text)&&!prelicense;
+    if(prelicense){showVeil();ensureAcademyBootstrap();if(typeof window.asGuidedRenderOnboarding==='function')window.asGuidedRenderOnboarding();return}
+    if(licensed){hideVeil();return}
+
+    if(veilStarted&&Date.now()-veilStarted>15000)hideVeil();
+  }
+
+  function boot(){
+    if(!isAgentRequest())return;
+    ensureAcademyBootstrap();
+    if(routeTimer)clearInterval(routeTimer);
+    routeTimer=setInterval(inspectRoute,50);
+    inspectRoute();
+    window.ALLSHIELD_ACADEMY_PREBOOT_VERSION=VERSION;
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();

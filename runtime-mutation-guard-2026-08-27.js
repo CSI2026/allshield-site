@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.013';
-const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.013';
+const VERSION='2026.09.01.014';
+const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.014';
 function preloadAcademyBootstrap(){if(document.getElementById('allshieldCommercialAcademyLoaderPreload'))return;const l=document.createElement('link');l.id='allshieldCommercialAcademyLoaderPreload';l.rel='preload';l.as='script';l.href=LOADER;l.fetchPriority='high';document.head?.appendChild(l)}
 function loadAcademyBootstrap(){if(document.getElementById('allshieldCommercialAcademyLoader'))return;preloadAcademyBootstrap();const s=document.createElement('script');s.id='allshieldCommercialAcademyLoader';s.src=LOADER;s.async=false;(document.body||document.documentElement).appendChild(s)}
 preloadAcademyBootstrap();if(document.documentElement)loadAcademyBootstrap();else document.addEventListener('DOMContentLoaded',loadAcademyBootstrap,{once:true});

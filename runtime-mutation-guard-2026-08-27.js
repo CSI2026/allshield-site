@@ -1,53 +1,10 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.008';
-const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.008';
-
-function preloadAcademyBootstrap(){
-  if(document.getElementById('allshieldCommercialAcademyLoaderPreload'))return;
-  const l=document.createElement('link');
-  l.id='allshieldCommercialAcademyLoaderPreload';
-  l.rel='preload';
-  l.as='script';
-  l.href=LOADER;
-  l.fetchPriority='high';
-  document.head?.appendChild(l);
-}
-
-function loadAcademyBootstrap(){
-  if(document.getElementById('allshieldCommercialAcademyLoader'))return;
-  preloadAcademyBootstrap();
-  const s=document.createElement('script');
-  s.id='allshieldCommercialAcademyLoader';
-  s.src=LOADER;
-  s.async=false;
-  (document.body||document.documentElement).appendChild(s);
-}
-
-preloadAcademyBootstrap();
-if(document.documentElement)loadAcademyBootstrap();
-else document.addEventListener('DOMContentLoaded',loadAcademyBootstrap,{once:true});
-
-if(window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION===VERSION)return;
-const Native=window.MutationObserver;
-if(typeof Native!=='function'){
-  window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION=VERSION;
-  window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=0;
-  return;
-}
-let blocked=0;
-class AllshieldMutationObserver{
-  constructor(callback){this._native=new Native(callback)}
-  observe(target,options={}){
-    const wholeDocument=(target===document||target===document.documentElement||target===document.body)&&options&&options.subtree===true;
-    if(wholeDocument){blocked+=1;window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=blocked;return;}
-    return this._native.observe(target,options);
-  }
-  disconnect(){return this._native.disconnect()}
-  takeRecords(){return this._native.takeRecords()}
-}
-window.MutationObserver=AllshieldMutationObserver;
-if(window.WebKitMutationObserver===Native)window.WebKitMutationObserver=AllshieldMutationObserver;
-window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION=VERSION;
-window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=blocked;
+const VERSION='2026.09.01.009';
+const LOADER='./academy-commercial-loader-2026-08-31.js?v=2026.09.01.009';
+function preloadAcademyBootstrap(){if(document.getElementById('allshieldCommercialAcademyLoaderPreload'))return;const l=document.createElement('link');l.id='allshieldCommercialAcademyLoaderPreload';l.rel='preload';l.as='script';l.href=LOADER;l.fetchPriority='high';document.head?.appendChild(l)}
+function loadAcademyBootstrap(){if(document.getElementById('allshieldCommercialAcademyLoader'))return;preloadAcademyBootstrap();const s=document.createElement('script');s.id='allshieldCommercialAcademyLoader';s.src=LOADER;s.async=false;(document.body||document.documentElement).appendChild(s)}
+preloadAcademyBootstrap();if(document.documentElement)loadAcademyBootstrap();else document.addEventListener('DOMContentLoaded',loadAcademyBootstrap,{once:true});
+if(window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION===VERSION)return;const Native=window.MutationObserver;if(typeof Native!=='function'){window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION=VERSION;window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=0;return}let blocked=0;class AllshieldMutationObserver{constructor(callback){this._native=new Native(callback)}observe(target,options={}){const wholeDocument=(target===document||target===document.documentElement||target===document.body)&&options&&options.subtree===true;if(wholeDocument){blocked+=1;window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=blocked;return}return this._native.observe(target,options)}disconnect(){return this._native.disconnect()}takeRecords(){return this._native.takeRecords()}}
+window.MutationObserver=AllshieldMutationObserver;if(window.WebKitMutationObserver===Native)window.WebKitMutationObserver=AllshieldMutationObserver;window.ALLSHIELD_RUNTIME_MUTATION_GUARD_VERSION=VERSION;window.ALLSHIELD_BLOCKED_GLOBAL_OBSERVERS=blocked;
 })();

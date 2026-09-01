@@ -1,13 +1,23 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.004';
+const VERSION='2026.08.31.005';
+
+function loadAvaMedia(){
+  if(document.getElementById('allshieldAcademyAvaMedia'))return;
+  const v=document.createElement('script');
+  v.id='allshieldAcademyAvaMedia';
+  v.src=`./academy-instructor-media-hotfix-2026-08-31.js?v=${VERSION}`;
+  v.async=false;
+  document.body.appendChild(v);
+}
 
 function loadAiInstructor(){
-  if(document.getElementById('allshieldAcademyAiInstructor'))return;
+  if(document.getElementById('allshieldAcademyAiInstructor')){setTimeout(loadAvaMedia,40);return;}
   const a=document.createElement('script');
   a.id='allshieldAcademyAiInstructor';
   a.src=`./academy-ai-instructor-2026-08-31.js?v=${VERSION}`;
   a.async=false;
+  a.onload=()=>setTimeout(loadAvaMedia,30);
   document.body.appendChild(a);
 }
 

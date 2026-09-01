@@ -4,7 +4,7 @@ const fail=m=>{throw new Error(m)};
 const ui=read('academy-exam-experience-2026-09-01.js');
 const loader=read('academy-commercial-loader-2026-08-31.js');
 const edge=read('supabase/functions/academy-exam/index.ts');
-for(const marker of ['window.asGuidedOpenTests=window.asReadinessOpen','145 delivered questions','150-minute','asExamNavigator','asExamFlag','Review / Submit','unanswered questions','time_limit_minutes'])if(!ui.includes(marker))fail(`Readiness UI missing ${marker}`);
+for(const marker of ['window.asGuidedOpenTests=window.asReadinessOpen','145 delivered questions','150-minute','asExamNavigator','asExamFlag','Review / Submit','unanswered','time_limit_minutes'])if(!ui.includes(marker))fail(`Readiness UI missing ${marker}`);
 for(const marker of ['PRETEST','engine_version:5','scored_question_ids','pretest_question_ids','time_limit_minutes:state==="TX"&&mode==="full"?150:null','question_count)===145'])if(!edge.includes(marker))fail(`Academy exam engine missing ${marker}`);
 if(!loader.includes('academy-exam-experience-2026-09-01.js'))fail('Consolidated exam experience is not in the Academy loader');
 for(const obsolete of ['allshieldCommercialAcademyLearner','allshieldAcademyClassroomMode','allshieldAcademyMobileApp','allshieldAcademyAiInstructor'])if(loader.includes(obsolete))fail(`Obsolete Academy layer still loads: ${obsolete}`);

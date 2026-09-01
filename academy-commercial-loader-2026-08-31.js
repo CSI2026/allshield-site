@@ -1,10 +1,11 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.010';
+const VERSION='2026.09.01.011';
 const scripts=[
   ['allshieldAcademyGuidedPath',`./academy-guided-path-2026-08-31.js?v=${VERSION}`],
   ['allshieldAcademyGuidedHotfix',`./academy-guided-path-hotfix-2026-08-31.js?v=${VERSION}`],
   ['allshieldAcademyAvaMedia',`./academy-instructor-media-hotfix-2026-08-31.js?v=${VERSION}`],
+  ['allshieldAcademyAvaWelcomeV2',`./academy-ava-welcome-v2-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyTextbookReader',`./academy-textbook-reader-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyPremiumGuided',`./academy-premium-guided-2026-09-01.js?v=${VERSION}`],
   ['allshieldAcademyExamExperience',`./academy-exam-experience-2026-09-01.js?v=${VERSION}`]

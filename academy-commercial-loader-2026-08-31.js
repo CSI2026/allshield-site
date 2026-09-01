@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.08.31.006';
+const VERSION='2026.08.31.007';
 
 function loadAvaMedia(){
   if(document.getElementById('allshieldAcademyAvaMedia'))return;

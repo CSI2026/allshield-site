@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.01.001';
+const VERSION='2026.09.01.002';
 const CANONICAL_WELCOME='https://xxeiddnfbdqxwuojuggy.supabase.co/storage/v1/object/public/academy-media/instructors/ava/welcome-canonical-v3.mp4';
 const portal=()=>document.getElementById('agentPortal');
 const tracked=new Set();
@@ -14,7 +14,7 @@ body:not(.as-guided-body) #asGuidedStatus,body:not(.as-guided-body) #asInstructo
 function installAudioRegistry(){if(window.__asAvaNativeAudio||typeof window.Audio!=='function')return;const Native=window.Audio;window.__asAvaNativeAudio=Native;function AcademyAudio(...args){const a=new Native(...args);if(portal()?.classList.contains('as-guided-active')){tracked.add(a);const clean=()=>{if(a.ended||a.error)tracked.delete(a)};a.addEventListener('ended',clean,{once:true});a.addEventListener('error',clean,{once:true})}return a}AcademyAudio.prototype=Native.prototype;try{Object.setPrototypeOf(AcademyAudio,Native)}catch{}window.Audio=AcademyAudio}
 
 function statusInfo(){const d=document.getElementById('asGuidedStatus'),t=document.getElementById('asGuidedStatusText');return{dock:d,text:String(t?.textContent||''),showing:!!d?.classList.contains('show')}}
-function pauseDetachedPremium(){const s=statusInfo();if(s.showing&&!/paused|finished|complete|ready/i.test(s.text)&&typeof window.asGuidedPauseResume==='function'){try{window.asGuidedPauseResume()}catch{}}for(const a of [...tracked]){try{a.pause();a.currentTime=0;a.src=''}catch{}tracked.delete(a)}if(s.dock){s.dock.classList.remove('show');s.dock.style.display='none'}}
+function pauseDetachedPremium(){const s=statusInfo();if(s.showing&&!/paused|finished|complete|ready/i.test(s.text)&&typeof window.__asAvaOriginalGuidedPause==='function'){try{window.__asAvaOriginalGuidedPause()}catch{}}for(const a of [...tracked]){try{a.pause();a.currentTime=0;a.src=''}catch{}tracked.delete(a)}if(s.dock){s.dock.classList.remove('show');s.dock.style.display='none'}}
 function hideDocks(){for(const id of ['asGuidedStatus','asInstructorMediaDock']){const el=document.getElementById(id);if(el){el.classList.remove('show');el.style.display='none'}}}
 function pauseVisibleMedia(){document.querySelectorAll('#agentPortal video,#agentPortal audio').forEach(m=>{try{m.pause()}catch{}})}
 function hardStop(){pauseDetachedPremium();try{window.asInstructorMediaStop?.()}catch{}pauseVisibleMedia();hideDocks();document.querySelectorAll('.as-guided-reading').forEach(el=>el.classList.remove('as-guided-reading'));portal()?.classList.remove('as-ava-instructor-mode')}
@@ -33,11 +33,8 @@ function wrapChoice(){if(wrappedChoice||typeof window.asInstructorChoice!=='func
 function wrapExit(){if(wrappedExit||typeof window.asGuidedExit!=='function')return;const old=window.asGuidedExit;window.asGuidedExit=(...a)=>{hardStop();return old(...a)};wrappedExit=true}
 function wrapShow(){if(wrappedShow||typeof window.showAgentView!=='function')return;const old=window.showAgentView;window.showAgentView=function(view,...a){if(view!=='study')hardStop();return old.call(this,view,...a)};wrappedShow=true}
 
-function scan(){styles();installAudioRegistry();canonicalWelcome();wrapPause();wrapMode();wrapChoice();wrapExit();wrapShow();const active=portal()?.classList.contains('as-guided-active');if(!active){hideDocks();return}const v=lessonVideo();if(v&&guidedEnabled()){
- const s=statusInfo();if(s.showing&&!/paused|finished|complete|ready/i.test(s.text))quietPremiumNarration();
- portal()?.classList.add('as-ava-instructor-mode');
-}}
-function boot(){styles();installAudioRegistry();scan();setInterval(scan,250);document.addEventListener('click',e=>{if(e.target?.closest?.('.as-guide-exit'))hardStop()},true);document.addEventListener('visibilitychange',()=>{if(document.hidden)hardStop()});window.addEventListener('pagehide',hardStop);window.addEventListener('beforeunload',hardStop)}
+function scan(){styles();installAudioRegistry();canonicalWelcome();wrapPause();wrapMode();wrapChoice();wrapExit();wrapShow();const active=portal()?.classList.contains('as-guided-active');if(!active){hideDocks();return}const v=lessonVideo();if(v&&guidedEnabled()){const s=statusInfo();if(s.showing&&!/paused|finished|complete|ready/i.test(s.text))quietPremiumNarration();portal()?.classList.add('as-ava-instructor-mode')}}
+function boot(){styles();installAudioRegistry();scan();setInterval(scan,250);document.addEventListener('click',e=>{if(e.target?.closest?.('.as-guide-exit'))hardStop()},true);window.addEventListener('pagehide',hardStop);window.addEventListener('beforeunload',hardStop)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 window.ALLSHIELD_AVA_CONTINUITY_VERSION=VERSION;
 })();

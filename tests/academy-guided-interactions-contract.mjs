@@ -7,6 +7,7 @@ const guided=read('academy-guided-path-2026-08-31.js');
 const hotfix=read('academy-guided-path-hotfix-2026-08-31.js');
 const reader=read('academy-textbook-reader-2026-09-01.js');
 const media=read('academy-instructor-media-hotfix-2026-08-31.js');
+const premium=read('academy-premium-guided-2026-09-01.js');
 const loader=read('academy-commercial-loader-2026-08-31.js');
 
 for(const marker of ['asGuidedOpenLessonCheck','submit_lesson_check','asGuidedSubmitLessonCheck','asGuidedStartCheckpoint','submit_chapter_exam','asGuidedSubmitCheckpoint']){
@@ -21,7 +22,8 @@ for(const marker of ['installTextbookFinishHandoff','asGuidedOpenLessonCheck','a
 for(const marker of ['asInstructorMediaToggle','asInstructorMediaStop','Stop & Save','visibilitychange','pagehide','saveVideoPlace']){
   if(!media.includes(marker))fail(`Ava media control missing: ${marker}`);
 }
-if(!media.includes("ss.speak=function(u){if(guided())"))fail('Robotic browser speech is not blocked in guided Academy mode');
+if(media.includes('ss.speak=function'))fail('Media layer blocks the zero-fee browser speech instructor');
+if(!premium.includes('SpeechSynthesisUtterance')||!premium.includes('preferredVoice'))fail('Zero-fee guided narration is not available');
 if(!loader.includes("rel='preload'")||!loader.includes("as='script'"))fail('Academy scripts are not preloaded for faster startup');
 if(!hotfix.includes("if(document.getElementById('asTextbook'))"))fail('Finish Review has no visible blocked-state fallback');
 

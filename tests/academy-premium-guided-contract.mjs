@@ -12,7 +12,8 @@ for(const marker of [
   'Read on my own',
   'Continue with Ava · Guided',
   "action:'set_guided'",
-  "action:'guided_audio'",
+  'SpeechSynthesisUtterance',
+  'preferredVoice',
   'asGuidedPauseResume',
   'as-guided-reading',
   'as-guided-speed',
@@ -23,7 +24,7 @@ for(const marker of [
   '.as-book-term'
 ]) if(!premium.includes(marker)) fail(`Premium Guided Academy missing: ${marker}`);
 
-if(premium.includes('speechSynthesis')) fail('Premium Guided Academy must never use browser speech synthesis');
+if(premium.includes("action:'guided_audio'")) fail('Guided Academy must not call a metered audio provider');
 if(!welcome.includes('/academy-media/instructors/ava/welcome-canonical-v3.mp4')) fail('Canonical original Ava introduction is not configured');
 if(welcome.includes('heygen.ai')) fail('Ava introduction must not depend on an expiring HeyGen URL');
 if(!loader.includes('academy-ava-welcome-v2-2026-09-01.js')) fail('Permanent Ava introduction is not in the production loader');

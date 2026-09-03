@@ -49,11 +49,6 @@ const FACULTY: Record<string, any> = {
   }
 };
 
-const hex = async (input: string) => {
-  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
-  return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join("");
-};
-
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -127,7 +122,9 @@ Deno.serve(async (req: Request) => {
         faculty: FACULTY,
         preference: pref,
         canonical_instructor_key: "ava",
-        professional_audio_ready: !!Deno.env.get("OPENAI_API_KEY")
+        professional_audio_ready: false,
+        narration_delivery: "browser_speech",
+        billing_mode: "no_new_fees"
       });
     }
 
@@ -172,40 +169,10 @@ Deno.serve(async (req: Request) => {
     }
 
     if (action === "guided_audio") {
-      const lessonId = String(body.lesson_id || "");
-      const text = String(body.text || "").trim();
-      if (!lessonId || !text) return json({ error: "Lesson and text are required" }, 400);
-      await lessonAccess(lessonId);
-      if (text.length > 3900) return json({ error: "Guided section is too long; split it into smaller sections." }, 400);
-      const pref = await preference();
-      const voice = String(pref?.guided_voice || "marin");
-      const speed = Math.max(.75, Math.min(1.5, Number(body.speed || pref?.guided_speed || 1)));
-      const apiKey = Deno.env.get("OPENAI_API_KEY");
-      if (!apiKey) return json({ error: "Professional guided narration is not configured." }, 503);
-      const hash = await hex(`${voice}|${speed}|${text}`);
-      const path = `guided-audio/${lessonId}/${hash}.mp3`;
-      let signed = await admin.storage.from("academy-media").createSignedUrl(path, 60 * 60 * 12);
-      if (signed.data?.signedUrl) return json({ ok: true, audio_url: signed.data.signedUrl, cached: true, voice, speed });
-      const speech = await fetch("https://api.openai.com/v1/audio/speech", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "gpt-4o-mini-tts", voice, input: text,
-          instructions: "Speak like an experienced professional insurance instructor in a calm, warm classroom tone. Sound human and conversational, not promotional or robotic. Use natural pauses for headings, definitions, examples, and exam tips. Pronounce ALLSHIELD as All Shield.",
-          response_format: "mp3", speed
-        })
-      });
-      if (!speech.ok) {
-        let message = `Voice provider error ${speech.status}`;
-        try { const e = await speech.json(); message = e?.error?.message || message; } catch {}
-        return json({ error: message }, 502);
-      }
-      const audio = new Uint8Array(await speech.arrayBuffer());
-      const { error: uploadError } = await admin.storage.from("academy-media").upload(path, audio, { contentType: "audio/mpeg", upsert: true, cacheControl: "31536000" });
-      if (uploadError) return json({ error: uploadError.message }, 500);
-      signed = await admin.storage.from("academy-media").createSignedUrl(path, 60 * 60 * 12);
-      if (!signed.data?.signedUrl) return json({ error: "Guided audio was created but could not be opened." }, 500);
-      return json({ ok: true, audio_url: signed.data.signedUrl, cached: false, voice, speed });
+      return json({
+        error: "Metered narration is disabled. The Academy uses the browser's built-in voice at no additional cost.",
+        code: "METERED_NARRATION_DISABLED_NO_FEE_POLICY"
+      }, 410);
     }
 
     if (action === "get_resume") {

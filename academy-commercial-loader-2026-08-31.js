@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.02.001';
+const VERSION='2026.09.03.001';
 const scripts=[
   ['allshieldAcademyGuidedPath',`./academy-guided-path-2026-08-31.js?v=${VERSION}`],
   ['allshieldAcademyGuidedHotfix',`./academy-guided-path-hotfix-2026-08-31.js?v=${VERSION}`],

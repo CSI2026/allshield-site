@@ -9,7 +9,7 @@ window.ALLSHIELD_CONFIG = {
   const scripts=[
     ['allshieldBuildInfoLoader','./build-info.js?v=B2026.08.28.035'],
     ['allshieldBackofficeBuildRegistryLoader','./backoffice-build-registry-2026-08-28.js?v=2026.08.28.003'],
-    ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.09.02.001'],
+    ['allshieldRuntimeMutationGuardLoader','./runtime-mutation-guard-2026-08-27.js?v=2026.09.03.001'],
     ['allshieldProductionPolishLoader','./production-polish-2026-08-26.js?v=2026.08.26.010'],
     ['allshieldSocialConnectionReadinessLoader','./social-connection-readiness-2026-08-26.js?v=2026.08.26.011'],
     ['allshieldSocialOAuthPopupLoader','./social-oauth-popup-return-2026-08-26.js?v=2026.08.26.012'],
@@ -23,7 +23,7 @@ window.ALLSHIELD_CONFIG = {
     ['allshieldOnboardingEsignBridgeLoader','./onboarding-esign-bridge-2026-08-28.js?v=2026.08.28.004'],
     ['allshieldCareerLicenseNormalizerLoader','./career-application-license-normalizer-2026-08-27.js?v=2026.08.27.013'],
     ['allshieldCareerApplicationDetailLoader','./career-application-detail-2026-08-28.js?v=2026.08.28.001'],
-    ['allshieldCommercialAcademyLoader','./academy-commercial-loader-2026-08-31.js?v=2026.09.02.001']
+    ['allshieldCommercialAcademyLoader','./academy-commercial-loader-2026-08-31.js?v=2026.09.03.001']
   ];
   for(const [id,src] of scripts){
     if(document.getElementById(id)) continue;

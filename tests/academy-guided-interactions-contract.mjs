@@ -22,8 +22,8 @@ for(const marker of ['installTextbookFinishHandoff','asGuidedOpenLessonCheck','a
 for(const marker of ['asInstructorMediaToggle','asInstructorMediaStop','Stop & Save','visibilitychange','pagehide','saveVideoPlace']){
   if(!media.includes(marker))fail(`Ava media control missing: ${marker}`);
 }
-if(media.includes('ss.speak=function'))fail('Media layer blocks the zero-fee browser speech instructor');
-if(!premium.includes('SpeechSynthesisUtterance')||!premium.includes('preferredVoice'))fail('Zero-fee guided narration is not available');
+if(!media.includes('ss.speak=function'))fail('Media layer does not block generic browser narration');
+if(premium.includes('SpeechSynthesisUtterance')||premium.includes('speechSynthesis.speak'))fail('Generic browser narration remains in Guided Academy');
 if(!loader.includes("rel='preload'")||!loader.includes("as='script'"))fail('Academy scripts are not preloaded for faster startup');
 if(!hotfix.includes("if(document.getElementById('asTextbook'))"))fail('Finish Review has no visible blocked-state fallback');
 

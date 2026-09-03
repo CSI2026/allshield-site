@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.02.001';
+const VERSION='2026.09.03.001';
 const sb=()=>window.allshieldSupabase;
 const portal=()=>document.getElementById('agentPortal');
 let pref=null;
@@ -62,9 +62,12 @@ async function enforceLessonSequence(){if(!currentLessonId)return;const fresh=fr
   }
   await sleep(100);
  }
- // When a stored Ava video is unavailable, keep the no-fee browser-guided
- // narration active so every lesson still has instructor assistance.
- if(mode==='guided')removeInstructorMode();
+ // Ava is the only Guided instructor. Never substitute browser narration.
+ if(mode==='guided'){
+   stopDetachedNarration();
+   hideInstructorDocks();
+   removeInstructorMode();
+ }
 }
 
 async function loadPreference(){try{const r=await edge({action:'faculty'});pref=r.preference||null;setMode(pref?.guided_enabled?'guided':'solo')}catch{pref=null;setMode('solo')}introPolicyReady=true;applyIntroPolicy()}
@@ -107,7 +110,7 @@ function wrapFocus(){if(wrappedFocus||typeof window.asGuidedBeginFocus!=='functi
  };wrappedFocus=true}
 function wrapStudy(){if(wrappedStudy||typeof window.asGuidedOpenStudy!=='function')return;const old=window.asGuidedOpenStudy;window.asGuidedOpenStudy=async(...args)=>{currentLessonId=null;const out=await old(...args);setTimeout(()=>{nextLessonId=parseNextLessonId();applyIntroPolicy()},180);return out};wrappedStudy=true}
 
-function scan(){wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){segmentLabel();if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook'))removeInstructorMode()}
+function scan(){wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){segmentLabel();if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook')){stopDetachedNarration();hideInstructorDocks();removeInstructorMode()}}
 function boot(){scan();loadPreference();scanTimer=setInterval(scan,180);window.addEventListener('pagehide',()=>{if(scanTimer)clearInterval(scanTimer)});window.ALLSHIELD_AVA_SEQUENCE_VERSION=VERSION}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

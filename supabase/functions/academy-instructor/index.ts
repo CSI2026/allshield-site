@@ -123,7 +123,7 @@ Deno.serve(async (req: Request) => {
         preference: pref,
         canonical_instructor_key: "ava",
         professional_audio_ready: false,
-        narration_delivery: "browser_speech",
+        narration_delivery: "ava_video_only",
         billing_mode: "no_new_fees"
       });
     }
@@ -170,7 +170,7 @@ Deno.serve(async (req: Request) => {
 
     if (action === "guided_audio") {
       return json({
-        error: "Metered narration is disabled. The Academy uses the browser's built-in voice at no additional cost.",
+        error: "Generic narration is disabled. Guided instruction requires an Ava lesson video.",
         code: "METERED_NARRATION_DISABLED_NO_FEE_POLICY"
       }, 410);
     }

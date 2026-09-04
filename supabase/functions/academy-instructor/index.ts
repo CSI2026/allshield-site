@@ -25,27 +25,6 @@ const FACULTY: Record<string, any> = {
     welcome_video_url: AVA_WELCOME,
     guided_voice: "marin",
     canonical: true
-  },
-  maya: {
-    name: "Maya", style: "Calm & clear",
-    voice_id: "06672207805f41a9ad0af6797f8aa14b",
-    avatar_id: "81708c00d9824a17a0a88c5666d2c2ac",
-    image_url: "https://resource2.heygen.ai/public-avatars/Liza/paos/angles/office84_p1_a0.jpg",
-    guided_voice: "coral"
-  },
-  jordan: {
-    name: "Jordan", style: "Patient & reassuring",
-    voice_id: "03fcf8ecb0a94b6b94e9007edb7c35f8",
-    avatar_id: "f59cc9c022094549a49f09b33159c4eb",
-    image_url: "https://resource2.heygen.ai/public-avatars/Dashiell/paos/angles/office84_p1_a1.jpg",
-    guided_voice: "cedar"
-  },
-  marcus: {
-    name: "Marcus", style: "Direct & professional",
-    voice_id: "88bb9ee1c81b466eb2a08fdde86d3619",
-    avatar_id: "94aa5a1f0e39427da9a213f65f793caa",
-    image_url: "https://resource2.heygen.ai/public-avatars/Sebastian/paos/angles/office86_p3_a1.jpg",
-    guided_voice: "onyx"
   }
 };
 
@@ -100,11 +79,11 @@ Deno.serve(async (req: Request) => {
       return data || null;
     }
 
-    const canonicalRow = (key: string, prior: any, extra: Record<string, unknown> = {}) => {
-      const faculty = FACULTY[key] || FACULTY.ava;
+    const canonicalRow = (prior: any, extra: Record<string, unknown> = {}) => {
+      const faculty = FACULTY.ava;
       return {
         user_id: userId,
-        instructor_key: key,
+        instructor_key: "ava",
         voice_id: faculty.voice_id,
         avatar_id: faculty.avatar_id,
         guided_voice: String(prior?.guided_voice || faculty.guided_voice || "marin"),
@@ -130,9 +109,9 @@ Deno.serve(async (req: Request) => {
 
     if (action === "set_instructor") {
       const key = String(body.instructor_key || "").toLowerCase();
-      if (!FACULTY[key]) return json({ error: "Choose a valid instructor" }, 400);
+      if (key !== "ava") return json({ error: "Ava is the canonical ALLSHIELD Academy instructor" }, 400);
       const prior = await preference();
-      const row = canonicalRow(key, prior);
+      const row = canonicalRow(prior);
       const { error } = await admin.from("academy_instructor_preferences").upsert(row, { onConflict: "user_id" });
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true, preference: row, instructor: FACULTY[key] });
@@ -140,9 +119,8 @@ Deno.serve(async (req: Request) => {
 
     if (action === "set_guided") {
       const prior = await preference();
-      const key = FACULTY[String(prior?.instructor_key || "ava")] ? String(prior?.instructor_key || "ava") : "ava";
       const speed = Math.max(.75, Math.min(1.5, Number(body.speed || prior?.guided_speed || 1)));
-      const row = canonicalRow(key, prior, { guided_enabled: !!body.enabled, guided_speed: speed });
+      const row = canonicalRow(prior, { guided_enabled: !!body.enabled, guided_speed: speed });
       const { error } = await admin.from("academy_instructor_preferences").upsert(row, { onConflict: "user_id" });
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true, preference: row });
@@ -150,8 +128,7 @@ Deno.serve(async (req: Request) => {
 
     if (action === "mark_introduction_seen") {
       const prior = await preference();
-      const key = FACULTY[String(prior?.instructor_key || "ava")] ? String(prior?.instructor_key || "ava") : "ava";
-      const row = canonicalRow(key, prior, { introduction_seen_at: new Date().toISOString() });
+      const row = canonicalRow(prior, { introduction_seen_at: new Date().toISOString() });
       const { error } = await admin.from("academy_instructor_preferences").upsert(row, { onConflict: "user_id" });
       if (error) return json({ error: error.message }, 400);
       return json({ ok: true, preference: row });

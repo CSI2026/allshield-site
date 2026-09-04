@@ -7,6 +7,10 @@ const sequence = fs.readFileSync('academy-ava-sequence-controller-2026-09-01.js'
 const liveAvatar = fs.readFileSync('supabase/functions/academy-live-avatar/index.ts', 'utf8');
 const instructor = fs.readFileSync('supabase/functions/academy-instructor/index.ts', 'utf8');
 
+if (fs.existsSync('academy-ai-instructor-2026-08-31.js')) {
+  fail('Obsolete browser-voice Academy instructor still exists in the production source tree');
+}
+
 for (const [name, source] of [['premium', premium], ['guided path', fs.readFileSync('academy-guided-path-2026-08-31.js', 'utf8')]]) {
   for (const forbidden of ['SpeechSynthesisUtterance', 'speechSynthesis.speak']) {
     if (source.includes(forbidden)) fail(`${name} still contains generic narration: ${forbidden}`);

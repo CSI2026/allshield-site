@@ -16,8 +16,16 @@ for(const marker of [
 
 for(const stale of [
   'ee45a16b921b442ba3275621d963bb31',
-  'public-avatars/Saoirse'
+  'public-avatars/Saoirse',
+  'public-avatars/Liza',
+  'public-avatars/Dashiell',
+  'public-avatars/Sebastian',
+  'maya:',
+  'jordan:',
+  'marcus:'
 ]) if(source.includes(stale)) fail(`Stale Ava identity remains in instructor service: ${stale}`);
+
+if(!source.includes('key !== "ava"')) fail('Instructor service must reject every non-Ava instructor identity');
 
 if(!source.includes('.eq("status", "ready")')) fail('Instructor segment API must expose ready media only');
 if(!source.includes('Course not assigned')) fail('Instructor service must enforce course assignment');

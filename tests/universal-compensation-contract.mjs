@@ -19,7 +19,7 @@ ok('ACA base tier retains approved $15 only', /'standard','Standard','agent','qu
 ok('ACA 250 tier references approved bonus, not new rate', /'performance_250'[\s\S]*'bonus_reference',null,'agent_monthly',250/.test(migration));
 ok('ACA 300 tier references approved bonus, not new rate', /'performance_300'[\s\S]*'bonus_reference',null,'agent_monthly',300/.test(migration));
 
-ok('comp-admin B040 marker', /B2026\.08\.29\.040/.test(admin));
+ok('comp-admin current build marker', /B2026\.09\.14\.041/.test(admin));
 ok('comp-admin lists programs', /action === "list_programs"/.test(admin));
 ok('comp-admin creates any product/program', /action === "create_program"/.test(admin)&&/program_type/.test(admin)&&/production_source/.test(admin));
 ok('comp-admin edits program metadata', /action === "update_program"/.test(admin));
@@ -52,7 +52,7 @@ ok('UI edits tier ladder', /AGENT EARNING TIERS/.test(ui)&&/Add Tier/.test(ui));
 ok('UI tier choices include rate increase and bonus', /Higher Rate/.test(ui)&&/Tier Bonus/.test(ui)&&/Use Bonus Rule/.test(ui));
 ok('UI agent shows next-tier progress', /Next Tier/.test(ui)&&/uc-progress/.test(ui));
 ok('UI does not hard-code ACA as the selected product', !/ACA_DIALER/.test(ui));
-ok('production index loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.08\.29\.040/.test(index));
+ok('production index loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.09\.14\.041/.test(index));
 
 const failed=checks.filter(x=>!x.ok);
 for(const c of checks) console.log(`${c.ok?'PASS':'FAIL'}: ${c.name}`);

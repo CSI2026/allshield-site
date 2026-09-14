@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const BUILD = "B2026.08.29.040";
+const BUILD = "B2026.09.14.041";
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -442,6 +442,14 @@ Deno.serve(async (req: Request) => {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return json({ error: "Valid period required" }, 400);
       const { data: plan } = await admin.from("comp_plan_versions").select("*").eq("campaign_id", campaign.id).eq("status", "published").lte("effective_from", end).or(`effective_to.is.null,effective_to.gte.${start}`).order("version", { ascending: false }).limit(1).single();
       if (!plan) return json({ error: "No published compensation plan covers this period" }, 409);
+      if (plan.config?.agent_rate_tier_period === "weekly") {
+        const startDate = new Date(`${start}T00:00:00Z`);
+        const endDate = new Date(`${end}T00:00:00Z`);
+        const inclusiveDays = Math.round((endDate.getTime() - startDate.getTime()) / 86400000) + 1;
+        if (inclusiveDays !== 7 || startDate.getUTCDay() !== 1 || endDate.getUTCDay() !== 0) {
+          return json({ error: "This compensation plan must be calculated as one Monday-Sunday week so the 75-enrollment rate tier is applied correctly." }, 400);
+        }
+      }
       const { data: tiers, error: tierError } = await admin.from("comp_tier_rules").select("*").eq("plan_version_id", plan.id).eq("active", true).order("tier_order");
       if (tierError) return json({ error: tierError.message }, 400);
       const by = await productionByUser(admin, campaign, plan, start, end);

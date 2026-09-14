@@ -9,7 +9,7 @@ const SECRET_KEYS=JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS")||"{}");
 const SECRET=SECRET_KEYS.default||Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const db=createClient(URL,SECRET,{auth:{persistSession:false,autoRefreshToken:false}});
 
-const BUILD="B2026.08.29.039";
+const BUILD="B2026.09.14.040";
 const EXECUTION_VERSION="1";
 const CODE="performance_analyst";
 const AVERY="command_center";
@@ -31,7 +31,8 @@ const CAPABILITIES=[
 const APPROVED_ACA_REFERENCE={
   campaign_code:"ACA_DIALER",
   base_enrollment_amount:15,
-  agent_monthly:[{threshold:250,amount:250},{threshold:300,amount:500}],
+  agent_monthly:[],
+  agent_weekly_rate_tier:{threshold:75,base_rate:15,performance_rate:20,scope:"all_weekly_units"},
   manager_direct_override_rate:0.25,
   manager_direct_coaching:[{threshold:200,amount:50},{threshold:250,amount:100},{threshold:300,amount:200}],
   market_monthly:[{threshold:1000,amount:1000},{threshold:2000,amount:2500},{threshold:3000,amount:4000}],
@@ -69,7 +70,10 @@ function expectedRuleIssues(plan:any,rules:any[]){
     for(const e of expected)if(!actualKeys.has(pairKey(e.threshold,e.amount)))add("high",`marcus:rule:${type}:missing:${e.threshold}`,`${label} rule missing`,`Expected ${label} threshold ${e.threshold} with amount $${e.amount}, but that exact rule is not stored.`);
     for(const a of actual)if(!expectedKeys.has(pairKey(a.threshold,a.amount)))add("high",`marcus:rule:${type}:unexpected:${a.threshold}:${a.amount}`,`${label} rule does not match approved framework`,`Stored ${label} threshold ${a.threshold} pays $${a.amount}, which is not in the approved reference.`);
   };
-  compare("agent_monthly",APPROVED_ACA_REFERENCE.agent_monthly,"agent monthly bonus");
+  compare("agent_monthly",APPROVED_ACA_REFERENCE.agent_monthly,"individual agent bonus");
+  if(low(plan.config?.agent_rate_tier_period)!=="weekly"||num(plan.config?.agent_rate_tier_threshold)!==75||num(plan.config?.agent_performance_rate)!==20){
+    add("critical",`marcus:plan:${plan.id}:weekly_tier_mismatch`,"ACA weekly agent rate tier differs from approved framework","Approved agent structure is $15 per qualified enrollment, increasing to $20 for every enrollment in a Monday-Sunday week at 75 or more.");
+  }
   compare("manager_direct_coaching",APPROVED_ACA_REFERENCE.manager_direct_coaching,"manager direct coaching bonus");
   compare("market_monthly",APPROVED_ACA_REFERENCE.market_monthly,"direct-market volume bonus");
   compare("promoting_manager_market",APPROVED_ACA_REFERENCE.promoting_manager_market,"promoting-manager market bonus");
@@ -128,9 +132,6 @@ function coaching(s:any){
   if(!s.data_presence.production_entries&&!s.data_presence.campaign_enrollments)return [];
   const recs:any[]=[];
   for(const p of s.people){
-    const monthly=p.qualified_enrollments||p.production_sales;
-    const nextAgent=APPROVED_ACA_REFERENCE.agent_monthly.find(x=>monthly<x.threshold);
-    if(nextAgent&&monthly>0&&monthly>=nextAgent.threshold*0.8)recs.push({user_id:p.user_id,name:p.name,type:"near_bonus_threshold",evidence:{current:monthly,next_threshold:nextAgent.threshold},recommendation:`Coach toward the ${nextAgent.threshold}-enrollment monthly milestone; current verified count is ${monthly}.`});
     if(p.qualification_rate!=null&&p.submitted_enrollments>=10&&p.qualification_rate<70)recs.push({user_id:p.user_id,name:p.name,type:"qualification_rate",evidence:{submitted:p.submitted_enrollments,qualified:p.qualified_enrollments,rate:p.qualification_rate},recommendation:"Review call quality, eligibility verification and submission accuracy; qualification rate is materially below 70%."});
     if(p.average_quality!=null&&p.average_quality<80)recs.push({user_id:p.user_id,name:p.name,type:"quality_score",evidence:{average_quality:p.average_quality},recommendation:"Review QA feedback and coaching opportunities; verified average quality score is below 80."});
   }

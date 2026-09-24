@@ -22,6 +22,34 @@ async function smtpSend(fromHeader:string,to:string,subject:string,text:string){
   try{let g=await read();if(Number(g.slice(0,3))!==220)throw new Error(`SMTP greeting failed: ${g.slice(0,240)}`);await cmd("EHLO allshieldinsurancegroup.com",[250]);await cmd("AUTH LOGIN",[334]);await cmd(btoa(e.user),[334]);await cmd(btoa(e.pass),[235]);await cmd(`MAIL FROM:<${e.user}>`,[250]);await cmd(`RCPT TO:<${to}>`,[250,251]);await cmd("DATA",[354]);const cleanText=text.replace(/\r?\n\./g,"\n..");const msg=[`From: ${fromHeader}`,`To: ${to}`,`Subject: ${subject.replace(/[\r\n]+/g," ")}`,`Date: ${new Date().toUTCString()}`,`Message-ID: <${crypto.randomUUID()}@allshieldinsurancegroup.com>`,`MIME-Version: 1.0`,`Content-Type: text/plain; charset=UTF-8`,`Content-Transfer-Encoding: 8bit`,"",cleanText,"."].join("\r\n");await c.write(enc.encode(msg+"\r\n"));const r=await read();if(Number(r.slice(0,3))!==250)throw new Error(`SMTP send failed: ${r.trim().slice(0,240)}`);await cmd("QUIT",[221]).catch(()=>{})}finally{try{c.close()}catch{}}
 }
 
+// Auth emails use an internal login address, while the contact email receives mail.
+// Generate a one-use Auth recovery link for that internal identity and send it only
+// to the address already recorded on the profile. Responses never reveal a match.
+async function passwordRecovery(b:any){
+  const reply=json({ok:true,message:"If this account has a recovery email, a reset link will be sent."});
+  const identity=norm(String(b.identity||"")).slice(0,200);
+  if(!identity||!(/^[a-z0-9._-]{3,80}$/.test(identity)||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identity)))return reply;
+  const a=admin(),digest=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(identity))),x=>x.toString(16).padStart(2,"0")).join("");
+  const hour=new Date(Date.now()-3600000).toISOString();
+  const {count,error:rateError}=await a.from("audit_log").select("id",{count:"exact",head:true}).eq("action","account_recovery_requested").eq("object_id",digest).gte("created_at",hour);
+  if(rateError||(count||0)>=3)return reply;
+  const {error:logError}=await a.from("audit_log").insert({action:"account_recovery_requested",object_type:"recovery_request",object_id:digest,details:{}});
+  if(logError)return reply;
+  const query=a.from("profiles").select("id,username,email,status");
+  const {data:matches,error}=identity.includes("@")?await query.ilike("email",identity).limit(2):await query.ilike("username",identity).limit(2);
+  if(error||matches?.length!==1)return reply;
+  const profile=matches[0];if(!["active","onboarding","invited"].includes(profile.status)||!profile.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))return reply;
+  const accountLimit=await a.from("audit_log").select("id",{count:"exact",head:true}).eq("action","account_recovery_link_generated").eq("object_id",profile.id).gte("created_at",hour);
+  if(accountLimit.error||(accountLimit.count||0)>=3)return reply;
+  const {data:user,error:userError}=await a.auth.admin.getUserById(profile.id);if(userError||!user.user?.email)return reply;
+  const {data:link,error:linkError}=await a.auth.admin.generateLink({type:"recovery",email:user.user.email,options:{redirectTo:"https://allshieldinsurancegroup.com/"}});
+  if(linkError||!link.properties?.action_link){console.error("Recovery link generation failed",linkError);return reply}
+  const {error:accountLogError}=await a.from("audit_log").insert({action:"account_recovery_link_generated",object_type:"profile",object_id:profile.id,details:{}});
+  if(accountLogError)return reply;
+  try{await smtpSend("ALLSHIELD Support <support@allshieldinsurancegroup.com>",profile.email,"Reset your ALLSHIELD password",`Someone requested a password reset for your ALLSHIELD account (${profile.username||"your username"}).\n\nOpen this one-use link to choose a new password:\n${link.properties.action_link}\n\nIf you did not request this, ignore this email. Contact support@allshieldinsurancegroup.com if you need help.\n\nALLSHIELD Insurance Group`)}catch(err){console.error("Recovery delivery failed",err)}
+  return reply;
+}
+
 async function syncInbox(){
   const a=admin(),e=env();
   const {data:mb,error:me}=await a.from("shared_mailboxes").select("id,email_address,config").eq("mailbox_key","info").eq("active",true).single();
@@ -91,6 +119,7 @@ async function sendMail(req:Request,b:any){
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response("ok",{headers:cors});if(req.method!=="POST")return json({error:"Method not allowed"},405);
   try{const b=await req.json(),action=String(b.action||"status");
+    if(action==="password_recovery")return await passwordRecovery(b);
     if(action==="sync"){if(req.headers.get("x-sync-key")!==SYNC_KEY){const u=await currentUser(req);if(!u)return json({error:"Forbidden"},403)}return json(await syncInbox())}
     if(action==="roundtrip"){if(req.headers.get("x-sync-key")!==SYNC_KEY)return json({error:"Forbidden"},403);const e=env();await smtpSend(e.user,e.user,"ALLSHIELD Communications Hub self-test",`Automated mail roundtrip test ${new Date().toISOString()}`);await new Promise(r=>setTimeout(r,5000));const sync=await syncInbox();return json({ok:true,sent_to_self:true,sync})}
     if(action==="send")return await sendMail(req,b);

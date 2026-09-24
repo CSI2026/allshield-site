@@ -8,7 +8,7 @@ function json(data:unknown,status=200){return new Response(JSON.stringify(data),
 function clean(v:unknown,max=160){return String(v??"").trim().slice(0,max)}
 function namePart(v:unknown){const s=clean(v,80).normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Za-z0-9]+/g,"").slice(0,20).toLowerCase();return s?s[0].toUpperCase()+s.slice(1):""}
 function emailOk(v:string){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
-function tempPassword(first:string,last:string){return `${first[0]}${last[0]}${new Date().getFullYear()}AS`.toUpperCase()}
+function tempPassword(){const groups=["ABCDEFGHJKLMNPQRSTUVWXYZ","abcdefghijkmnopqrstuvwxyz","23456789","!@#$%"],alphabet=groups.join("");const bytes=crypto.getRandomValues(new Uint8Array(36));const chars=groups.map((g,i)=>g[bytes[i]%g.length]);for(let i=4;i<18;i++)chars.push(alphabet[bytes[i]%alphabet.length]);for(let i=chars.length-1;i>0;i--){const j=bytes[18+i]%(i+1);[chars[i],chars[j]]=[chars[j],chars[i]]}return chars.join("")}
 function welcomeText(first:string,username:string,password:string,licensing:string){
  const route=licensing==="licensed"
   ? "Your next step is license verification. After verification, ALLSHIELD will route you through contracting, Marketplace requirements, and production readiness."
@@ -52,7 +52,7 @@ Deno.serve(async(req:Request)=>{
       displayUsername=`${baseDisplay}.${i+1}`;
       loginUsername=displayUsername.toLowerCase();
     }
-    const password=tempPassword(first,last);
+    const password=tempPassword();
     if(password.length<8)throw new Error("Generated temporary password did not meet ALLSHIELD security requirements.");
     return {username:displayUsername,loginUsername,password,internalEmail:`${loginUsername}@allshield.internal`,operationsAlias:`${loginUsername}@allshieldinsurancegroup.com`};
   }
@@ -85,10 +85,11 @@ Deno.serve(async(req:Request)=>{
    const requestedUsername=clean(body.generated_username,80);
    const requestedPassword=String(body.generated_password||"");
    if(role==="agent"&&(!requestedUsername||!requestedPassword))return json({error:"Generate the username and temporary password before creating the account."},409);
-   if(role==="agent"&&(requestedUsername!==credentials.username||requestedPassword!==credentials.password))return json({error:"The generated credentials are no longer current. Click Generate again before creating the account."},409);
+   if(role==="agent"&&(requestedUsername!==credentials.username||requestedPassword.length<12))return json({error:"Generate a username and strong temporary password before creating the account."},409);
+   const initialPassword=role==="agent"?requestedPassword:credentials.password;
 
    const {data:created,error:createError}=await admin.auth.admin.createUser({
-     email:credentials.internalEmail,password:credentials.password,email_confirm:true,
+     email:credentials.internalEmail,password:initialPassword,email_confirm:true,
      user_metadata:{first_name:first,last_name:last,username:credentials.username,internal_email:credentials.internalEmail,contact_email:realEmail||null,recruiting_source:recruitingSource||null,licensing_status:licensingStatus||null}
    });
    if(createError||!created.user)return json({error:createError?.message||"Unable to create user"},400);
@@ -132,7 +133,7 @@ Deno.serve(async(req:Request)=>{
        const mailRes=await fetch(`${url}/functions/v1/ionos-mail`,{
          method:"POST",
          headers:{"Content-Type":"application/json",apikey:publishableKey,Authorization:authHeader},
-         body:JSON.stringify({action:"send",from_address:"onboarding@allshieldinsurancegroup.com",to:realEmail,subject:`Welcome to ALLSHIELD, ${first}`,text:welcomeText(first,credentials.username,credentials.password,licensingStatus)})
+         body:JSON.stringify({action:"send",from_address:"onboarding@allshieldinsurancegroup.com",to:realEmail,subject:`Welcome to ALLSHIELD, ${first}`,text:welcomeText(first,credentials.username,initialPassword,licensingStatus)})
        });
        const raw=await mailRes.text();
        let mail:any={};try{mail=raw?JSON.parse(raw):{}}catch{mail={error:raw}}
@@ -144,7 +145,7 @@ Deno.serve(async(req:Request)=>{
    const details={username:credentials.username,internal_email:credentials.internalEmail,operations_alias:credentials.operationsAlias,contact_email:realEmail||null,role,status,resident_state:residentState,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError};
    await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_created",object_type:"profile",object_id:created.user.id,details});
    if(role==="agent")await admin.from("audit_log").insert({actor_id:actor.id,action:"manual_agent_onboarded",object_type:"profile",object_id:created.user.id,details});
-   return json({ok:true,user_id:created.user.id,username:credentials.username,temp_password:credentials.password,internal_email:credentials.internalEmail,operations_alias:credentials.operationsAlias,operations_alias_status:"pending_provider",contact_email:realEmail||null,role,status,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError});
+   return json({ok:true,user_id:created.user.id,username:credentials.username,temp_password:initialPassword,internal_email:credentials.internalEmail,operations_alias:credentials.operationsAlias,operations_alias_status:"pending_provider",contact_email:realEmail||null,role,status,onboarding_pathway:onboardingPathway,licensing_status:licensingStatus||null,recruiting_source:recruitingSource||null,notification_sent:notificationSent,notification_error:notificationError});
   }
 
   if(action==="update"){
@@ -161,6 +162,7 @@ Deno.serve(async(req:Request)=>{
    if(body.department_id!==undefined)patch.department_id=body.department_id||null;
    if(body.manager_id!==undefined)patch.manager_id=body.manager_id||null;
    if(body.resident_state!==undefined){const s=String(body.resident_state||"").trim().toUpperCase()||null;if(s&&!/^[A-Z]{2}$/.test(s))return json({error:"Resident state must be a 2-letter code."},400);patch.resident_state=s;}
+   if(body.status!==undefined){const blocked=["inactive","terminated"].includes(body.status);const {error:authError}=await admin.auth.admin.updateUserById(userId,{ban_duration:blocked?"876000h":"none"});if(authError)return json({error:authError.message},400)}
    const {error}=await admin.from("profiles").update(patch).eq("id",userId);if(error)return json({error:error.message},400);
    await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_updated",object_type:"profile",object_id:userId,details:patch});
    await admin.from("agent_timeline_events").insert({user_id:userId,event_type:"profile_updated",title:"Agent profile updated",visibility:"internal",source:"manage-team-user",actor_id:actor.id,metadata:patch}).then(()=>{}).catch(()=>{});
@@ -168,18 +170,19 @@ Deno.serve(async(req:Request)=>{
   }
 
   if(action==="reset_password"){
-   const userId=String(body.user_id||""),password=String(body.password||"");if(password.length<8)return json({error:"Password must be at least 8 characters."},400);
+   const userId=String(body.user_id||""),password=body.password===undefined?tempPassword():String(body.password||"");if(password.length<12)return json({error:"Password must be at least 12 characters."},400);
    const {data:target}=await admin.from("profiles").select("role").eq("id",userId).single();if(!target)return json({error:"User not found"},404);
    if(target.role==="owner"||(!isOwner&&target.role==="admin"))return json({error:"You cannot reset this account's password."},403);
    const {error}=await admin.auth.admin.updateUserById(userId,{password});if(error)return json({error:error.message},400);
-   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_password_reset",object_type:"profile",object_id:userId,details:{}});return json({ok:true});
+   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_password_reset",object_type:"profile",object_id:userId,details:{}});return json({ok:true,temp_password:password});
   }
 
-  if(action==="delete"){
-   if(!isOwner)return json({error:"Only the Owner can delete accounts."},403);
-   const userId=String(body.user_id||"");const {data:target}=await admin.from("profiles").select("role,username").eq("id",userId).single();if(!target)return json({error:"User not found"},404);if(target.role==="owner")return json({error:"Owner account cannot be deleted."},403);
-   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_deleted",object_type:"profile",object_id:userId,details:{username:target.username}});
-   const {error}=await admin.auth.admin.deleteUser(userId);if(error)return json({error:error.message},400);return json({ok:true});
+  if(action==="delete"||action==="close_account"){
+   const userId=String(body.user_id||"");const {data:target}=await admin.from("profiles").select("role,username,status").eq("id",userId).single();if(!target)return json({error:"User not found"},404);if(target.role==="owner"||(!isOwner&&target.role==="admin"))return json({error:"You cannot close this account."},403);
+   const {error:authError}=await admin.auth.admin.updateUserById(userId,{ban_duration:"876000h"});if(authError)return json({error:authError.message},400);
+   const {error}=await admin.from("profiles").update({status:"terminated",updated_at:new Date().toISOString()}).eq("id",userId);if(error)return json({error:error.message},400);
+   await admin.from("audit_log").insert({actor_id:actor.id,action:"team_user_closed",object_type:"profile",object_id:userId,details:{username:target.username,previous_status:target.status}});
+   return json({ok:true});
   }
   return json({error:"Unknown action"},400);
  }catch(e){return json({error:e instanceof Error?e.message:String(e)},500)}

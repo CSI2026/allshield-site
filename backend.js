@@ -32,7 +32,7 @@
     if(!window.supabase?.createClient) throw new Error('Supabase client library did not load.');
     sb=window.supabase.createClient(cfg.SUPABASE_URL,cfg.SUPABASE_PUBLISHABLE_KEY,{
       global:{fetch:timeoutFetch},
-      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
     });
     window.allshieldSupabase=sb;
     setBackendStatus('Supabase client ready',true,false);
@@ -93,6 +93,7 @@
       const {data,error}=await withTimeout(sb.auth.signInWithPassword({email,password}),15000,'Sign in');
       if(error)throw error;
       const profile=await getProfile(data.user.id);
+      if(!profile||['inactive','terminated'].includes(profile.status)){await sb.auth.signOut();alert('This account is unavailable. Contact ALLSHIELD support.');return;}
       const role=profile?.role||'agent';
       const allowed={agent:['agent','team_lead','manager','admin','owner'],admin:['admin','owner'],owner:['owner']};
       if(!allowed[requestedRole].includes(role)){await sb.auth.signOut();alert('Your account does not have permission to enter this portal.');return;}
@@ -129,7 +130,21 @@
   window.allshieldSaveExamAttempt=async function(payload){if(!sb)return false;const user=(await withTimeout(sb.auth.getUser(),10000,'Session check')).data.user;if(!user)return false;const {error}=await withTimeout(sb.from('exam_attempts').insert({user_id:user.id,exam_type:payload.examType||'practice',state_code:payload.stateCode||null,score_percent:payload.scorePercent,question_count:payload.questionCount,correct_count:payload.correctCount,attempt_payload:payload.attemptPayload||{}}),15000,'Exam save');if(error)throw error;return true;};
   window.allshieldSignOut=async()=>{if(sb)try{await withTimeout(sb.auth.signOut(),10000,'Sign out')}catch(_){};window.returnHome();};
 
-  if(sb) sb.auth.onAuthStateChange((_event,session)=>{window.allshieldSession=session;});
+  window.allshieldRequestPasswordRecovery=async function(role){
+    const card=document.getElementById(role+'Login');
+    const identity=card?.querySelector('input[autocomplete="username"]')?.value?.trim()||prompt('Enter your ALLSHIELD username or contact email:');
+    if(!identity)return;
+    try{const {data,error}=await sb.functions.invoke('ionos-mail',{body:{action:'password_recovery',identity}});if(error)throw error;alert(data?.message||'If this account has a recovery email, a reset link will be sent.');}
+    catch(e){alert('Unable to request a reset right now. Contact ALLSHIELD support.');}
+  };
+  function showRecoveryForm(){
+    let card=document.getElementById('allshieldRecoveryForm');if(card)return;
+    card=document.createElement('div');card.id='allshieldRecoveryForm';card.className='portal-login show';
+    card.innerHTML='<div class="login-card"><h2>Choose a new password</h2><p>Use at least 12 characters.</p><input class="field" type="password" id="newRecoveryPassword" placeholder="New password" autocomplete="new-password"><input class="field" type="password" id="confirmRecoveryPassword" placeholder="Confirm password" autocomplete="new-password"><button class="btn btn-primary" id="saveRecoveryPassword" style="width:100%">Save new password</button><p id="recoveryStatus" role="status"></p></div>';
+    document.body.appendChild(card);
+    card.querySelector('#saveRecoveryPassword').onclick=async()=>{const first=card.querySelector('#newRecoveryPassword').value,again=card.querySelector('#confirmRecoveryPassword').value,status=card.querySelector('#recoveryStatus');if(first.length<12||first!==again){status.textContent='Enter matching passwords of at least 12 characters.';return;}try{const {error}=await sb.auth.updateUser({password:first});if(error)throw error;await sb.auth.signOut();card.remove();history.replaceState({},'',location.pathname);alert('Password updated. Sign in with your username and new password.');window.returnHome();}catch(e){status.textContent=e.message||'Password update failed.';}};
+  }
+  if(sb) sb.auth.onAuthStateChange((event,session)=>{window.allshieldSession=session;if(event==='PASSWORD_RECOVERY')setTimeout(showRecoveryForm,0);});
 
   window.allshieldListTeamUsers=async()=>{if(!sb)return[];const {data,error}=await withTimeout(sb.from('profiles').select('id,username,first_name,last_name,email,role,status,resident_state,department_id,manager_id,created_at,departments(name)').order('created_at',{ascending:false}),15000,'Team users');if(error)throw error;return data||[];};
   window.allshieldListDepartments=async()=>{if(!sb)return[];const {data,error}=await withTimeout(sb.from('departments').select('id,name,slug').order('name'),15000,'Departments');if(error)throw error;return data||[];};

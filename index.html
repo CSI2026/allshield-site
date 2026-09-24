@@ -635,6 +635,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
     <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('agent')">Enter Agent Portal</button>
+    <button class="tiny-btn" style="margin-top:12px" onclick="allshieldRequestPasswordRecovery('agent')">Forgot username or password? Email a reset link</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
@@ -648,6 +649,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
     <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('admin')">Enter Admin Portal</button>
+    <button class="tiny-btn" style="margin-top:12px" onclick="allshieldRequestPasswordRecovery('admin')">Forgot password? Email a reset link</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
@@ -704,6 +706,7 @@ background:#102a45;border:1px solid rgba(123,202,255,.25);color:#a9d8f7;font-siz
     <input class="field" placeholder="Username" aria-label="Username" autocomplete="username">
     <input class="field" type="password" placeholder="Password" autocomplete="current-password">
     <button class="btn btn-primary" style="width:100%" onclick="productionLogin('owner')">Enter Owner Portal</button>
+    <button class="tiny-btn" style="margin-top:12px" onclick="allshieldRequestPasswordRecovery('owner')">Forgot password? Email a reset link</button>
     <div class="back-link" onclick="returnHome()">← Return to website</div>
   </div>
 </div>
@@ -1536,6 +1539,7 @@ const __phase16ShowOwner=showOwnerView;showOwnerView=function(view,el){__phase16
 <script defer src="./phase16-owner-live-dashboard.js?v=2026.08.28.003"></script>
 <script defer src="./phase16-owner-support.js?v=B2026.08.23.020"></script>
 <script defer src="./phase16-live-backoffice.js?v=2026.08.28.001"></script>
+<script defer src="./account-access-controls.js?v=2026.09.24.001"></script>
 <script defer src="./phase16-agent-academy-production.js?v=B2026.08.21.001"></script>
 <script defer src="./phase16-academy-admin.js?v=B2026.08.22.002"></script>
 

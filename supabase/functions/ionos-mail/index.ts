@@ -38,7 +38,7 @@ async function passwordRecovery(b:any){
   const query=a.from("profiles").select("id,username,email,status");
   const {data:matches,error}=identity.includes("@")?await query.ilike("email",identity).limit(2):await query.ilike("username",identity).limit(2);
   if(error||matches?.length!==1)return reply;
-  const profile=matches[0];if(!["active","onboarding","invited"].includes(profile.status)||!profile.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email))return reply;
+  const profile=matches[0];if(!["active","onboarding","invited"].includes(profile.status)||!profile.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(profile.email)||profile.email.toLowerCase().endsWith("@allshield.internal"))return reply;
   const accountLimit=await a.from("audit_log").select("id",{count:"exact",head:true}).eq("action","account_recovery_link_generated").eq("object_id",profile.id).gte("created_at",hour);
   if(accountLimit.error||(accountLimit.count||0)>=3)return reply;
   const {data:user,error:userError}=await a.auth.admin.getUserById(profile.id);if(userError||!user.user?.email)return reply;

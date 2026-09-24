@@ -40,30 +40,37 @@ async function resolveCampaign(admin: any, body: any) {
 
 async function productionByUser(admin: any, campaign: any, plan: any, start: string, end: string) {
   const by = new Map<string, { units: number; value: number }>();
+  const allRows = async (build: (from: number, to: number) => any) => {
+    const rows: any[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await build(from, from + 999);
+      if (error) throw error;
+      rows.push(...(data || []));
+      if ((data || []).length < 1000) return rows;
+    }
+  };
   if (campaign.production_source === "campaign_enrollments") {
-    const { data, error } = await admin.from("campaign_enrollments")
+    const data = await allRows((from, to) => admin.from("campaign_enrollments")
       .select("agent_id,qualified_at")
       .eq("campaign_id", campaign.id)
       .eq("status", "qualified")
       .eq("card_orderable", true)
       .gte("qualified_at", `${start}T00:00:00Z`)
-      .lte("qualified_at", `${end}T23:59:59Z`);
-    if (error) throw error;
-    for (const e of data || []) {
+      .lte("qualified_at", `${end}T23:59:59Z`).order("id").range(from, to));
+    for (const e of data) {
       const x = by.get(e.agent_id) || { units: 0, value: 0 };
       x.units += 1;
       by.set(e.agent_id, x);
     }
   } else {
-    const { data, error } = await admin.from("comp_production_events")
+    const data = await allRows((from, to) => admin.from("comp_production_events")
       .select("user_id,units,value_amount")
       .eq("campaign_id", campaign.id)
       .eq("status", "qualified")
       .eq("metric_key", plan.metric_key || campaign.primary_metric_key || "units")
       .gte("occurred_at", `${start}T00:00:00Z`)
-      .lte("occurred_at", `${end}T23:59:59Z`);
-    if (error) throw error;
-    for (const e of data || []) {
+      .lte("occurred_at", `${end}T23:59:59Z`).order("id").range(from, to));
+    for (const e of data) {
       const x = by.get(e.user_id) || { units: 0, value: 0 };
       x.units += num(e.units);
       x.value += num(e.value_amount);
@@ -107,7 +114,13 @@ Deno.serve(async (req: Request) => {
     const action = String(body.action || "");
     const campaign = await resolveCampaign(admin, body);
     if (!campaign) return json({ error: "Program / campaign not found" }, 404);
-    const { data: plan } = await admin.from("comp_plan_versions").select("*").eq("campaign_id", campaign.id).eq("status", "published").order("version", { ascending: false }).limit(1).maybeSingle();
+    const requestedMonth = String(body.month || "");
+    const asOf = action === "calculate_month" && /^\d{4}-\d{2}$/.test(requestedMonth)
+      ? monthBounds(requestedMonth).end : new Date().toISOString().slice(0, 10);
+    const { data: plan } = await admin.from("comp_plan_versions").select("*").eq("campaign_id", campaign.id)
+      .in("status", ["published", "retired"]).lte("effective_from", asOf)
+      .or(`effective_to.is.null,effective_to.gte.${asOf}`)
+      .order("version", { ascending: false }).limit(1).maybeSingle();
     if (!plan) return json({ error: "Publish a compensation plan before running calculations." }, 409);
     const [{ data: rules, error: re }, { data: tiers, error: te }] = await Promise.all([
       admin.from("comp_bonus_rules").select("*").eq("plan_version_id", plan.id).eq("active", true),

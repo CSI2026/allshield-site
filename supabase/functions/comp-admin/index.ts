@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { completeUtcWeek, acaWeeklyRate } from "../_shared/aca-weekly-rate.mjs";
 
 const BUILD = "B2026.08.29.040";
 const cors = {
@@ -120,30 +121,37 @@ function validateTierRules(rows: any[], plan: any) {
 
 async function productionByUser(admin: any, campaign: any, plan: any, start: string, end: string) {
   const by = new Map<string, { units: number; value: number }>();
+  const allRows = async (build: (from: number, to: number) => any) => {
+    const rows: any[] = [];
+    for (let from = 0; ; from += 1000) {
+      const { data, error } = await build(from, from + 999);
+      if (error) throw error;
+      rows.push(...(data || []));
+      if ((data || []).length < 1000) return rows;
+    }
+  };
   if (campaign.production_source === "campaign_enrollments") {
-    const { data, error } = await admin.from("campaign_enrollments")
+    const data = await allRows((from, to) => admin.from("campaign_enrollments")
       .select("agent_id,qualified_at")
       .eq("campaign_id", campaign.id)
       .eq("status", "qualified")
       .eq("card_orderable", true)
       .gte("qualified_at", `${start}T00:00:00Z`)
-      .lte("qualified_at", `${end}T23:59:59Z`);
-    if (error) throw error;
-    for (const row of data || []) {
+      .lte("qualified_at", `${end}T23:59:59Z`).order("id").range(from, to));
+    for (const row of data) {
       const old = by.get(row.agent_id) || { units: 0, value: 0 };
       old.units += 1;
       by.set(row.agent_id, old);
     }
   } else {
-    const { data, error } = await admin.from("comp_production_events")
+    const data = await allRows((from, to) => admin.from("comp_production_events")
       .select("user_id,units,value_amount")
       .eq("campaign_id", campaign.id)
       .eq("status", "qualified")
       .eq("metric_key", plan.metric_key || campaign.primary_metric_key || "units")
       .gte("occurred_at", `${start}T00:00:00Z`)
-      .lte("occurred_at", `${end}T23:59:59Z`);
-    if (error) throw error;
-    for (const row of data || []) {
+      .lte("occurred_at", `${end}T23:59:59Z`).order("id").range(from, to));
+    for (const row of data) {
       const old = by.get(row.user_id) || { units: 0, value: 0 };
       old.units += num(row.units);
       old.value += num(row.value_amount);
@@ -440,15 +448,34 @@ Deno.serve(async (req: Request) => {
       if (!canPayroll) return json({ error: "Payroll permission required" }, 403);
       const start = String(body.period_start || ""), end = String(body.period_end || "");
       if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end)) return json({ error: "Valid period required" }, 400);
-      const { data: plan } = await admin.from("comp_plan_versions").select("*").eq("campaign_id", campaign.id).eq("status", "published").lte("effective_from", end).or(`effective_to.is.null,effective_to.gte.${start}`).order("version", { ascending: false }).limit(1).single();
+      const { data: plan } = await admin.from("comp_plan_versions").select("*").eq("campaign_id", campaign.id).in("status", ["published", "retired"]).lte("effective_from", start).or(`effective_to.is.null,effective_to.gte.${end}`).order("version", { ascending: false }).limit(1).maybeSingle();
       if (!plan) return json({ error: "No published compensation plan covers this period" }, 409);
+      if (campaign.code === "ACA_DIALER" && plan.config?.agent_rate_period === "weekly") {
+        if (!completeUtcWeek(start, end)) {
+          return json({ error: "ACA rate qualification requires a complete Monday–Sunday UTC week." }, 400);
+        }
+        if (plan.effective_from > start || (plan.effective_to && plan.effective_to < end)) {
+          return json({ error: "The published ACA plan must cover the full payroll week." }, 409);
+        }
+      }
       const { data: tiers, error: tierError } = await admin.from("comp_tier_rules").select("*").eq("plan_version_id", plan.id).eq("active", true).order("tier_order");
       if (tierError) return json({ error: tierError.message }, 400);
+      const { data: priorRun, error: priorRunError } = await admin.from("payroll_runs")
+        .select("status").eq("campaign_id", campaign.id).eq("period_start", start).eq("period_end", end).maybeSingle();
+      if (priorRunError) return json({ error: priorRunError.message }, 400);
+      if (["approved", "paid"].includes(priorRun?.status)) return json({ error: "Approved or paid payroll cannot be recalculated." }, 409);
+      const { data: lockedEntries, error: lockedError } = await admin.from("comp_ledger")
+        .select("id,status").eq("campaign_id", campaign.id).eq("plan_version_id", plan.id)
+        .eq("earning_type", "base_compensation").eq("source_period_start", start).eq("source_period_end", end)
+        .in("status", ["approved", "paid"]).limit(1);
+      if (lockedError) return json({ error: lockedError.message }, 400);
+      if (lockedEntries?.length) return json({ error: "Approved or paid earnings cannot be recalculated." }, 409);
       const by = await productionByUser(admin, campaign, plan, start, end);
       const payable = nextFriday(new Date(new Date(`${end}T00:00:00Z`).getTime() + num(plan.weekly_arrears_days, 14) * 86400000));
       let total = 0, entries = 0;
       for (const [uid, p] of by) {
-        const rate = effectiveRate(plan, tiers || [], p.units);
+        const rate = campaign.code === "ACA_DIALER" && plan.config?.agent_rate_period === "weekly"
+          ? acaWeeklyRate(p.units, tiers || []) : effectiveRate(plan, tiers || [], p.units);
         const amount = calcBase(plan, p.units, p.value, rate);
         if (amount <= 0) continue;
         total += amount; entries++;

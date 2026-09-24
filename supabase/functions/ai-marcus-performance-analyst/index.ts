@@ -31,7 +31,7 @@ const CAPABILITIES=[
 const APPROVED_ACA_REFERENCE={
   campaign_code:"ACA_DIALER",
   base_enrollment_amount:15,
-  agent_monthly:[{threshold:250,amount:250},{threshold:300,amount:500}],
+  agent_weekly_threshold:75,
   manager_direct_override_rate:0.25,
   manager_direct_coaching:[{threshold:200,amount:50},{threshold:250,amount:100},{threshold:300,amount:200}],
   market_monthly:[{threshold:1000,amount:1000},{threshold:2000,amount:2500},{threshold:3000,amount:4000}],
@@ -69,7 +69,12 @@ function expectedRuleIssues(plan:any,rules:any[]){
     for(const e of expected)if(!actualKeys.has(pairKey(e.threshold,e.amount)))add("high",`marcus:rule:${type}:missing:${e.threshold}`,`${label} rule missing`,`Expected ${label} threshold ${e.threshold} with amount $${e.amount}, but that exact rule is not stored.`);
     for(const a of actual)if(!expectedKeys.has(pairKey(a.threshold,a.amount)))add("high",`marcus:rule:${type}:unexpected:${a.threshold}:${a.amount}`,`${label} rule does not match approved framework`,`Stored ${label} threshold ${a.threshold} pays $${a.amount}, which is not in the approved reference.`);
   };
-  compare("agent_monthly",APPROVED_ACA_REFERENCE.agent_monthly,"agent monthly bonus");
+  if(plan.config?.agent_rate_period==="weekly"){
+    const old=rules.filter(r=>r.plan_version_id===plan.id&&r.applies_to_role==="agent"&&r.active!==false);
+    if(old.length)add("critical",`marcus:plan:${plan.id}:obsolete_agent_bonus`,"Obsolete ACA agent bonus remains",`${old.length} individual agent bonus rule(s) remain on the weekly-rate plan.`);
+  }else{
+    add("high",`marcus:plan:${plan.id}:old_agent_pay`,"ACA weekly agent rate has not been published","The approved agent pay is $15 per qualified enrollment, or $20 for every enrollment in a week with 75 or more; the current plan still uses the old agent bonus structure.");
+  }
   compare("manager_direct_coaching",APPROVED_ACA_REFERENCE.manager_direct_coaching,"manager direct coaching bonus");
   compare("market_monthly",APPROVED_ACA_REFERENCE.market_monthly,"direct-market volume bonus");
   compare("promoting_manager_market",APPROVED_ACA_REFERENCE.promoting_manager_market,"promoting-manager market bonus");
@@ -84,7 +89,7 @@ async function snapshot(){
     rows("production_entries","id,user_id,period_start,period_end,sales_count,quality_score,source,created_at"),
     rows("campaign_enrollments","id,campaign_id,agent_id,submitted_at,qualified_at,status,card_orderable,residual_eligible,coverage_effective_date,reconciliation_status,created_at"),
     rows("comp_plan_versions","id,campaign_id,version,status,effective_from,effective_to,base_enrollment_amount,weekly_arrears_days,payday_dow,residual_pool_per_member,config,contract_terms,published_at,created_at"),
-    rows("comp_bonus_rules","id,plan_version_id,rule_type,threshold,amount,generation_scope,metadata"),
+    rows("comp_bonus_rules","id,plan_version_id,rule_type,threshold,amount,generation_scope,applies_to_role,active,metadata"),
     rows("comp_ledger","id,user_id,campaign_id,plan_version_id,earning_type,source_period_start,source_period_end,units,rate,amount,status,payable_on,paid_at,source_ref,created_at"),
     rows("payroll_runs","id,campaign_id,period_start,period_end,payable_on,status,gross_amount,approved_by,approved_at,paid_at,created_at"),
     rows("payroll_run_items","id,payroll_run_id,user_id,comp_ledger_id,earning_type,amount,created_at"),
@@ -129,8 +134,7 @@ function coaching(s:any){
   const recs:any[]=[];
   for(const p of s.people){
     const monthly=p.qualified_enrollments||p.production_sales;
-    const nextAgent=APPROVED_ACA_REFERENCE.agent_monthly.find(x=>monthly<x.threshold);
-    if(nextAgent&&monthly>0&&monthly>=nextAgent.threshold*0.8)recs.push({user_id:p.user_id,name:p.name,type:"near_bonus_threshold",evidence:{current:monthly,next_threshold:nextAgent.threshold},recommendation:`Coach toward the ${nextAgent.threshold}-enrollment monthly milestone; current verified count is ${monthly}.`});
+    // Monthly totals cannot establish qualification for a weekly rate.
     if(p.qualification_rate!=null&&p.submitted_enrollments>=10&&p.qualification_rate<70)recs.push({user_id:p.user_id,name:p.name,type:"qualification_rate",evidence:{submitted:p.submitted_enrollments,qualified:p.qualified_enrollments,rate:p.qualification_rate},recommendation:"Review call quality, eligibility verification and submission accuracy; qualification rate is materially below 70%."});
     if(p.average_quality!=null&&p.average_quality<80)recs.push({user_id:p.user_id,name:p.name,type:"quality_score",evidence:{average_quality:p.average_quality},recommendation:"Review QA feedback and coaching opportunities; verified average quality score is below 80."});
   }

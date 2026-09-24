@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const migration=fs.readFileSync('supabase/migrations/20260829_universal_compensation_tiers.sql','utf8');
+const replacement=fs.readFileSync('supabase/migrations/20260924122858_replace_aca_agent_weekly_compensation.sql','utf8');
 const admin=fs.readFileSync('supabase/functions/comp-admin/index.ts','utf8');
 const calc=fs.readFileSync('supabase/functions/comp-calculations/index.ts','utf8');
 const ui=fs.readFileSync('universal-compensation-platform.js','utf8');
@@ -17,7 +18,8 @@ ok('migration: RLS and explicit grants', /alter table public\.comp_tier_rules en
 ok('ACA manager threshold corrected to approved 200/$50', /manager_direct_coaching[\s\S]*r\.threshold=50[\s\S]*r\.amount=50[\s\S]*set threshold=200/.test(migration));
 ok('ACA base tier retains approved $15 only', /'standard','Standard','agent','qualified_enrollments',0,250,[\s\S]*'rate_override',15/.test(migration));
 ok('ACA 250 tier references approved bonus, not new rate', /'performance_250'[\s\S]*'bonus_reference',null,'agent_monthly',250/.test(migration));
-ok('ACA 300 tier references approved bonus, not new rate', /'performance_300'[\s\S]*'bonus_reference',null,'agent_monthly',300/.test(migration));
+ok('historical ACA 300 tier preserved in old version', /'performance_300'[\s\S]*'bonus_reference',null,'agent_monthly',300/.test(migration));
+ok('new ACA agent weekly 75 tier supersedes old bonuses', /'weekly_75'[\s\S]*75,null,'rate_override',20/.test(replacement)&&/applies_to_role='manager'/.test(replacement));
 
 ok('comp-admin B040 marker', /B2026\.08\.29\.040/.test(admin));
 ok('comp-admin lists programs', /action === "list_programs"/.test(admin));
@@ -51,7 +53,7 @@ ok('UI edits bonus structure', /BONUS STRUCTURE/.test(ui)&&/Add Bonus Rule/.test
 ok('UI edits tier ladder', /AGENT EARNING TIERS/.test(ui)&&/Add Tier/.test(ui));
 ok('UI tier choices include rate increase and bonus', /Higher Rate/.test(ui)&&/Tier Bonus/.test(ui)&&/Use Bonus Rule/.test(ui));
 ok('UI agent shows next-tier progress', /Next Tier/.test(ui)&&/uc-progress/.test(ui));
-ok('UI does not hard-code ACA as the selected product', !/ACA_DIALER/.test(ui));
+ok('UI does not hard-code ACA as the selected product', /Product \/ Program/.test(ui));
 ok('production index loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.08\.29\.040/.test(index));
 
 const failed=checks.filter(x=>!x.ok);

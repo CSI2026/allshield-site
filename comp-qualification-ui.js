@@ -22,7 +22,19 @@ async function loadBonusQualification(){
     const {data:ud}=await sb.auth.getUser();const u=ud?.user;if(!u)return;
     const code=window.ALLSHIELD_AGENT_COMP_PROGRAM;
     const {data:campaign,error:ce}=await sb.from('campaigns').select('id,code,name').eq('code',code).maybeSingle();if(ce||!campaign)return;
-    const {data:plan,error:pe}=await sb.from('comp_plan_versions').select('id,version,metric_key,unit_label').eq('campaign_id',campaign.id).eq('status','published').order('version',{ascending:false}).limit(1).maybeSingle();if(pe||!plan)return;
+    const {data:plan,error:pe}=await sb.from('comp_plan_versions').select('id,version,metric_key,unit_label,config,effective_from').eq('campaign_id',campaign.id).in('status',['published','retired']).lte('effective_from',new Date().toISOString().slice(0,10)).or(`effective_to.is.null,effective_to.gte.${new Date().toISOString().slice(0,10)}`).order('version',{ascending:false}).limit(1).maybeSingle();if(pe||!plan)return;
+    if(code==='ACA_DIALER'&&plan.config?.agent_rate_tier_period==='weekly'){
+      const now=new Date(),start=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()-((now.getUTCDay()+6)%7)));
+      const next=new Date(start.getTime()+7*86400000);
+      const {count,error}=await sb.from('campaign_enrollments').select('id',{count:'exact',head:true})
+        .eq('campaign_id',campaign.id).eq('agent_id',u.id).eq('status','qualified').eq('card_orderable',true)
+        .gte('qualified_at',start.toISOString()).lt('qualified_at',next.toISOString());
+      if(error)throw error;
+      const n=Number(count||0),rate=n>=75?20:15;
+      const card=document.createElement('div');card.id='ucBonusQualificationCard';card.className='bo-card';card.style.marginTop='18px';
+      card.innerHTML=`<div class="kicker">WEEKLY ACA RATE</div><h3>${n} qualified enrollments this week</h3><p class="uc-section-note">Monday–Sunday UTC • Current rate: ${money(rate)} per qualified enrollment. At 75 or more, ${money(20)} applies to every qualified enrollment in that week, including the first 74.</p><div class="uc-progress"><span style="width:${Math.min(100,Math.round(n/75*100))}%"></span></div><div class="uc-mini">${n>=75?'75+ weekly rate reached':`${75-n} to the weekly rate`} • Subject to verification and reconciliation.</div>`;
+      main.appendChild(card);return;
+    }
     const [snapQ,rulesQ]=await Promise.all([
       sb.from('comp_qualification_snapshots').select('units,production_value,current_tier,next_tier,bonus_progress,updated_at').eq('campaign_id',campaign.id).eq('plan_version_id',plan.id).eq('user_id',u.id).eq('qualification_month',monthStart()).maybeSingle(),
       sb.from('comp_bonus_rules').select('id,rule_type,rule_name,threshold,amount,payout_type').eq('plan_version_id',plan.id).eq('active',true).eq('applies_to_role','agent').eq('aggregation_scope','self').eq('period','monthly').eq('metric_key',plan.metric_key).order('rule_type').order('threshold')

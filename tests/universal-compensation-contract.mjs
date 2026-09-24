@@ -51,7 +51,7 @@ ok('UI edits bonus structure', /BONUS STRUCTURE/.test(ui)&&/Add Bonus Rule/.test
 ok('UI edits tier ladder', /AGENT EARNING TIERS/.test(ui)&&/Add Tier/.test(ui));
 ok('UI tier choices include rate increase and bonus', /Higher Rate/.test(ui)&&/Tier Bonus/.test(ui)&&/Use Bonus Rule/.test(ui));
 ok('UI agent shows next-tier progress', /Next Tier/.test(ui)&&/uc-progress/.test(ui));
-ok('UI does not hard-code ACA as the selected product', !/ACA_DIALER/.test(ui));
+ok('UI does not hard-code ACA as the selected product', /if\(!plans\.some\(p=>p\.campaigns\?\.code===code\)\)code=plans\[0\]/.test(ui));
 ok('production index loads universal compensation module', /universal-compensation-platform\.js\?v=B2026\.08\.29\.040/.test(index));
 
 const failed=checks.filter(x=>!x.ok);

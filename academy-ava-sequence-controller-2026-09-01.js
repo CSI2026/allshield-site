@@ -1,6 +1,6 @@
 (()=>{
 'use strict';
-const VERSION='2026.09.03.001';
+const VERSION='2026.10.01.002';
 const sb=()=>window.allshieldSupabase;
 const portal=()=>document.getElementById('agentPortal');
 let pref=null;
@@ -110,7 +110,31 @@ function wrapFocus(){if(wrappedFocus||typeof window.asGuidedBeginFocus!=='functi
  };wrappedFocus=true}
 function wrapStudy(){if(wrappedStudy||typeof window.asGuidedOpenStudy!=='function')return;const old=window.asGuidedOpenStudy;window.asGuidedOpenStudy=async(...args)=>{currentLessonId=null;const out=await old(...args);setTimeout(()=>{nextLessonId=parseNextLessonId();applyIntroPolicy()},180);return out};wrappedStudy=true}
 
-function scan(){wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){segmentLabel();if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook')){stopDetachedNarration();hideInstructorDocks();removeInstructorMode()}}
+
+function assistanceControls(){
+ const anchor=document.querySelector('#agentPortal .as-lesson-head')||document.querySelector('#agentPortal .as-guide-next');
+ if(!anchor||document.getElementById('asAvaAccess'))return;
+ const panel=document.createElement('section');panel.id='asAvaAccess';
+ panel.style.cssText='display:block;width:100%;box-sizing:border-box;padding:16px;margin:0 0 18px;background:#eef7fd;border:1px solid #b7d7ec;border-radius:12px';
+ panel.innerHTML='<strong style="display:block;color:#17384f">Ava · Your course instructor</strong><p style="margin:8px 0;color:#365268">Watch Ava explain the lesson and follow the reading. Switch back to reading whenever you want.</p><div style="display:flex;flex-wrap:wrap;gap:10px"><button type="button" id="asAvaEnable" style="min-height:48px;padding:12px 18px;border:0;border-radius:10px;background:#1f70a6;color:white;font-weight:700">Learn with Ava</button><button type="button" id="asAvaRead" style="min-height:48px;padding:12px 18px;border:1px solid #8faec2;border-radius:10px;background:white;color:#17384f">Read on my own</button></div><p id="asAvaAccessStatus" role="status" style="margin:10px 0 0;color:#365268"></p>';
+ (anchor.closest('.as-guide-card')||anchor).before(panel);
+ panel.querySelector('#asAvaEnable').onclick=async()=>{
+  const status=panel.querySelector('#asAvaAccessStatus');status.textContent='Opening Ava…';
+  try{
+   await window.asGuidedSetMode(true);
+   if(!currentLessonId){const id=parseNextLessonId();if(id)await window.asGuidedStartLesson(id);else{status.textContent='Open a lesson to learn with Ava.';return}}
+   let v=lessonVideoElement();
+   if(!v){await window.asGuidedStartLesson(currentLessonId);for(let i=0;i<25&&!v;i++){await sleep(100);v=lessonVideoElement()}}
+   if(!v)throw new Error('Ava could not load for this lesson. Please retry or continue reading.');
+   if(v.ended)v.currentTime=0;
+   makeVideoPrimary(false);v.scrollIntoView({behavior:'smooth',block:'center'});
+   try{await v.play()}catch{status.textContent='Tap the play button on Ava’s video to begin.'}
+  }catch(e){status.textContent=e.message||'Ava could not open. Please try again.'}
+ };
+ panel.querySelector('#asAvaRead').onclick=async()=>{await window.asGuidedSetMode(false);makeSoloPrimary();document.getElementById('asAvaAccessStatus').textContent='Reading mode. You can turn Ava on again anytime.'};
+}
+
+function scan(){assistanceControls();wrapChoice();wrapMode();wrapStart();wrapFocus();wrapStudy();nextLessonId=parseNextLessonId()||nextLessonId;applyIntroPolicy();const raw=lessonVideoElement();if(raw?.ended){removeInstructorMode();hideInstructorDocks();return}if(raw){segmentLabel();if(mode==='guided')makeVideoPrimary(false);else makeSoloPrimary()}else if(mode==='guided'&&currentLessonId&&document.getElementById('asTextbook')){stopDetachedNarration();hideInstructorDocks();removeInstructorMode()}}
 function boot(){scan();loadPreference();scanTimer=setInterval(scan,180);window.addEventListener('pagehide',()=>{if(scanTimer)clearInterval(scanTimer)});window.ALLSHIELD_AVA_SEQUENCE_VERSION=VERSION}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();

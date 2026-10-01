@@ -10,7 +10,7 @@
       const isOwner = window.currentAllshieldProfile?.role === 'owner';
       host.innerHTML = `<div class="dashboard-head"><div><div class="kicker">ACCOUNT ACCESS</div><h2>Sign-in and password help.</h2><p>Closing an account blocks sign-in while retaining payroll and agreement history. A reset link goes to the contact email on file.</p></div><button class="btn btn-primary" id="accessRefresh">Refresh</button></div><div class="bo-card team-table-wrap" style="margin-top:18px"><table class="team-live-table"><thead><tr><th>Person</th><th>Username</th><th>Contact email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead><tbody>${users.map(u => {
         const protectedAccount = u.role === 'owner' || (!isOwner && u.role === 'admin');
-        const actions = protectedAccount ? '<span class="pill">Protected</span>' : `<button class="tiny-btn" data-access="reset" data-id="${escape(u.id)}">Generate password</button> <button class="tiny-btn" data-access="email" data-id="${escape(u.id)}">Email reset link</button> <button class="tiny-btn" data-access="toggle" data-id="${escape(u.id)}">${['inactive','terminated'].includes(u.status) ? 'Restore sign-in' : 'Suspend sign-in'}</button> <button class="tiny-btn" data-access="close" data-id="${escape(u.id)}">Close account</button>`;
+        const actions = protectedAccount ? '<span class="pill">Protected</span>' : `<button class="tiny-btn" data-access="set" data-id="${escape(u.id)}">Set password</button> <button class="tiny-btn" data-access="reset" data-id="${escape(u.id)}">Generate password</button> <button class="tiny-btn" data-access="email" data-id="${escape(u.id)}">Email reset link</button> <button class="tiny-btn" data-access="toggle" data-id="${escape(u.id)}">${['inactive','terminated'].includes(u.status) ? 'Restore sign-in' : 'Suspend sign-in'}</button> <button class="tiny-btn" data-access="close" data-id="${escape(u.id)}">Close account</button>`;
         return `<tr><td>${escape([u.first_name,u.last_name].filter(Boolean).join(' '))}</td><td>${escape(u.username)}</td><td>${escape(u.email || 'No contact email')}</td><td>${escape(u.role)}</td><td>${escape(u.status)}</td><td>${actions}</td></tr>`;
       }).join('')}</tbody></table></div>`;
       host.querySelector('#accessRefresh').onclick = () => render(role);
@@ -22,7 +22,16 @@
         if (action === 'close' && !confirm(`Close ${user.username}'s account? Sign-in will be blocked and payroll history retained.`)) return;
         if (action === 'toggle' && !confirm(`${['inactive','terminated'].includes(user.status) ? 'Restore' : 'Suspend'} sign-in for ${user.username}?`)) return;
         try {
-          if (action === 'reset') {
+          if (action === 'set') {
+            const password = prompt(`Enter a new password for ${user.username} (at least 12 characters):`);
+            if (password === null) return;
+            if (password.length < 12) throw new Error('Use at least 12 characters.');
+            const confirmation = prompt('Enter the new password again to confirm:');
+            if (confirmation === null) return;
+            if (password !== confirmation) throw new Error('Passwords do not match.');
+            await window.allshieldManageTeamUser({action:'reset_password',user_id:user.id,password});
+            alert(`Password updated for ${user.username}.`);
+          } else if (action === 'reset') {
             const result = await window.allshieldManageTeamUser({action:'reset_password',user_id:user.id});
             prompt('Copy this temporary password now. It will not be displayed again:',result.temp_password);
           } else if (action === 'email') {

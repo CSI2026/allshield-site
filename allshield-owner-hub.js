@@ -13,6 +13,7 @@
     { key: 'sales', icon: '◎', name: 'Sales', blurb: 'What you sell, where, and to whom.', tabs: [['Carriers & Programs', 'Carriers & Programs'], ['States & Licensing', 'State Licensing Matrix'], ['CRM & Leads', 'CRM & Lead Routing']] },
     { key: 'academy', icon: '▣', name: 'Academy', blurb: 'Training and testing for agents.', tabs: [['Courses', 'Academy Governance'], ['Tests & Scores', 'Agent Testing & Scores'], ['Content Versions', 'Content Versioning']] },
     { key: 'social', icon: '✦', name: 'Social', blurb: 'Everything for posting and content, in one place.', tabs: [['Post', 'Social Publishing'], ['Marketing', 'Corporate Marketing Center'], ['Videos', 'Video & YouTube Studio'], ['Media Library', 'Media Studio'], ['Brand', 'Brand Center'], ['Connected Accounts', 'Social Connection Center']] },
+    { key: 'website', icon: '▦', name: 'Website', blurb: 'What visitors see on the public site.', tabs: [['Site Photos', 'Site Photos'], ['Homepage Pop-up', 'Homepage Pop-up']] },
     { key: 'pay', icon: '$', name: 'Pay & Contracts', blurb: 'Compensation plans, agreements and signatures.', tabs: [['Compensation', 'Compensation & Programs'], ['Signatures & Agreements', 'Signature & Agreements']] },
     { key: 'office', icon: '✉', name: 'Office', blurb: 'Day-to-day company business.', tabs: [['Messages', 'Company Communications'], ['Meetings', 'Meeting Governance'], ['File Vault', 'Owner File Vault']] },
     { key: 'ai', icon: '✧', name: 'AI Team', blurb: 'Your AI employees.', tabs: [['Command Center', 'AI Command Center']] },

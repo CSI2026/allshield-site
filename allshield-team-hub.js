@@ -12,7 +12,7 @@
       { key: 'people', icon: '♟', name: 'People', tabs: [['Team & Roles', 'Team & Roles'], ['Hierarchy', 'Hierarchy & Promotions'], ['Onboarding', 'Onboarding Control'], ['Account Access', 'Account Access'], ['Recruiting', 'Recruiting & Leads']] },
       { key: 'sales', icon: '◎', name: 'Sales', tabs: [['Carriers & Programs', 'Carriers & Programs'], ['Licensing', 'Licensing Oversight']] },
       { key: 'academy', icon: '▣', name: 'Academy', tabs: [['Courses', 'Course Builder'], ['Tests & Scores', 'Tests & Scoring']] },
-      { key: 'social', icon: '✦', name: 'Social', tabs: [['Marketing', 'Marketing Center'], ['Connected Accounts', 'Social Connection Center']] },
+      { key: 'social', icon: '✦', name: 'Social', tabs: [['Marketing', 'Marketing Center'], ['Homepage Pop-up', 'Homepage Pop-up'], ['Connected Accounts', 'Social Connection Center']] },
       { key: 'office', icon: '✉', name: 'Office', tabs: [['Messages', 'Communications'], ['Meetings', 'Meeting Rooms'], ['Documents & E-Sign', 'Documents & E-Sign']] },
       { key: 'system', icon: '⚙', name: 'System', tabs: [['AI Operations', 'AI Operations'], ['Automations', 'Automation Center'], ['Settings', 'System Settings']] }
     ] },

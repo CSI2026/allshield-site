@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-10-04T18:24:30.795Z",
+  "completed_at": "2026-10-04T23:41:16.045Z",
   "status": "FAIL",
   "passed": 35,
   "total": 39,
@@ -44,7 +44,7 @@
     {
       "name": "Owner permissions",
       "ok": true,
-      "detail": "ROLES & PERMISSIONSLive access control.Manage role-based access and explicit user-level permission overrides.LIVE SUPABASE DATA |       RoleActive Peopl"
+      "detail": "ROLES & PERMISSIONS | Live access control. |  | Manage role-based access and explicit user-level permission overrides. |  | LIVE SUPABASE DATA | ROLE\tACTIVE PEOPL"
     },
     {
       "name": "Owner teamaccounts",

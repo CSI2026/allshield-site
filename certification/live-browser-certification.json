@@ -1,9 +1,9 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-10-05T03:27:37.853Z",
+  "completed_at": "2026-10-05T03:34:51.377Z",
   "status": "FAIL",
-  "passed": 35,
+  "passed": 32,
   "total": 39,
   "checks": [
     {
@@ -34,7 +34,7 @@
     {
       "name": "Owner ai",
       "ok": false,
-      "detail": "AI WORKFORCE COMMAND CENTERYour measurable AI workforce.Every AI employee has a name, permanent job assignment, KPI charter, tracked work history and "
+      "detail": "AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a"
     },
     {
       "name": "Owner ai revisit",
@@ -49,7 +49,7 @@
     {
       "name": "Owner teamaccounts",
       "ok": true,
-      "detail": "TEAM ACCOUNTS | Agent accounts and master files. |  | Create an agent with only the information you know. ALLSHIELD generates the secure account identity be"
+      "detail": "TEAM ACCOUNTSAgent accounts and master files.Create an agent with only the information you know. ALLSHIELD generates the secure account identity befor"
     },
     {
       "name": "Owner departments",
@@ -83,18 +83,18 @@
     },
     {
       "name": "Owner academy",
-      "ok": true,
-      "detail": "ACADEMY GOVERNANCE | Academy launch control. |  | Curriculum, question validation, state readiness, AI status and agent progress. |  | Refresh | TRUE MASTER • LIV"
+      "ok": false,
+      "detail": ""
     },
     {
       "name": "Owner testing",
-      "ok": true,
-      "detail": "AGENT TESTING OVERSIGHT | Testing, courses and exam readiness. |  | Live scores, attempts, course progress and state readiness. Use View As for complete age"
+      "ok": false,
+      "detail": "ACADEMY PROGRESS | How every agent is doing. |  | Progress and scores from the Allshield Academy. It updates as agents study. |  | Refresh | AGENT\tSTATUS\tPRE-LICE"
     },
     {
       "name": "Owner versions",
-      "ok": true,
-      "detail": "CONTENT VERSIONING | Controlled content history. |  | Create immutable versions, publish approved revisions and retire superseded content. |  | LIVE SUPABASE DA"
+      "ok": false,
+      "detail": ""
     },
     {
       "name": "Owner updates",
@@ -203,8 +203,11 @@
     }
   ],
   "failures": [
-    "Owner ai: AI WORKFORCE COMMAND CENTERYour measurable AI workforce.Every AI employee has a name, permanent job assignment, KPI charter, tracked work history and ",
+    "Owner ai: AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a",
     "Owner ai revisit: tab rebuilds after route change",
+    "Owner academy: ",
+    "Owner testing: ACADEMY PROGRESS | How every agent is doing. |  | Progress and scores from the Allshield Academy. It updates as agents study. |  | Refresh | AGENT\tSTATUS\tPRE-LICE",
+    "Owner versions: ",
     "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity",
     "Certification execution: page.waitForFunction: Timeout 30000ms exceeded.\n    at /home/runner/work/allshield-site/allshield-site/tests/live-browser-cert.mjs:19:567"
   ]

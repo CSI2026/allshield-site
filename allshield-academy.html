@@ -142,6 +142,9 @@ main{padding-left:max(16px,44px)}
 </head>
 <body>
 <div id="app"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js"></script>
+<script>window.ALLSHIELD_CONFIG={SUPABASE_URL:"https://xxeiddnfbdqxwuojuggy.supabase.co",SUPABASE_PUBLISHABLE_KEY:"sb_publishable_-JRPOYo13dO2h35TFkvR5Q_csWn9NFE"};</script>
+<script src="./allshield-academy-bridge.js?v=2026.10.05.001"></script>
 <script>
 /* ===================== CONFIG (safe to edit) ===================== */
 var CONFIG = {
@@ -164,7 +167,7 @@ var DATA = {"chapters":[{"id":"ch01","num":1,"title":"Basic Principles of Life a
 "use strict";
 var KEY="allshield_academy_v1", mem=null;
 function load(){try{var r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return mem||{done:{},scores:{},pos:{},run:{},survey:null,track:"prep",tab:{}}}
-function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){mem=S;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}try{if(window.__asAcademySync)window.__asAcademySync(S)}catch(e){}}
 var S=load();["done","scores","pos","run","tab"].forEach(function(k){if(!S[k])S[k]={}});if(!S.track)S.track="prep";
 var app=document.getElementById("app");
 function esc(t){return String(t==null?"":t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
@@ -407,7 +410,8 @@ function toggleAva(c){if(AVA)return closeAva();
   function quiz(){if(!qs.length)return say("There is no question bank for this lesson. Try one of the chapters.");var q=qs[Math.floor(Math.random()*qs.length)];
     var d=say('<b>'+rich(q.q)+'</b>'+q.choices.map(function(x,n){return '<button class="opt" data-n="'+n+'">'+rich(x)+'</button>'}).join(""));
     d.addEventListener("click",function(e){var o=e.target.closest(".opt");if(!o||d.dataset.d)return;d.dataset.d=1;var n=+o.dataset.n;say((n===q.answer?"<b>Correct.</b> ":"<b>Not quite.</b> The answer is: "+rich(q.choices[q.answer])+". ")+rich(q.why))})}
-  function answer(t){var w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").trim();if(!w)return;
+  function answer(t){if(window.__asTutor){var wait=say("<i>Ava is thinking…</i>");return window.__asTutor(t,c,function(html){wait.innerHTML=html;log.scrollTop=log.scrollHeight},function(){wait.remove();answerLocal(t)})}answerLocal(t)}
+  function answerLocal(t){var w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").trim();if(!w)return;
     var sets=[c].concat(DATA.chapters,DATA.modules),hit=null;
     sets.some(function(s){return (s.keywords||[]).some(function(k){var kt=k.term.toLowerCase();if(w===kt||w.indexOf(kt)>=0||(w.length>3&&kt.indexOf(w)>=0)){hit={k:k,s:s};return true}})});
     if(hit)return say('<b>'+esc(hit.k.term)+':</b> '+rich(hit.k.def)+(hit.s.title?' <span style="color:var(--mut)">('+esc(hit.s.title)+')</span>':''));

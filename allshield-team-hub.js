@@ -11,14 +11,14 @@
       { key: 'dashboard', icon: '⌂', name: 'Dashboard', tabs: [['Dashboard', 'Executive Dashboard'], ['Production', 'Production'], ['Rankings & Bonuses', 'Rankings & Bonuses']] },
       { key: 'people', icon: '♟', name: 'People', tabs: [['Team & Roles', 'Team & Roles'], ['Hierarchy', 'Hierarchy & Promotions'], ['Onboarding', 'Onboarding Control'], ['Account Access', 'Account Access'], ['Recruiting', 'Recruiting & Leads']] },
       { key: 'sales', icon: '◎', name: 'Sales', tabs: [['Carriers & Programs', 'Carriers & Programs'], ['Licensing', 'Licensing Oversight']] },
-      { key: 'academy', icon: '▣', name: 'Academy', tabs: [['Courses', 'Course Builder'], ['Tests & Scores', 'Tests & Scoring']] },
+      { key: 'academy', icon: '▣', name: 'Academy', tabs: [['Allshield Academy', 'Allshield Academy'], ['Agent Progress', 'Academy Progress']] },
       { key: 'social', icon: '✦', name: 'Social', tabs: [['Marketing', 'Marketing Center'], ['Homepage Pop-up', 'Homepage Pop-up'], ['Connected Accounts', 'Social Connection Center']] },
       { key: 'office', icon: '✉', name: 'Office', tabs: [['Messages', 'Communications'], ['Meetings', 'Meeting Rooms'], ['Documents & E-Sign', 'Documents & E-Sign']] },
       { key: 'system', icon: '⚙', name: 'System', tabs: [['AI Operations', 'AI Operations'], ['Automations', 'Automation Center'], ['Settings', 'System Settings']] }
     ] },
     agent: { entryView: 'onboarding', showFn: 'showAgentView', sections: [
       { key: 'licensed', icon: '①', name: 'Get Licensed', tabs: [['Get Licensed', 'Get Licensed']] },
-      { key: 'training', icon: '▣', name: 'Training', tabs: [['Study', 'Study & Complete Tasks'], ['Practice Tests', 'Practice & Take Tests'], ['AI Study Help', 'AI Study Help']] },
+      { key: 'training', icon: '▣', name: 'Training', tabs: [['Allshield Academy', 'Allshield Academy']] },
       { key: 'sell', icon: '◎', name: 'What I Can Sell', tabs: [['Carriers & Programs', 'Carriers & Programs']] },
       { key: 'account', icon: '♟', name: 'My Account', tabs: [['My Account', 'My Account'], ['My Agreements', 'My Agreements']] }
     ] }

@@ -15,7 +15,9 @@
   function addStyles() {
     if (document.getElementById('aalStyles')) return;
     var s = document.createElement('style'); s.id = 'aalStyles';
-    s.textContent = '.aal-frame{width:100%;height:calc(100vh - 150px);min-height:640px;border:0;border-radius:18px;background:#f3f6fb;display:block}' +
+    s.textContent = '.aal-frame{width:100%;height:calc(100vh - 200px);min-height:600px;border:0;border-radius:18px;background:#f3f6fb;display:block}' +
+      '.aal-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}.aal-note{font-size:13px;opacity:.75}' +
+      '.aal-exit{padding:11px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.3);background:#17693a;color:#fff;font-weight:700;cursor:pointer}.aal-exit:disabled{opacity:.6;cursor:wait}' +
       '.aal-wrap{overflow:auto;border:1px solid rgba(255,255,255,.09);border-radius:18px;background:#0c1a2c}' +
       '.aal-table{width:100%;border-collapse:collapse;min-width:760px;font-size:13px}.aal-table th,.aal-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;white-space:nowrap}' +
       '.aal-table th{font-size:11px;letter-spacing:.12em;color:#7bcaff;text-transform:uppercase}' +
@@ -24,7 +26,15 @@
     document.head.appendChild(s);
   }
   function courseScreen() {
-    host().innerHTML = '<iframe class="aal-frame" title="Allshield Academy" src="./allshield-academy.html?embed=1"></iframe>';
+    host().innerHTML = '<div class="aal-bar"><span class="aal-note">Your progress saves to your account as you go.</span><button type="button" class="aal-exit" data-aal="saveexit">✓ Save &amp; Exit Training</button></div>' +
+      '<iframe class="aal-frame" title="Allshield Academy" src="./allshield-academy.html?embed=1"></iframe>';
+  }
+  async function saveAndExit(btn) {
+    btn.disabled = true; btn.textContent = 'Saving…';
+    var f = host() && host().querySelector('iframe.aal-frame');
+    try { var w = f && f.contentWindow; if (w && typeof w.__asAcademyFlush === 'function') await w.__asAcademyFlush(); } catch (e) { }
+    btn.textContent = 'Saved ✓';
+    setTimeout(function () { if (window.allshieldPortalNav) window.allshieldPortalNav.home(); }, 350);
   }
   function pct(a, b) { return b ? Math.round(100 * a / b) : 0; }
   function when(iso) { var d = new Date(iso); if (isNaN(d)) return '—'; var days = Math.floor((Date.now() - d.getTime()) / 86400000); return days <= 0 ? 'Today' : days === 1 ? 'Yesterday' : days < 30 ? days + ' days ago' : d.toLocaleDateString(); }
@@ -59,6 +69,7 @@
     var t = ev.target.closest ? ev.target.closest('[data-aal]') : null; if (!t) return;
     var a = t.getAttribute('data-aal');
     if (a === 'refresh') return void progressScreen();
+    if (a === 'saveexit') return void saveAndExit(t);
     if (a === 'open') { t.parentElement.querySelectorAll('.side-link').forEach(function (x) { x.classList.remove('active'); }); t.classList.add('active'); open(t.getAttribute('data-portal'), t.getAttribute('data-screen')); }
   });
   function addLink(portal, screen, label) {

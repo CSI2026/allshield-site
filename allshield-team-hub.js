@@ -194,6 +194,9 @@
       if (b && /returnHome|allshieldSignOut/.test(b.getAttribute('onclick') || '')) { st.section = null; setTimeout(render, 0); }
     });
     if (window.MutationObserver) new MutationObserver(function () { if (!st.section && !st.classic) render(); }).observe(sidebar, { childList: true, subtree: true });
+    /* older scripts sometimes rewrite the portal's class list; put the home screen back when they do */
+    if (window.MutationObserver) new MutationObserver(function () { if (!st.classic && !portal.classList.contains('hub-on')) render(); }).observe(portal, { attributes: true, attributeFilter: ['class'] });
+    window.allshieldHubHome = window.allshieldHubHome || {}; window.allshieldHubHome[role] = goHome;
     render();
   }
   boot();

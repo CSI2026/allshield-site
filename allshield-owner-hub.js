@@ -188,6 +188,9 @@
     });
     /* other scripts add menu links a moment after load; redraw Home when they do */
     if (window.MutationObserver) new MutationObserver(function () { if (!st.section && !st.classic) render(); }).observe(sidebar, { childList: true, subtree: true });
+    /* older scripts sometimes rewrite the portal's class list; put the home screen back when they do */
+    if (window.MutationObserver) new MutationObserver(function () { if (!st.classic && !portal.classList.contains('hub-on')) render(); }).observe(portal, { attributes: true, attributeFilter: ['class'] });
+    window.allshieldHubHome = window.allshieldHubHome || {}; window.allshieldHubHome['owner'] = goHome;
     render();
   }
   if (document.readyState === 'complete') setTimeout(boot, 0);

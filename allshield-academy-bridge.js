@@ -37,6 +37,14 @@
     pending = S; if (!ready) return;
     clearTimeout(timer); timer = setTimeout(function () { var s = pending; pending = null; if (s) push(s); }, 1500);
   };
+  /* called by the "Save & Exit" button in the back office: save right now, then tell the caller when done */
+  window.__asAcademyFlush = async function () {
+    clearTimeout(timer);
+    var s = pending; pending = null;
+    if (!s && window.__academy && window.__academy.S) s = window.__academy.S();
+    if (s && ready) { try { await push(s); } catch (e) { } }
+    return true;
+  };
   /* called by the "Ask Ava" box */
   window.__asTutor = function (question, lesson, ok, fail) {
     if (!client || !session) return fail();

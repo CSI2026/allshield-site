@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-10-05T03:34:51.377Z",
+  "completed_at": "2026-10-05T04:21:53.935Z",
   "status": "FAIL",
   "passed": 32,
   "total": 39,
@@ -29,7 +29,7 @@
     {
       "name": "Owner dashboard",
       "ok": true,
-      "detail": "ALLSHIELD OWNER CONTROL | The whole company in one view. |  | Live operations, licensing, training, CRM, recruiting and system health. |  | Refresh Live Data | LI"
+      "detail": "ALLSHIELD OWNER CONTROLThe whole company in one view.Live operations, licensing, training, CRM, recruiting and system health.Refresh Live DataLIVE SUP"
     },
     {
       "name": "Owner ai",
@@ -49,7 +49,7 @@
     {
       "name": "Owner teamaccounts",
       "ok": true,
-      "detail": "TEAM ACCOUNTSAgent accounts and master files.Create an agent with only the information you know. ALLSHIELD generates the secure account identity befor"
+      "detail": "TEAM ACCOUNTS | Agent accounts and master files. |  | Create an agent with only the information you know. ALLSHIELD generates the secure account identity be"
     },
     {
       "name": "Owner departments",

@@ -42,7 +42,7 @@
     if (!client || !session) return fail();
     var ctx = ''; try { var el = document.querySelector('.ov .in'); ctx = el ? (el.innerText || '').slice(0, 6000) : ''; } catch (e) { }
     var done = false, bail = setTimeout(function () { if (!done) { done = true; fail(); } }, 45000);
-    client.functions.invoke('academy-tutor', { body: { question: String(question).slice(0, 1200), chapter: lesson && lesson.title ? String(lesson.title) : '', context: ctx, history: history.slice(-6) } })
+    client.functions.invoke('academy-tutor', { body: { question: String(question).slice(0, 1200), chapter: lesson && lesson.title ? String(lesson.title) : '', context: ctx, history: history.slice(-6), lang: (function () { try { return localStorage.getItem('allshield_lang') === 'es' ? 'es' : 'en'; } catch (e) { return 'en'; } })() } })
       .then(function (r) {
         if (done) return; done = true; clearTimeout(bail);
         var text = r && r.data && r.data.text;
@@ -56,6 +56,7 @@
     try {
       if (!window.supabase || !window.supabase.createClient || !cfg.SUPABASE_URL || !cfg.SUPABASE_PUBLISHABLE_KEY) return note('Offline mode: progress is saved on this device only.', false);
       client = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_PUBLISHABLE_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
+      window.__asAcademyClient = client;
       var s = await client.auth.getSession(); session = s && s.data ? s.data.session : null;
       if (!session) { note('Sign in to the Agent Portal to save progress and use the AI tutor.', false); return; }
       var r = await client.from('academy_progress').select('state,tutor_questions,updated_at').eq('user_id', session.user.id).limit(1);

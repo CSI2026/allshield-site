@@ -14,13 +14,14 @@
       { key: 'academy', icon: '▣', name: 'Academy', tabs: [['Allshield Academy', 'Allshield Academy'], ['Agent Progress', 'Academy Progress']] },
       { key: 'social', icon: '✦', name: 'Social', tabs: [['Marketing', 'Marketing Center'], ['Homepage Pop-up', 'Homepage Pop-up'], ['Connected Accounts', 'Social Connection Center']] },
       { key: 'office', icon: '✉', name: 'Office', tabs: [['Messages', 'Communications'], ['Meetings', 'Meeting Rooms'], ['Documents & E-Sign', 'Documents & E-Sign']] },
+      { key: 'pay', icon: '$', name: 'Pay & Contracts', tabs: [['Compensation', 'Compensation & Programs']] },
       { key: 'system', icon: '⚙', name: 'System', tabs: [['AI Operations', 'AI Operations'], ['Automations', 'Automation Center'], ['Settings', 'System Settings']] }
     ] },
     agent: { entryView: 'onboarding', showFn: 'showAgentView', sections: [
       { key: 'licensed', icon: '①', name: 'Get Licensed', tabs: [['Get Licensed', 'Get Licensed']] },
       { key: 'training', icon: '▣', name: 'Training', tabs: [['Allshield Academy', 'Allshield Academy']] },
       { key: 'sell', icon: '◎', name: 'What I Can Sell', tabs: [['Carriers & Programs', 'Carriers & Programs']] },
-      { key: 'account', icon: '♟', name: 'My Account', tabs: [['My Account', 'My Account'], ['My Agreements', 'My Agreements']] }
+      { key: 'account', icon: '♟', name: 'My Account', tabs: [['My Account', 'My Account'], ['My Agreements', 'My Agreements'], ['My Compensation', 'My Compensation & Tiers']] }
     ] }
   };
 

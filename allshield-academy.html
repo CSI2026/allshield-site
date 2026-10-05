@@ -144,7 +144,7 @@ main{padding-left:max(16px,44px)}
 <div id="app"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.min.js"></script>
 <script>window.ALLSHIELD_CONFIG={SUPABASE_URL:"https://xxeiddnfbdqxwuojuggy.supabase.co",SUPABASE_PUBLISHABLE_KEY:"sb_publishable_-JRPOYo13dO2h35TFkvR5Q_csWn9NFE"};</script>
-<script src="./allshield-academy-bridge.js?v=2026.10.05.001"></script>
+<script src="./allshield-academy-bridge.js?v=2026.10.05.002"></script>
 <script>
 /* ===================== CONFIG (safe to edit) ===================== */
 var CONFIG = {
@@ -410,7 +410,7 @@ function toggleAva(c){if(AVA)return closeAva();
   function quiz(){if(!qs.length)return say("There is no question bank for this lesson. Try one of the chapters.");var q=qs[Math.floor(Math.random()*qs.length)];
     var d=say('<b>'+rich(q.q)+'</b>'+q.choices.map(function(x,n){return '<button class="opt" data-n="'+n+'">'+rich(x)+'</button>'}).join(""));
     d.addEventListener("click",function(e){var o=e.target.closest(".opt");if(!o||d.dataset.d)return;d.dataset.d=1;var n=+o.dataset.n;say((n===q.answer?"<b>Correct.</b> ":"<b>Not quite.</b> The answer is: "+rich(q.choices[q.answer])+". ")+rich(q.why))})}
-  function answer(t){if(window.__asTutor){var wait=say("<i>Ava is thinking…</i>");return window.__asTutor(t,c,function(html){wait.innerHTML=html;log.scrollTop=log.scrollHeight},function(){wait.remove();answerLocal(t)})}answerLocal(t)}
+  function answer(t){if(window.__asTutor){var wait=say("<i>Ava is thinking…</i>");return window.__asTutor(t,c,function(html){wait.setAttribute("data-no-translate","1");wait.innerHTML=html;log.scrollTop=log.scrollHeight},function(){wait.remove();answerLocal(t)})}answerLocal(t)}
   function answerLocal(t){var w=t.toLowerCase().replace(/[^a-z0-9 ]/g," ").trim();if(!w)return;
     var sets=[c].concat(DATA.chapters,DATA.modules),hit=null;
     sets.some(function(s){return (s.keywords||[]).some(function(k){var kt=k.term.toLowerCase();if(w===kt||w.indexOf(kt)>=0||(w.length>3&&kt.indexOf(w)>=0)){hit={k:k,s:s};return true}})});
@@ -465,5 +465,6 @@ window.__academy={S:function(){return S},reset:function(){S={done:{},scores:{},p
 home();
 })();
 </script>
+<script src="./allshield-translate.js?v=2026.10.05.001"></script>
 </body>
 </html>

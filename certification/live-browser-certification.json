@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-10-05T05:41:50.276Z",
+  "completed_at": "2026-10-05T06:25:03.730Z",
   "status": "FAIL",
   "passed": 32,
   "total": 39,
@@ -84,7 +84,7 @@
     {
       "name": "Owner academy",
       "ok": false,
-      "detail": ""
+      "detail": "Your progress saves to your account as you go.✓ Save & Exit Training"
     },
     {
       "name": "Owner testing",
@@ -94,7 +94,7 @@
     {
       "name": "Owner versions",
       "ok": false,
-      "detail": ""
+      "detail": "Your progress saves to your account as you go.✓ Save & Exit Training"
     },
     {
       "name": "Owner updates",
@@ -205,9 +205,9 @@
   "failures": [
     "Owner ai: AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a",
     "Owner ai revisit: tab rebuilds after route change",
-    "Owner academy: ",
+    "Owner academy: Your progress saves to your account as you go.✓ Save & Exit Training",
     "Owner testing: ACADEMY PROGRESS | How every agent is doing. |  | Progress and scores from the Allshield Academy. It updates as agents study. |  | Refresh | AGENT\tSTATUS\tPRE-LICE",
-    "Owner versions: ",
+    "Owner versions: Your progress saves to your account as you go.✓ Save & Exit Training",
     "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity",
     "Certification execution: page.waitForFunction: Timeout 30000ms exceeded.\n    at /home/runner/work/allshield-site/allshield-site/tests/live-browser-cert.mjs:19:567"
   ]

@@ -1,7 +1,7 @@
 {
   "certification": "ALLSHIELD Owner Portal functional browser certification",
   "base_url": "https://allshieldinsurancegroup.com",
-  "completed_at": "2026-10-04T23:41:16.045Z",
+  "completed_at": "2026-10-05T01:54:07.315Z",
   "status": "FAIL",
   "passed": 35,
   "total": 39,
@@ -24,7 +24,7 @@
     {
       "name": "23 Owner handlers registered",
       "ok": true,
-      "detail": "registered=33"
+      "detail": "registered=29"
     },
     {
       "name": "Owner dashboard",
@@ -34,7 +34,7 @@
     {
       "name": "Owner ai",
       "ok": false,
-      "detail": "AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a"
+      "detail": "AI WORKFORCE COMMAND CENTERYour measurable AI workforce.Every AI employee has a name, permanent job assignment, KPI charter, tracked work history and "
     },
     {
       "name": "Owner ai revisit",
@@ -203,7 +203,7 @@
     }
   ],
   "failures": [
-    "Owner ai: AI WORKFORCE COMMAND CENTER | Your measurable AI workforce. |  | Every AI employee has a name, permanent job assignment, KPI charter, tracked work history a",
+    "Owner ai: AI WORKFORCE COMMAND CENTERYour measurable AI workforce.Every AI employee has a name, permanent job assignment, KPI charter, tracked work history and ",
     "Owner ai revisit: tab rebuilds after route change",
     "Live AI Command Center controls: Academy AI, Operations AI, Performance AI, Compliance AI, Marketing AI, Video Editor AI, Ask Allshield AI, Recent AI Activity",
     "Certification execution: page.waitForFunction: Timeout 30000ms exceeded.\n    at /home/runner/work/allshield-site/allshield-site/tests/live-browser-cert.mjs:19:567"

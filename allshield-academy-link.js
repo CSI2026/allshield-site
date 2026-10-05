@@ -104,6 +104,41 @@
       w.__aal = true; window[r.fn] = w;
     });
   }
+  /* Get Licensed → the new Academy. The status question and state pick stay as they are; once the
+     agent presses "Continue My Course" (or any other way into the older guided course) they land in
+     the new Academy instead, and the plan card shows the new Academy's progress. */
+  var GUIDED = ['asGuidedOpenStudy', 'asGuidedStartLesson', 'asGuidedBeginFocus', 'asGuidedOpenTests', 'asGuidedStartCheckpoint', 'asGuidedOpenLessonCheck'];
+  function toAcademy() {
+    var link = document.querySelector('#agentPortal [data-aal="open"][data-screen="course"]');
+    if (!link) return false;
+    link.click(); window.scrollTo(0, 0); return true;
+  }
+  function hookGuided() {
+    if (KEEP_OLD) return;
+    GUIDED.forEach(function (n) {
+      var f = window[n]; if (typeof f !== 'function' || f.__aal) return;
+      var w = function () { if (toAcademy()) return; return f.apply(this, arguments); };
+      w.__aal = true; window[n] = w;
+    });
+  }
+  var planBusy = false;
+  async function planProgress() {
+    var main = document.getElementById('agentMain'); if (!main || planBusy) return;
+    var copy = main.querySelector('.as-guide-progresscopy'); if (!copy || copy.getAttribute('data-aal-done')) return;
+    var c = sb(); if (!c) return;
+    planBusy = true;
+    try {
+      var u = (await c.auth.getUser()).data.user; if (!u) return;
+      var r = (await c.from('academy_progress').select('prep_done,prep_total,training_done,training_total').eq('user_id', u.id).maybeSingle()).data;
+      var done = r ? (r.prep_done || 0) : 0, total = r && r.prep_total ? r.prep_total : 42;
+      var pct = total ? Math.round(done * 100 / total) : 0;
+      if (!main.contains(copy)) return;
+      copy.setAttribute('data-aal-done', '1');
+      copy.innerHTML = '<span>' + done + ' of ' + total + ' lessons in the Allshield Academy</span><strong>' + pct + '%</strong>';
+      var bar = copy.previousElementSibling; if (bar && bar.classList.contains('as-guide-progress') && bar.firstElementChild) bar.firstElementChild.style.width = pct + '%';
+    } catch (e) { } finally { planBusy = false; }
+  }
+  setInterval(function () { hookGuided(); planProgress(); }, 1200);
   hookOld();
   boot();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

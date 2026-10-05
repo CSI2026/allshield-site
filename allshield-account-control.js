@@ -99,15 +99,19 @@
   }
   /* ---------- owner/admin preview of the agent "Get Licensed" screen ---------- */
   async function fixPreview(main) {
-    var card = Array.prototype.find.call(main.querySelectorAll('h2,h3'), function (h) { return /could not load your licensing path/i.test(h.textContent); });
-    if (!card || main.querySelector('#asPreviewNote')) return;
+    var card = Array.prototype.find.call(main.querySelectorAll('*'), function (h) { return !h.children.length && /could not load your (licensing )?path/i.test(h.textContent); });
+    if (!card || card.getAttribute('data-as-preview')) return;
+    card.setAttribute('data-as-preview', '1');
     var c = client(); if (!c) return;
     try {
       var u = (await c.auth.getUser()).data.user; if (!u) return;
       var p = (await c.from('profiles').select('role').eq('id', u.id).maybeSingle()).data;
       if (!p || p.role === 'agent') return;
-      var wrap = card.parentNode;
-      wrap.innerHTML = '<div id="asPreviewNote"><h3>Preview only</h3><p>You are signed in as ' + esc(p.role) + '. This screen shows each agent their own licensing path, so there is nothing to load for your account. Sign in with an agent account to see it the way an agent does.</p></div>';
+      card.textContent = 'Preview only';
+      var next = card.nextElementSibling;
+      var note = 'You are signed in as ' + p.role + '. This screen shows each agent their own licensing path, so there is nothing to load for your account. Sign in with an agent account to see it the way an agent does.';
+      if (next && !next.querySelector('button') && next.tagName !== 'BUTTON') next.textContent = note; else card.insertAdjacentHTML('afterend', '<p>' + esc(note) + '</p>');
+      Array.prototype.forEach.call(card.parentNode.querySelectorAll('button'), function (b) { if (/try again/i.test(b.textContent)) b.style.display = 'none'; });
     } catch (e) { }
   }
   /* ---------- wiring ---------- */

@@ -88,6 +88,23 @@
     addLink('owner', 'course', 'Allshield Academy'); addLink('owner', 'progress', 'Academy Progress');
     removeOld();
   }
+  /* anything that still tries to open an old academy screen (a button on another page, a
+     dashboard shortcut) is sent to the new Academy instead */
+  var REDIRECT = { agent: { fn: 'showAgentView', map: { study: 'course', tests: 'course', ai: 'course' } }, admin: { fn: 'showAdminView', map: { courses: 'course', tests: 'progress' } }, owner: { fn: 'showOwnerView', map: { academy: 'course', testing: 'progress', versions: 'course' } } };
+  function hookOld() {
+    if (KEEP_OLD) return;
+    Object.keys(REDIRECT).forEach(function (portal) {
+      var r = REDIRECT[portal], old = window[r.fn];
+      if (typeof old !== 'function' || old.__aal) return;
+      var w = function (view) {
+        var to = r.map[view];
+        if (to) { var link = document.querySelector('#' + portal + 'Portal [data-aal="open"][data-screen="' + to + '"]'); if (link) { link.click(); return; } }
+        return old.apply(this, arguments);
+      };
+      w.__aal = true; window[r.fn] = w;
+    });
+  }
+  hookOld();
   boot();
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   window.addEventListener('load', function () {

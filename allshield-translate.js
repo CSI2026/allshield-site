@@ -9,7 +9,7 @@
   var URL_BASE = 'https://xxeiddnfbdqxwuojuggy.supabase.co', PUB_KEY = 'sb_publishable_-JRPOYo13dO2h35TFkvR5Q_csWn9NFE';
   var EMBED = false; try { EMBED = window.self !== window.top; } catch (e) { EMBED = true; }
   var lang = 'en'; try { lang = localStorage.getItem(LS_LANG) === 'es' ? 'es' : 'en'; } catch (e) { }
-  var cache = {}, misses = {}, rec = new WeakMap(), attrRec = new WeakMap(), queue = {}, flushTimer = null, active = 0, saveTimer = null, observers = [], roots = [];
+  var cache = {}, misses = {}, rec = new WeakMap(), attrRec = new WeakMap(), queue = {}, flushTimer = null, active = 0, saveTimer = null, observers = [], roots = [], watched = [], bodyWatch = null;
   try { cache = JSON.parse(localStorage.getItem(LS_CACHE) || '{}') || {}; } catch (e) { cache = {}; }
   var SKIP_TAGS = { SCRIPT: 1, STYLE: 1, NOSCRIPT: 1, TEXTAREA: 1, CODE: 1, PRE: 1, IFRAME: 1, SVG: 1, OPTION: 0 };
   var ATTRS = ['placeholder', 'aria-label', 'title'];
@@ -120,20 +120,33 @@
     var apx = document.getElementById('apxSite'); if (apx && apx.shadowRoot) list.push(apx.shadowRoot);
     return list;
   }
+  function onMuts(muts) {
+    if (lang !== 'es') return;
+    muts.forEach(function (m) {
+      if (m.type === 'characterData') doText(m.target);
+      else if (m.type === 'attributes') doAttrs(m.target);
+      else m.addedNodes.forEach(function (n) { walk(n); });
+    });
+  }
+  /* The site blocks whole-page observers on purpose, so each top-level block of the page is watched on its own. */
+  function watchNode(n) {
+    if (!window.MutationObserver || watched.indexOf(n) >= 0) return;
+    if (n.nodeType === 1 && (SKIP_TAGS[n.tagName] || skipEl(n))) return;
+    watched.push(n);
+    var mo = new MutationObserver(onMuts);
+    mo.observe(n, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+    observers.push(mo);
+  }
   function watch() {
     findRoots().forEach(function (r) {
-      if (roots.indexOf(r) >= 0) return; roots.push(r);
-      if (!window.MutationObserver) return;
-      var mo = new MutationObserver(function (muts) {
-        if (lang !== 'es') return;
-        muts.forEach(function (m) {
-          if (m.type === 'characterData') doText(m.target);
-          else if (m.type === 'attributes') doAttrs(m.target);
-          else m.addedNodes.forEach(function (n) { walk(n); });
-        });
-      });
-      mo.observe(r, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
-      observers.push(mo);
+      if (roots.indexOf(r) < 0) roots.push(r);
+      if (r === document.body) {
+        Array.prototype.forEach.call(r.children, watchNode);
+        if (!bodyWatch && window.MutationObserver) {
+          bodyWatch = new MutationObserver(function (muts) { muts.forEach(function (m) { m.addedNodes.forEach(function (n) { if (n.nodeType === 1) { watchNode(n); if (lang === 'es') walk(n); } }); }); });
+          bodyWatch.observe(r, { childList: true });
+        }
+      } else watchNode(r);
     });
   }
   function apply() {
@@ -164,7 +177,8 @@
     btn = document.createElement('button'); btn.id = 'asLangBtn'; btn.type = 'button';
     btn.addEventListener('click', function () { setLang(lang === 'es' ? 'en' : 'es'); });
     document.body.appendChild(btn);
-    if (window.MutationObserver) new MutationObserver(paint).observe(document.body, { attributes: true, subtree: true, attributeFilter: ['class'] });
+    ['ownerPortal', 'adminPortal', 'ownerLogin', 'adminLogin', 'agentPortal', 'agentLogin'].forEach(function (id) { var el = document.getElementById(id); if (el && window.MutationObserver) new MutationObserver(paint).observe(el, { attributes: true, attributeFilter: ['class'] }); });
+    setInterval(paint, 3000);
     paint();
   }
   window.addEventListener('storage', function (e) { if (e.key === LS_LANG) setLang(e.newValue === 'es' ? 'es' : 'en', true); });

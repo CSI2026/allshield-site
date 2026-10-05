@@ -133,8 +133,16 @@
   }
   function boot() {
     style(); hookOpen(); setInterval(hookOpen, 2000);
-    var t = null;
-    if (window.MutationObserver) new MutationObserver(function () { clearTimeout(t); t = setTimeout(check, 250); }).observe(document.body, { childList: true, subtree: true });
+    /* The site blocks whole-page observers on purpose, so each portal screen is watched on its own. */
+    var t = null, seen = [];
+    function later() { clearTimeout(t); t = setTimeout(check, 250); }
+    function watch() {
+      ['ownerMain', 'adminMain', 'agentMain'].forEach(function (id) {
+        var m = document.getElementById(id); if (!m || seen.indexOf(m) >= 0 || !window.MutationObserver) return;
+        seen.push(m); new MutationObserver(later).observe(m, { childList: true, subtree: true });
+      });
+    }
+    watch(); setInterval(function () { watch(); check(); }, 2000);
     var c = client(); if (c && c.auth && c.auth.onAuthStateChange) c.auth.onAuthStateChange(function () { access = null; });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
